@@ -1920,3 +1920,747 @@ style.textContent = `
     }
 `;
 document.head.appendChild(style);
+
+/* =========================================
+   INTEGRACION DOCENTE CON BASE DE DATOS
+========================================= */
+
+const DOCENTE_API = '../controlador/docente.php';
+const SESION_API = '../controlador/sesion.php';
+let clasesDocente = [];
+let alumnosDisponiblesDocente = [];
+let claseSeleccionadaDocente = null;
+let cursoListaActivo = null;
+
+async function apiDocente(accion, opciones = {}) {
+    const query = opciones.query ? `&${new URLSearchParams(opciones.query).toString()}` : '';
+    const config = {
+        method: opciones.method || 'GET',
+        headers: { 'Content-Type': 'application/json' }
+    };
+
+    if (opciones.body) {
+        config.body = JSON.stringify(opciones.body);
+    }
+
+    const response = await fetch(`${DOCENTE_API}?accion=${accion}${query}`, config);
+    const data = await response.json();
+
+    if (!response.ok || !data.ok) {
+        if (response.status === 401) {
+            window.location.href = '../index.html';
+            return null;
+        }
+        throw new Error(data.mensaje || 'No se pudo completar la operacion.');
+    }
+
+    return data;
+}
+
+function escapar(texto) {
+    return String(texto ?? '').replace(/[&<>"']/g, c => ({
+        '&': '&amp;',
+        '<': '&lt;',
+        '>': '&gt;',
+        '"': '&quot;',
+        "'": '&#039;'
+    }[c]));
+}
+
+function fechaISOActual() {
+    return new Date().toISOString().split('T')[0];
+}
+
+async function inicializarSesionDocente() {
+    try {
+        const data = await apiDocente('perfil');
+        if (!data || !data.perfil) return;
+
+        const nombre = `${data.perfil.nombre} ${data.perfil.apellido}`.trim();
+        const iniciales = `${data.perfil.nombre?.[0] || ''}${data.perfil.apellido?.[0] || ''}`.toUpperCase();
+
+        const nombreHeader = document.getElementById('docente-nombre-header');
+        const inicialesHeader = document.getElementById('docente-iniciales-header');
+        const nombreBienvenida = document.getElementById('docente-nombre-bienvenida');
+
+        if (nombreHeader) nombreHeader.textContent = `Prof. ${nombre}`;
+        if (inicialesHeader) inicialesHeader.textContent = iniciales || 'DC';
+        if (nombreBienvenida) nombreBienvenida.textContent = data.perfil.nombre;
+    } catch (error) {
+        console.error(error);
+    }
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+    inicializarSesionDocente();
+    document.querySelectorAll('.btn-logout-docente').forEach(btn => {
+        btn.addEventListener('click', async () => {
+            await fetch(`${SESION_API}?accion=logout`);
+            window.location.href = '../index.html';
+        });
+    });
+});
+
+async function inicializarMisClases() {
+    if (!document.getElementById('clases-activas-container')) return;
+
+    try {
+        const data = await apiDocente('cursos');
+        clasesDocente = data.cursos || [];
+        cargarClasesActivas();
+        cargarSolicitudes(data.solicitudes || []);
+    } catch (error) {
+        mostrarToast(`<i class="fa-solid fa-triangle-exclamation"></i> ${escapar(error.message)}`, 'error');
+    }
+}
+
+function cargarSolicitudes(solicitudes = []) {
+    const container = document.getElementById('requests-container');
+    const badge = document.getElementById('badge-solicitudes');
+    if (!container) return;
+
+    if (badge) {
+        badge.textContent = `${solicitudes.length} Pendiente${solicitudes.length !== 1 ? 's' : ''}`;
+    }
+
+    if (solicitudes.length === 0) {
+        container.innerHTML = `
+            <p style="color: var(--text-muted); text-align:center; padding: 20px;">
+                <i class="fa-solid fa-circle-check"></i> No hay solicitudes pendientes.
+            </p>`;
+        return;
+    }
+
+    container.innerHTML = solicitudes.map(s => `
+        <div class="request-item">
+            <div class="student-avatar">
+                <img src="https://ui-avatars.com/api/?name=${encodeURIComponent(s.alumno)}&background=F1F5F9&color=6366f1" alt="Alumno">
+            </div>
+            <div class="request-info">
+                <h4>${escapar(s.alumno)}</h4>
+                <p>Solicita unirse a: <b>${escapar(s.clase)} (${escapar(s.grupo)})</b></p>
+            </div>
+            <div class="request-actions">
+                <button class="btn-accept" title="Aceptar" onclick="responderSolicitud(${s.id}, 'aceptar')">
+                    <i class="fa-solid fa-check"></i>
+                </button>
+                <button class="btn-decline" title="Rechazar" onclick="responderSolicitud(${s.id}, 'rechazar')">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+        </div>
+    `).join('');
+}
+
+async function responderSolicitud(idSolicitud, decision) {
+    try {
+        const data = await apiDocente('responder_solicitud', {
+            method: 'POST',
+            body: { id_solicitud: idSolicitud, decision }
+        });
+        cargarSolicitudes(data.solicitudes || []);
+        await inicializarMisClases();
+        mostrarToast('<i class="fa-solid fa-circle-check"></i> Solicitud actualizada', 'success');
+    } catch (error) {
+        alert(error.message);
+    }
+}
+
+function cargarClasesActivas() {
+    const container = document.getElementById('clases-activas-container');
+    if (!container) return;
+
+    if (clasesDocente.length === 0) {
+        container.innerHTML = `
+            <p style="color: var(--text-muted); text-align:center; padding: 30px;">
+                <i class="fa-solid fa-chalkboard"></i> Aun no tienes clases registradas.
+            </p>`;
+        return;
+    }
+
+    container.innerHTML = clasesDocente.map(clase => `
+        <div class="clase-card">
+            <div class="clase-banner">
+                <span class="ciclo-tag">${escapar(clase.periodo || 'Periodo actual')}</span>
+                <div class="clase-icon"><i class="fa-solid ${escapar(clase.icono || 'fa-chalkboard')}"></i></div>
+            </div>
+            <div class="clase-body">
+                <h3>${escapar(clase.nombre)}</h3>
+                <p class="desc">${escapar(clase.desc)}</p>
+                <div class="clase-detalles">
+                    <span class="detalle-item"><i class="fa-solid fa-graduation-cap"></i> ${escapar(clase.grado)}° "${escapar(clase.grupo)}"</span>
+                    ${(clase.horarios || []).map(h => `
+                        <span class="detalle-item"><i class="fa-regular fa-clock"></i> ${escapar(h)}</span>
+                    `).join('')}
+                </div>
+                <div class="clase-meta">
+                    <span><i class="fa-solid fa-users"></i> ${clase.total_alumnos || 0} Alumnos</span>
+                    <span class="code-pill">CODIGO: <b>${escapar(clase.codigo)}</b></span>
+                </div>
+            </div>
+            <div class="clase-footer">
+                <button class="btn-manage" onclick="abrirGestionClase(${clase.id})">
+                    <i class="fa-solid fa-gear"></i> Gestionar Clase
+                </button>
+            </div>
+        </div>
+    `).join('');
+}
+
+async function crearClase(event) {
+    event.preventDefault();
+
+    const horarios = Array.from(document.querySelectorAll('#horarios-container .horario-row')).map(row => ({
+        dia: row.querySelector('.dia-select').value,
+        inicio: row.querySelector('.hora-inicio-select').value,
+        fin: row.querySelector('.hora-fin-select').value
+    }));
+
+    const payload = {
+        nombre: document.getElementById('nombreClase').value.trim(),
+        grado: document.getElementById('gradoClase').value,
+        grupo: document.getElementById('grupoClase').value,
+        codigo: document.getElementById('codigoClase').value.trim(),
+        descripcion: document.getElementById('descripcionClase').value.trim(),
+        horarios
+    };
+
+    if (!payload.nombre || !payload.grado || !payload.grupo || !payload.codigo || horarios.some(h => !h.dia || !h.inicio || !h.fin)) {
+        alert('Por favor, complete todos los campos obligatorios.');
+        return;
+    }
+
+    try {
+        await apiDocente('crear_curso', { method: 'POST', body: payload });
+        toggleModal('modal-crear');
+        document.getElementById('form-crear-clase').reset();
+        await inicializarMisClases();
+        mostrarToast('<i class="fa-solid fa-circle-check"></i> Clase creada correctamente', 'success');
+    } catch (error) {
+        alert(error.message);
+    }
+}
+
+async function abrirGestionClase(idClase) {
+    claseSeleccionadaId = idClase;
+    claseSeleccionadaDocente = clasesDocente.find(c => Number(c.id) === Number(idClase));
+    reporteGenerado = null;
+
+    if (!claseSeleccionadaDocente) return;
+
+    document.getElementById('titulo-gestion-modal').innerHTML =
+        `<i class="fa-solid fa-gear"></i> ${escapar(claseSeleccionadaDocente.nombre)} (${escapar(claseSeleccionadaDocente.grado)}° "${escapar(claseSeleccionadaDocente.grupo)}")`;
+
+    cargarAlumnosGestion(claseSeleccionadaDocente);
+    document.getElementById('resultado-reporte').innerHTML =
+        '<p class="placeholder-message">Seleccione una semana y haga clic en "Consultar" para ver el reporte de asistencias del grupo.</p>';
+    document.getElementById('semana-reporte').value = '';
+    document.getElementById('export-buttons').style.display = 'none';
+    cambiarTabGestion('alumnos');
+    toggleModal('modal-gestionar');
+}
+
+function cargarAlumnosGestion(clase) {
+    const listaContainer = document.getElementById('lista-alumnos-gestion');
+    const totalSpan = document.getElementById('total-alumnos-gestion');
+    if (!listaContainer || !totalSpan) return;
+
+    const alumnos = clase.alumnos || [];
+    totalSpan.textContent = alumnos.length;
+
+    if (alumnos.length === 0) {
+        listaContainer.innerHTML = `
+            <p style="color: var(--text-muted); text-align: center; padding: 20px;">
+                <i class="fa-solid fa-user-slash"></i> No hay alumnos inscritos en esta clase.
+            </p>`;
+        return;
+    }
+
+    listaContainer.innerHTML = alumnos.map(alumno => `
+        <div class="alumno-item" onclick="verDetalleAlumno(event, ${clase.id}, ${alumno.id})">
+            <img src="https://ui-avatars.com/api/?name=${encodeURIComponent(alumno.nombre)}&background=192A56&color=fff" alt="${escapar(alumno.nombre)}">
+            <div class="alumno-info">
+                <strong>${escapar(alumno.nombre)}</strong>
+                <small>Matricula: ${escapar(alumno.matricula || 'Sin matricula')}</small>
+            </div>
+            <button class="btn-eliminar-alumno" title="Eliminar alumno" onclick="event.stopPropagation(); eliminarAlumno(${clase.id}, ${alumno.id})">
+                <i class="fa-solid fa-user-minus"></i>
+            </button>
+        </div>
+    `).join('');
+}
+
+async function eliminarAlumno(idClase, idAlumno) {
+    if (!confirm('¿Está seguro de eliminar este alumno de la clase?')) return;
+
+    try {
+        const data = await apiDocente('eliminar_alumno', {
+            method: 'POST',
+            body: { id_curso: idClase, id_alumno: idAlumno }
+        });
+        claseSeleccionadaDocente.alumnos = data.alumnos || [];
+        claseSeleccionadaDocente.total_alumnos = claseSeleccionadaDocente.alumnos.length;
+        cargarAlumnosGestion(claseSeleccionadaDocente);
+        cargarClasesActivas();
+        mostrarToast('<i class="fa-solid fa-circle-check"></i> Alumno eliminado', 'success');
+    } catch (error) {
+        alert(error.message);
+    }
+}
+
+async function abrirModalAgregarAlumno() {
+    if (!claseSeleccionadaId) return;
+
+    let modal = document.getElementById('modal-agregar-alumno');
+    if (!modal) {
+        modal = document.createElement('div');
+        modal.id = 'modal-agregar-alumno';
+        modal.className = 'modal';
+        modal.innerHTML = `
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h3><i class="fa-solid fa-user-plus"></i> Agregar Alumno a la Clase</h3>
+                    <button class="close-modal" onclick="toggleModal('modal-agregar-alumno')">&times;</button>
+                </div>
+                <div class="modern-form">
+                    <div class="form-group">
+                        <label><i class="fa-solid fa-magnifying-glass"></i> Buscar por Matricula</label>
+                        <div style="display: flex; gap: 10px;">
+                            <input type="text" id="buscar-matricula-input" placeholder="Ej: 20240001" style="flex: 1;">
+                            <button class="btn-submit" onclick="buscarAlumnoPorMatricula()" style="white-space: nowrap;">
+                                <i class="fa-solid fa-search"></i> Buscar
+                            </button>
+                        </div>
+                    </div>
+                    <div id="resultado-busqueda-alumno" style="margin-top: 15px;"></div>
+                    <div id="lista-alumnos-disponibles" style="margin-top: 20px;">
+                        <h4 style="color: var(--color-azul-marino); margin-bottom: 10px;">
+                            <i class="fa-solid fa-list"></i> Alumnos disponibles en el sistema
+                        </h4>
+                        <div id="alumnos-disponibles-lista" style="max-height: 300px; overflow-y: auto;"></div>
+                    </div>
+                    <div class="form-actions" style="margin-top: 20px;">
+                        <button type="button" class="btn-cancel" onclick="toggleModal('modal-agregar-alumno')">Cancelar</button>
+                    </div>
+                </div>
+            </div>`;
+        document.body.appendChild(modal);
+    }
+
+    document.getElementById('buscar-matricula-input').value = '';
+    document.getElementById('resultado-busqueda-alumno').innerHTML = '';
+    await cargarAlumnosDisponibles();
+    toggleModal('modal-agregar-alumno');
+}
+
+async function cargarAlumnosDisponibles() {
+    const container = document.getElementById('alumnos-disponibles-lista');
+    if (!container) return;
+
+    const data = await apiDocente('alumnos_disponibles', { query: { id_curso: claseSeleccionadaId } });
+    alumnosDisponiblesDocente = data.alumnos || [];
+
+    if (alumnosDisponiblesDocente.length === 0) {
+        container.innerHTML = `
+            <p style="color: var(--text-muted); text-align: center; padding: 20px;">
+                <i class="fa-solid fa-circle-check"></i> Todos los alumnos del sistema ya estan en esta clase.
+            </p>`;
+        return;
+    }
+
+    container.innerHTML = alumnosDisponiblesDocente.map(alumno => `
+        <div class="alumno-item" style="cursor: default;">
+            <img src="https://ui-avatars.com/api/?name=${encodeURIComponent(alumno.nombre)}&background=192A56&color=fff" alt="${escapar(alumno.nombre)}">
+            <div class="alumno-info">
+                <strong>${escapar(alumno.nombre)}</strong>
+                <small>Matricula: ${escapar(alumno.matricula || 'Sin matricula')}</small>
+            </div>
+            <button class="btn-add-alumno" onclick="agregarAlumnoAClase(${alumno.id})" style="white-space: nowrap;">
+                <i class="fa-solid fa-plus"></i> Agregar
+            </button>
+        </div>
+    `).join('');
+}
+
+async function buscarAlumnoPorMatricula() {
+    const input = document.getElementById('buscar-matricula-input');
+    const resultadoDiv = document.getElementById('resultado-busqueda-alumno');
+    const matricula = input.value.trim();
+
+    if (!matricula) {
+        alert('Por favor, ingrese una matricula para buscar.');
+        return;
+    }
+
+    const data = await apiDocente('buscar_alumno', {
+        query: { id_curso: claseSeleccionadaId, matricula }
+    });
+    const alumno = data.alumno;
+
+    if (!alumno) {
+        resultadoDiv.innerHTML = `<div style="background:#FEF2F2;padding:15px;border-radius:10px;color:var(--danger);">
+            <i class="fa-solid fa-circle-xmark"></i> No existe ningun alumno con la matricula "${escapar(matricula)}".
+        </div>`;
+        return;
+    }
+
+    if (Number(alumno.inscrito) === 1) {
+        resultadoDiv.innerHTML = `<div style="background:#FFFBEB;padding:15px;border-radius:10px;color:#92400E;">
+            <i class="fa-solid fa-triangle-exclamation"></i> ${escapar(alumno.nombre)} ya pertenece a esta clase.
+        </div>`;
+        return;
+    }
+
+    resultadoDiv.innerHTML = `
+        <div style="background:#F0FDF4;padding:15px;border-radius:10px;border:2px solid var(--success);">
+            <strong>${escapar(alumno.nombre)}</strong><br>
+            <small>Matricula: ${escapar(alumno.matricula || '')}</small>
+            <button class="btn-submit" onclick="agregarAlumnoAClase(${alumno.id})" style="margin-left:12px;">
+                <i class="fa-solid fa-user-plus"></i> Agregar a la Clase
+            </button>
+        </div>`;
+}
+
+async function agregarAlumnoAClase(idAlumno) {
+    try {
+        const data = await apiDocente('agregar_alumno', {
+            method: 'POST',
+            body: { id_curso: claseSeleccionadaId, id_alumno: idAlumno }
+        });
+        claseSeleccionadaDocente.alumnos = data.alumnos || [];
+        claseSeleccionadaDocente.total_alumnos = claseSeleccionadaDocente.alumnos.length;
+        cargarAlumnosGestion(claseSeleccionadaDocente);
+        cargarClasesActivas();
+        await cargarAlumnosDisponibles();
+        document.getElementById('resultado-busqueda-alumno').innerHTML = '';
+        mostrarToast('<i class="fa-solid fa-circle-check"></i> Alumno agregado', 'success');
+    } catch (error) {
+        alert(error.message);
+    }
+}
+
+function verDetalleAlumno(event, idClase, idAlumno) {
+    if (event.target.closest('.btn-eliminar-alumno')) return;
+
+    const clase = clasesDocente.find(c => Number(c.id) === Number(idClase));
+    const alumno = clase?.alumnos?.find(a => Number(a.id) === Number(idAlumno));
+    if (!clase || !alumno) return;
+
+    const detalleBody = document.getElementById('detalle-alumno-body');
+    detalleBody.innerHTML = `
+        <div class="detalle-alumno-card">
+            <img src="https://ui-avatars.com/api/?name=${encodeURIComponent(alumno.nombre)}&background=192A56&color=fff&size=150" alt="${escapar(alumno.nombre)}" class="detalle-avatar">
+            <h3 class="detalle-nombre">${escapar(alumno.nombre)}</h3>
+            <div class="detalle-grid">
+                <div class="detalle-campo"><label><i class="fa-solid fa-id-card"></i> Matricula</label><span>${escapar(alumno.matricula || 'Sin matricula')}</span></div>
+                <div class="detalle-campo"><label><i class="fa-solid fa-envelope"></i> Correo</label><span>${escapar(alumno.correo || 'Sin correo')}</span></div>
+                <div class="detalle-campo"><label><i class="fa-solid fa-user-tie"></i> Tutor</label><span>${escapar(alumno.tutor || 'Sin tutor')}</span></div>
+                <div class="detalle-campo"><label><i class="fa-solid fa-phone"></i> Telefono Tutor</label><span>${escapar(alumno.telefonoTutor || 'Sin telefono')}</span></div>
+                <div class="detalle-campo detalle-campo-full"><label><i class="fa-solid fa-building-columns"></i> Clase</label><span>${escapar(clase.nombre)} - ${escapar(clase.grado)}° "${escapar(clase.grupo)}"</span></div>
+            </div>
+            <button class="btn-cancel" style="margin-top:20px;" onclick="toggleModal('modal-detalle-alumno')">
+                <i class="fa-solid fa-xmark"></i> Cerrar
+            </button>
+        </div>`;
+
+    toggleModal('modal-detalle-alumno');
+}
+
+async function inicializarPaseLista() {
+    const dateDisplay = document.getElementById('current-date-display');
+    const trimestreInput = document.getElementById('trimestre-activo');
+    const select = document.getElementById('grupo-select');
+
+    if (dateDisplay) {
+        const ahora = new Date();
+        dateDisplay.innerText = ahora.toLocaleDateString('es-ES', {
+            weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'
+        }).replace(/^./, c => c.toUpperCase());
+    }
+    if (trimestreInput) trimestreInput.value = obtenerTrimestreActual();
+
+    if (!select) return;
+
+    try {
+        const data = await apiDocente('cursos_lista');
+        select.innerHTML = '<option value="" disabled selected>Seleccione una clase...</option>';
+        (data.cursos || []).forEach(curso => {
+            const option = document.createElement('option');
+            option.value = curso.id;
+            option.textContent = curso.label;
+            select.appendChild(option);
+        });
+    } catch (error) {
+        alert(error.message);
+    }
+}
+
+async function cargarAlumnos(idCurso) {
+    const panel = document.getElementById('panel-asistencia');
+    const tbody = document.getElementById('lista-alumnos-body');
+    const resumen = document.getElementById('resumen-asistencia');
+    if (!panel || !tbody) return;
+
+    tbody.innerHTML = '';
+    cursoListaActivo = idCurso;
+
+    if (!idCurso) {
+        panel.style.display = 'none';
+        if (resumen) resumen.style.display = 'none';
+        return;
+    }
+
+    const data = await apiDocente('lista_asistencia', {
+        query: { id_curso: idCurso, fecha: fechaISOActual() }
+    });
+
+    (data.alumnos || []).forEach(alumno => {
+        const justificado = Number(alumno.justificado) === 1;
+        const estado = justificado ? 'justificado' : alumno.estado;
+        const tr = document.createElement('tr');
+        tr.dataset.idAlumno = alumno.id;
+        tr.dataset.estado = estado === 'pendiente' ? 'pendiente' : estado;
+
+        const badge = badgeAsistencia(alumno.id, estado, alumno.motivo_justificante);
+        const botones = justificado ? `
+            <div class="action-group"><button class="disabled-btn" disabled>Justificado</button></div>
+        ` : `
+            <div class="action-group">
+                <button class="btn-action btn-asistencia" title="Presente" onclick="marcarAsistencia(${alumno.id}, 'asistencia')"><i class="fa-solid fa-check"></i></button>
+                <button class="btn-action btn-retardo" title="Retardo" onclick="marcarAsistencia(${alumno.id}, 'retardo')"><i class="fa-solid fa-clock"></i></button>
+                <button class="btn-action btn-falta" title="Falta" onclick="marcarAsistencia(${alumno.id}, 'falta')"><i class="fa-solid fa-xmark"></i></button>
+            </div>`;
+
+        tr.innerHTML = `
+            <td>
+                <div class="student-info-table">
+                    <img src="https://ui-avatars.com/api/?name=${encodeURIComponent(alumno.nombre)}&background=192A56&color=fff" class="avatar-table" alt="avatar">
+                    <span><b>${escapar(alumno.nombre)}</b><br><small>Matricula: ${escapar(alumno.matricula || 'Sin matricula')}</small></span>
+                </div>
+            </td>
+            <td>${badge}</td>
+            <td>${botones}</td>`;
+        tbody.appendChild(tr);
+    });
+
+    panel.style.display = 'block';
+    panel.classList.remove('fade-in');
+    void panel.offsetWidth;
+    panel.classList.add('fade-in');
+    actualizarResumenAsistencia();
+}
+
+function badgeAsistencia(idAlumno, estado, motivo = '') {
+    const datos = {
+        presente: ['badge-asistencia', 'fa-check', 'Presente'],
+        asistencia: ['badge-asistencia', 'fa-check', 'Presente'],
+        retardo: ['badge-retardo', 'fa-clock', 'Retardo'],
+        falta: ['badge-falta', 'fa-xmark', 'Falta'],
+        justificado: ['badge-permiso', 'fa-file-medical', 'Permiso Justificado'],
+        pendiente: ['badge-pendiente', 'fa-minus', 'Sin registro'],
+        sin_registro: ['badge-pendiente', 'fa-minus', 'Sin registro']
+    }[estado] || ['badge-pendiente', 'fa-minus', 'Sin registro'];
+
+    return `
+        <span class="badge ${datos[0]}" id="badge-${idAlumno}">
+            <i class="fa-solid ${datos[1]}"></i> ${datos[2]}
+        </span>
+        ${motivo ? `<div class="motivo-text">${escapar(motivo)}</div>` : ''}`;
+}
+
+function marcarAsistencia(idAlumno, tipo) {
+    const badge = document.getElementById(`badge-${idAlumno}`);
+    const row = badge?.closest('tr');
+    if (!badge || !row) return;
+
+    row.dataset.estado = tipo;
+    badge.className = 'badge';
+
+    if (tipo === 'asistencia') {
+        badge.classList.add('badge-asistencia');
+        badge.innerHTML = '<i class="fa-solid fa-check"></i> Presente';
+    } else if (tipo === 'retardo') {
+        badge.classList.add('badge-retardo');
+        badge.innerHTML = '<i class="fa-solid fa-clock"></i> Retardo';
+    } else if (tipo === 'falta') {
+        badge.classList.add('badge-falta');
+        badge.innerHTML = '<i class="fa-solid fa-xmark"></i> Falta';
+    }
+
+    actualizarResumenAsistencia();
+}
+
+async function guardarAsistencia() {
+    if (!cursoListaActivo) {
+        alert('Seleccione una clase antes de guardar.');
+        return;
+    }
+
+    const rows = Array.from(document.querySelectorAll('#lista-alumnos-body tr'));
+    const sinRegistrar = rows.filter(row => row.dataset.estado === 'pendiente').length;
+    if (sinRegistrar > 0 && !confirm(`Hay ${sinRegistrar} alumno(s) sin registrar. ¿Desea guardarlos como falta?`)) {
+        return;
+    }
+
+    const registros = rows
+        .filter(row => row.dataset.estado !== 'justificado')
+        .map(row => ({
+            id_alumno: row.dataset.idAlumno,
+            estado: row.dataset.estado === 'pendiente' ? 'falta' : row.dataset.estado
+        }));
+
+    const btnGuardar = document.querySelector('.btn-save-attendance');
+    if (btnGuardar) {
+        btnGuardar.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Guardando...';
+        btnGuardar.disabled = true;
+    }
+
+    try {
+        await apiDocente('guardar_asistencia', {
+            method: 'POST',
+            body: { id_curso: cursoListaActivo, fecha: fechaISOActual(), registros }
+        });
+        await cargarAlumnos(cursoListaActivo);
+        mostrarToast('<i class="fa-solid fa-circle-check"></i> Asistencia guardada correctamente', 'success');
+    } catch (error) {
+        alert(error.message);
+    } finally {
+        if (btnGuardar) {
+            btnGuardar.innerHTML = '<i class="fa-solid fa-cloud-arrow-up"></i> Finalizar y Guardar Registro';
+            btnGuardar.disabled = false;
+        }
+    }
+}
+
+async function generarReporteSemanal() {
+    const semanaInput = document.getElementById('semana-reporte').value;
+    const resultadoDiv = document.getElementById('resultado-reporte');
+    const exportButtons = document.getElementById('export-buttons');
+
+    if (!semanaInput) {
+        alert('Por favor, seleccione una semana.');
+        return;
+    }
+
+    const inicio = fechaInicioSemana(semanaInput);
+    const data = await apiDocente('reporte_semanal', {
+        query: { id_curso: claseSeleccionadaId, inicio }
+    });
+
+    const dias = data.dias || [];
+    reporteGenerado = {
+        semana: semanaInput,
+        clase: data.clase.nombre,
+        grado: data.clase.grado,
+        grupo: data.clase.grupo,
+        codigo: data.clase.codigo,
+        dias,
+        alumnos: []
+    };
+
+    let tablaHTML = `
+        <h4 style="color: var(--color-azul-marino); margin-bottom: 15px;">
+            <i class="fa-solid fa-calendar-week"></i> Semana del ${escapar(semanaInput)}
+        </h4>
+        <div style="overflow-x:auto;">
+        <table class="tabla-reporte" id="tabla-reporte-data">
+            <thead><tr><th>Alumno</th><th>Matricula</th>${dias.map(d => `<th>${escapar(d)}</th>`).join('')}</tr></thead>
+            <tbody>`;
+
+    (data.alumnos || []).forEach(alumno => {
+        reporteGenerado.alumnos.push({
+            nombre: alumno.nombre,
+            matricula: alumno.matricula,
+            asistencias: alumno.asistencias.map(e => e === 'presente' || e === 'retardo')
+        });
+        tablaHTML += `<tr><td><strong>${escapar(alumno.nombre)}</strong></td><td><small>${escapar(alumno.matricula || '')}</small></td>`;
+        alumno.asistencias.forEach(estado => {
+            tablaHTML += `<td style="text-align:center;">${etiquetaEstadoReporte(estado)}</td>`;
+        });
+        tablaHTML += '</tr>';
+    });
+
+    tablaHTML += '</tbody></table></div>';
+    resultadoDiv.innerHTML = tablaHTML;
+    exportButtons.style.display = 'flex';
+}
+
+function etiquetaEstadoReporte(estado) {
+    const labels = {
+        presente: ['badge-asistio', 'fa-check', 'Presente'],
+        retardo: ['badge-asistio', 'fa-clock', 'Retardo'],
+        falta: ['badge-falto', 'fa-xmark', 'Falta'],
+        dudoso: ['badge-falto', 'fa-question', 'Dudoso'],
+        sin_registro: ['', 'fa-minus', 'Sin registro']
+    };
+    const item = labels[estado] || labels.sin_registro;
+    return `<span class="${item[0]}"><i class="fa-solid ${item[1]}"></i> ${item[2]}</span>`;
+}
+
+function fechaInicioSemana(valorWeek) {
+    const [year, week] = valorWeek.split('-W').map(Number);
+    const firstDay = new Date(year, 0, 1 + (week - 1) * 7);
+    const day = firstDay.getDay();
+    const monday = new Date(firstDay);
+    monday.setDate(firstDay.getDate() - (day === 0 ? 6 : day - 1));
+    return monday.toISOString().split('T')[0];
+}
+
+function actualizarResumenAsistencia() {
+    const panel = document.getElementById('panel-asistencia');
+    const resumen = document.getElementById('resumen-asistencia');
+
+    if (!panel || panel.style.display === 'none') {
+        if (resumen) resumen.style.display = 'none';
+        return;
+    }
+
+    if (resumen) resumen.style.display = 'grid';
+
+    const badges = document.querySelectorAll('#lista-alumnos-body .badge');
+    let presentes = 0;
+    let retardos = 0;
+    let faltas = 0;
+    let justificados = 0;
+
+    badges.forEach(badge => {
+        if (badge.classList.contains('badge-asistencia')) presentes++;
+        else if (badge.classList.contains('badge-retardo')) retardos++;
+        else if (badge.classList.contains('badge-falta')) faltas++;
+        else if (badge.classList.contains('badge-permiso')) justificados++;
+    });
+
+    const contadorPresentes = document.getElementById('contador-presentes');
+    const contadorRetardos = document.getElementById('contador-retardos');
+    const contadorFaltas = document.getElementById('contador-faltas');
+    const contadorJustificados = document.getElementById('contador-justificados');
+
+    if (contadorPresentes) contadorPresentes.textContent = presentes;
+    if (contadorRetardos) contadorRetardos.textContent = retardos;
+    if (contadorFaltas) contadorFaltas.textContent = faltas;
+    if (contadorJustificados) contadorJustificados.textContent = justificados;
+}
+
+function resetearAsistencia() {
+    const rows = document.querySelectorAll('#lista-alumnos-body tr');
+    if (rows.length === 0) {
+        alert('No hay alumnos en la lista para reiniciar.');
+        return;
+    }
+
+    if (!confirm('¿Está seguro de reiniciar todas las selecciones de asistencia?')) {
+        return;
+    }
+
+    rows.forEach(row => {
+        if (row.dataset.estado === 'justificado') return;
+        row.dataset.estado = 'pendiente';
+        const badge = row.querySelector('.badge');
+        if (badge) {
+            badge.className = 'badge badge-pendiente';
+            badge.innerHTML = '<i class="fa-solid fa-minus"></i> Sin registro';
+        }
+    });
+
+    actualizarResumenAsistencia();
+}

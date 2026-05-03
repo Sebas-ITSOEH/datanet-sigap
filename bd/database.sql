@@ -208,26 +208,26 @@ INSERT INTO cursos (id_asignatura, id_docente, id_grupo, codigo_clase, periodo) 
 
 -- 🧾 INSCRIPCIONES
 INSERT INTO inscripciones (id_curso, id_alumno) VALUES
--- Curso 1 (Historia - 1º A): Juan Pérez (7), Luis Mendoza (8), Ana Rodríguez (9), Miguel Pérez (10), Sofía García (11)
-(1, 7), (1, 8), (1, 9), (1, 10), (1, 11),
--- Curso 2 (Matemáticas - 1º A): Juan Pérez (7), Luis Mendoza (8), Ana Rodríguez (9), Miguel Pérez (10), Sofía García (11)
-(2, 7), (2, 8), (2, 9), (2, 10), (2, 11),
--- Curso 3 (Ciencias - 1º A): Juan Pérez (7), Luis Mendoza (8), Ana Rodríguez (9), Miguel Pérez (10), Sofía García (11)
-(3, 7), (3, 8), (3, 9), (3, 10), (3, 11),
--- Curso 4 (Español - 1º A): Juan Pérez (7), Luis Mendoza (8), Ana Rodríguez (9), Miguel Pérez (10), Sofía García (11)
-(4, 7), (4, 8), (4, 9), (4, 10), (4, 11),
--- Curso 5 (Matemáticas - 1º B): Diego Flores (12), Daniela Sánchez (13), Pablo Ruiz (14), Valentina Moreno (15)
-(5, 12), (5, 13), (5, 14), (5, 15),
--- Curso 6 (Español - 1º B): Diego Flores (12), Daniela Sánchez (13), Pablo Ruiz (14), Valentina Moreno (15)
-(6, 12), (6, 13), (6, 14), (6, 15),
--- Curso 7 (Historia - 2º A): Andrés Vargas (16), Isabella Torres (17)
-(7, 16), (7, 17),
--- Curso 8 (Ciencias - 2º A): Andrés Vargas (16), Isabella Torres (17)
-(8, 16), (8, 17),
+-- Curso 1 (Historia - 1º A): Juan, Luis, Ana, Miguel, Sofía
+(1, 12), (1, 13), (1, 14), (1, 15), (1, 16),
+-- Curso 2 (Matemáticas - 1º A): Juan, Luis, Ana, Miguel, Sofía
+(2, 12), (2, 13), (2, 14), (2, 15), (2, 16),
+-- Curso 3 (Ciencias - 1º A): Juan, Luis, Ana, Miguel, Sofía
+(3, 12), (3, 13), (3, 14), (3, 15), (3, 16),
+-- Curso 4 (Español - 1º A): Juan, Luis, Ana, Miguel, Sofía
+(4, 12), (4, 13), (4, 14), (4, 15), (4, 16),
+-- Curso 5 (Matemáticas - 1º B): Diego, Daniela, Pablo, Valentina
+(5, 17), (5, 18), (5, 19), (5, 20),
+-- Curso 6 (Español - 1º B): Diego, Daniela, Pablo, Valentina
+(6, 17), (6, 18), (6, 19), (6, 20),
+-- Curso 7 (Historia - 2º A): Andrés, Isabella
+(7, 21), (7, 22),
+-- Curso 8 (Ciencias - 2º A): Andrés, Isabella
+(8, 21), (8, 22),
 -- Curso 9 (Educación Física - 1º A): Todos los de 1º A
-(9, 7), (9, 8), (9, 9), (9, 10), (9, 11), (9, 12), (9, 13), (9, 14), (9, 15),
+(9, 12), (9, 13), (9, 14), (9, 15), (9, 16), (9, 17), (9, 18), (9, 19), (9, 20),
 -- Curso 10 (Artes - 1º B): Diego Flores (12), Daniela Sánchez (13), Pablo Ruiz (14), Valentina Moreno (15)
-(10, 12), (10, 13), (10, 14), (10, 15);
+(10, 17), (10, 18), (10, 19), (10, 20);
 
 -- ⏱️ SESIONES
 INSERT INTO sesiones (id_curso, fecha, hora_inicio, hora_fin, codigo_actual) VALUES
@@ -258,37 +258,37 @@ INSERT INTO beacons (id_grupo, uuid) VALUES
 
 -- 🚨 INTENTOS ASISTENCIA
 INSERT INTO intentos_asistencia (id_usuario, id_sesion, codigo_qr, valido) VALUES
-(7, 1, 'HIST-101-001', TRUE),
-(8, 1, 'HIST-101-001', TRUE),
-(9, 1, 'HIST-101-001', TRUE),
-(10, 1, 'HIST-101-001', FALSE),
-(11, 1, 'HIST-101-001', TRUE),
-(7, 2, 'HIST-101-002', TRUE),
-(8, 2, 'HIST-101-002', TRUE),
-(9, 2, 'HIST-101-002', TRUE),
-(7, 5, 'MAT-202-002', TRUE),
-(8, 5, 'MAT-202-002', TRUE);
+(12, 1, 'HIST-101-001', TRUE),
+(13, 1, 'HIST-101-001', TRUE),
+(14, 1, 'HIST-101-001', TRUE),
+(15, 1, 'HIST-101-001', FALSE),
+(16, 1, 'HIST-101-001', TRUE),
+(12, 2, 'HIST-101-002', TRUE),
+(13, 2, 'HIST-101-002', TRUE),
+(14, 2, 'HIST-101-002', TRUE),
+(12, 5, 'MAT-202-002', TRUE),
+(13, 5, 'MAT-202-002', TRUE);
 
 -- 📅 ASISTENCIAS
 INSERT INTO asistencias (id_sesion, id_usuario, qr_valido, bluetooth_valido, validado_docente, estado_final) VALUES
-(1, 7, TRUE, TRUE, TRUE, 'presente'),
-(1, 8, TRUE, TRUE, TRUE, 'presente'),
-(1, 9, TRUE, FALSE, TRUE, 'presente'),
-(1, 10, FALSE, FALSE, TRUE, 'falta'),
-(1, 11, TRUE, TRUE, TRUE, 'presente'),
-(2, 7, TRUE, TRUE, TRUE, 'presente'),
-(2, 8, TRUE, TRUE, FALSE, 'dudoso'),
-(2, 9, TRUE, TRUE, TRUE, 'presente'),
-(2, 10, FALSE, FALSE, FALSE, 'falta'),
-(2, 11, TRUE, TRUE, TRUE, 'presente'),
-(5, 7, TRUE, TRUE, TRUE, 'presente'),
-(5, 8, TRUE, TRUE, TRUE, 'presente');
+(1, 12, TRUE, TRUE, TRUE, 'presente'),
+(1, 13, TRUE, TRUE, TRUE, 'presente'),
+(1, 14, TRUE, FALSE, TRUE, 'presente'),
+(1, 15, FALSE, FALSE, TRUE, 'falta'),
+(1, 16, TRUE, TRUE, TRUE, 'presente'),
+(2, 12, TRUE, TRUE, TRUE, 'presente'),
+(2, 13, TRUE, TRUE, FALSE, 'dudoso'),
+(2, 14, TRUE, TRUE, TRUE, 'presente'),
+(2, 15, FALSE, FALSE, FALSE, 'falta'),
+(2, 16, TRUE, TRUE, TRUE, 'presente'),
+(5, 12, TRUE, TRUE, TRUE, 'presente'),
+(5, 13, TRUE, TRUE, TRUE, 'presente');
 
 -- 📝 JUSTIFICANTES
 INSERT INTO justificantes (id_usuario, fecha_inicio, fecha_fin, asunto, descripcion, estado, fecha_limite) VALUES
-(10, '2025-05-05', '2025-05-05', 'Cita Médica', 'Asistencia a consulta de rutina', 'aprobado', '2025-05-10'),
-(14, '2025-04-28', '2025-04-30', 'Enfermedad', 'Gripe con fiebre alta', 'aprobado', '2025-05-05'),
-(12, '2025-05-03', '2025-05-03', 'Trámite Administrativo', 'Renovación de pasaporte', 'pendiente', '2025-05-08');
+(15, '2025-05-05', '2025-05-05', 'Cita Médica', 'Asistencia a consulta de rutina', 'aprobado', '2025-05-10'),
+(19, '2025-04-28', '2025-04-30', 'Enfermedad', 'Gripe con fiebre alta', 'aprobado', '2025-05-05'),
+(17, '2025-05-03', '2025-05-03', 'Trámite Administrativo', 'Renovación de pasaporte', 'pendiente', '2025-05-08');
 
 -- ✔ VALIDACIONES JUSTIFICANTES
 INSERT INTO validaciones_justificantes (id_justificante, id_admin, decision, comentario) VALUES
@@ -795,3 +795,50 @@ LEFT JOIN inscripciones i ON u.id_usuario = i.id_alumno
 LEFT JOIN cursos c ON i.id_curso = c.id_curso
 LEFT JOIN grupos g ON c.id_grupo = g.id_grupo
 WHERE u.rol = 'alumno';
+
+-- ==================== TABLAS AUXILIARES DOCENTE ====================
+
+CREATE TABLE IF NOT EXISTS horarios_cursos (
+    id_horario INT AUTO_INCREMENT PRIMARY KEY,
+    id_curso INT NOT NULL,
+    dia_semana VARCHAR(20) NOT NULL,
+    hora_inicio TIME NOT NULL,
+    hora_fin TIME NOT NULL,
+    FOREIGN KEY (id_curso) REFERENCES cursos(id_curso) ON DELETE CASCADE,
+    UNIQUE KEY uq_horario_curso (id_curso, dia_semana, hora_inicio, hora_fin)
+);
+
+CREATE TABLE IF NOT EXISTS solicitudes_inscripcion (
+    id_solicitud INT AUTO_INCREMENT PRIMARY KEY,
+    id_curso INT NOT NULL,
+    id_alumno INT NOT NULL,
+    estado ENUM('pendiente','aceptada','rechazada') DEFAULT 'pendiente',
+    fecha_solicitud TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (id_curso) REFERENCES cursos(id_curso) ON DELETE CASCADE,
+    FOREIGN KEY (id_alumno) REFERENCES usuarios(id_usuario) ON DELETE CASCADE,
+    UNIQUE KEY uq_solicitud_curso_alumno (id_curso, id_alumno, estado)
+);
+
+-- Datos de ejemplo para que el panel docente tenga horarios visibles.
+INSERT IGNORE INTO horarios_cursos (id_curso, dia_semana, hora_inicio, hora_fin) VALUES
+(1, 'Lunes', '08:00:00', '09:00:00'),
+(1, 'Miércoles', '08:00:00', '09:00:00'),
+(2, 'Lunes', '09:00:00', '10:00:00'),
+(2, 'Miércoles', '09:00:00', '10:00:00'),
+(3, 'Martes', '10:00:00', '11:00:00'),
+(3, 'Jueves', '10:00:00', '11:00:00'),
+(4, 'Viernes', '11:00:00', '12:00:00'),
+(5, 'Martes', '09:00:00', '10:00:00'),
+(5, 'Jueves', '09:00:00', '10:00:00'),
+(6, 'Lunes', '10:00:00', '11:00:00'),
+(7, 'Martes', '08:00:00', '09:00:00'),
+(8, 'Jueves', '10:00:00', '11:00:00'),
+(9, 'Viernes', '14:00:00', '15:00:00'),
+(10, 'Viernes', '12:00:00', '13:00:00');
+
+-- Solicitudes pendientes para probar aceptar/rechazar desde "Mis Clases".
+INSERT IGNORE INTO solicitudes_inscripcion (id_curso, id_alumno, estado) VALUES
+(1, 21, 'pendiente'),
+(2, 22, 'pendiente'),
+(5, 12, 'pendiente'),
+(7, 17, 'pendiente');
