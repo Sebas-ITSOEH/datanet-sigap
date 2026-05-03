@@ -1,0 +1,294 @@
+/* =========================================
+   LOGIN - Estilos integrados al index
+   Paleta: Azul Marino, Dorado, Rojo Oscuro
+========================================= */
+
+.login-wrapper {
+    width: 100%;
+    max-width: 900px;
+    margin: 0 auto;
+    animation: fadeInUp 0.5s ease;
+}
+
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.login-container {
+    background: #ffffff;
+    width: 100%;
+    display: flex;
+    border-radius: 25px;
+    overflow: hidden;
+    box-shadow: 0 20px 50px rgba(10, 31, 68, 0.2);
+    border: 1px solid rgba(199, 160, 61, 0.2);
+}
+
+/* LADO IZQUIERDO - FORMULARIO */
+.login-side {
+    flex: 1.2;
+    padding: 40px 45px;
+    background: #ffffff;
+}
+
+.brand {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 25px;
+    color: #192A56;
+}
+
+.brand-icon { 
+    font-size: 2rem; 
+    background: rgba(199, 160, 61, 0.15);
+    width: 45px;
+    height: 45px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 12px;
+}
+
+.brand-name { 
+    font-weight: 700; 
+    font-size: 1.4rem; 
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: #192A56;
+    font-family: 'Outfit', sans-serif;
+}
+
+.login-side h2 {
+    color: #192A56;
+    font-weight: 700;
+    font-size: 1.8rem;
+    margin-bottom: 5px;
+}
+
+.subtitle { 
+    color: #777; 
+    font-size: 0.9rem; 
+    margin-bottom: 25px; 
+}
+
+.input-box { 
+    margin-bottom: 18px; 
+}
+
+.input-box label { 
+    display: block; 
+    font-size: 0.8rem; 
+    font-weight: 600; 
+    margin-bottom: 6px; 
+    color: #192A56;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.input-box input,
+.input-box select {
+    width: 100%;
+    padding: 13px 15px;
+    border: 2px solid #e8ecf1;
+    border-radius: 12px;
+    font-size: 0.95rem;
+    transition: all 0.3s ease;
+    background: #fafbfc;
+    font-family: 'Poppins', sans-serif;
+}
+
+.input-box input:focus,
+.input-box select:focus { 
+    outline: none; 
+    border-color: #C7A03D;
+    background: #ffffff;
+    box-shadow: 0 0 0 4px rgba(199, 160, 61, 0.1);
+}
+
+.form-options {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 0.8rem;
+    margin: 15px 0 25px 0;
+}
+
+.remember-me {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    color: #555;
+    cursor: pointer;
+}
+
+.remember-me input[type="checkbox"] {
+    width: auto;
+    accent-color: #192A56;
+}
+
+.forgot-pass { 
+    color: #192A56; 
+    text-decoration: none; 
+    font-weight: 600;
+    transition: color 0.3s;
+}
+
+.forgot-pass:hover { 
+    color: #C7A03D;
+    text-decoration: underline; 
+}
+
+.button-group {
+    display: flex;
+    gap: 12px;
+}
+
+.btn-login {
+    flex: 1;
+    background: #192A56;
+    color: #ffffff;
+    border: none;
+    padding: 14px;
+    border-radius: 12px;
+    font-weight: 600;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.btn-login:hover { 
+    background: #C7A03D;
+    color: #192A56;
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(199, 160, 61, 0.3);
+}
+
+.btn-register {
+    flex: 1;
+    background: transparent;
+    color: #192A56;
+    border: 2px solid #192A56;
+    padding: 14px;
+    border-radius: 12px;
+    font-weight: 600;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.btn-register:hover { 
+    background: #A1232E;
+    color: #ffffff;
+    border-color: #A1232E;
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(161, 35, 46, 0.2);
+}
+
+/* LADO DERECHO - INFORMATIVO */
+.info-side {
+    flex: 1;
+    background: linear-gradient(135deg, #C7A03D 0%, #e0c060 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 40px;
+    position: relative;
+    overflow: hidden;
+}
+
+.info-side::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+    animation: rotate 20s linear infinite;
+}
+
+@keyframes rotate {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+
+.info-content {
+    position: relative;
+    z-index: 1;
+}
+
+.illustration {
+    position: relative;
+    margin-bottom: 20px;
+}
+
+.circle-decoration {
+    width: 100px;
+    height: 100px;
+    background: rgba(255,255,255,0.2);
+    border-radius: 50%;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+    0% { box-shadow: 0 0 0 0 rgba(255,255,255,0.4); }
+    70% { box-shadow: 0 0 0 30px rgba(255,255,255,0); }
+    100% { box-shadow: 0 0 0 0 rgba(255,255,255,0); }
+}
+
+.edu-icon { 
+    font-size: 5rem; 
+    display: block; 
+    position: relative;
+    z-index: 1;
+}
+
+.info-side h3 { 
+    color: #192A56; 
+    font-size: 1.5rem;
+    font-weight: 700;
+    margin-bottom: 10px;
+    font-family: 'Outfit', sans-serif;
+}
+
+.info-side p { 
+    color: #192A56; 
+    font-size: 0.9rem; 
+    opacity: 0.85; 
+    line-height: 1.5;
+}
+
+/* RESPONSIVE */
+@media (max-width: 768px) {
+    .login-container { 
+        flex-direction: column; 
+        max-width: 450px;
+        margin: 0 auto;
+    }
+    .info-side { 
+        display: none; 
+    }
+    .login-side { 
+        padding: 30px 25px; 
+    }
+    .button-group {
+        flex-direction: column;
+    }
+}

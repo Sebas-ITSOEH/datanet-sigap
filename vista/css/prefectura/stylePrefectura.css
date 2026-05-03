@@ -1,0 +1,415 @@
+/* ============================================
+   VARIABLES INSTITUCIONALES (Coinciden con Docente)
+============================================ */
+:root {
+    --color-azul-marino: #192A56;
+    --color-azul-borde: rgba(255, 255, 255, 0.2);
+    --color-dorado: #D6A848;
+    --color-rojo-oscuro: #A1232E;
+    --color-gris-claro: #EAEAEA;
+    --white: #FFFFFF;
+    --bg: #F8FAFC;
+    
+    /* Colores funcionales */
+    --primary: #3B82F6;
+    --primary-dark: #1E40AF;
+    --success: #10B981;
+    --warning: #F59E0B;
+    --danger: #EF4444;
+    --text-main: #1E293B;
+    --text-muted: #64748B;
+}
+
+/* ============================================
+   ESTILOS BASE
+============================================ */
+body {
+    font-family: 'Inter', sans-serif;
+    background-color: var(--bg);
+    color: var(--text-main);
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+}
+
+/* ============================================
+   HEADER INSTITUCIONAL (ESTILO DOCENTE)
+============================================ */
+.main-header {
+    background-color: var(--color-azul-marino);
+    padding: 0.6rem 0;
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.15);
+}
+
+.header-container {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 0 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+/* --- IZQUIERDA --- */
+.header-left { 
+    display: flex; 
+    align-items: center; 
+    gap: 15px; 
+}
+
+.logo-box {
+    color: var(--color-dorado);
+    font-size: 1.8rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.header-titles {
+    display: flex;
+    flex-direction: column;
+    margin-right: 10px;
+}
+
+.header-titles h1 {
+    font-family: 'Nunito', sans-serif;
+    font-size: 1.3rem;
+    margin: 0;
+    font-weight: 800;
+    color: var(--white);
+    line-height: 1.1;
+    letter-spacing: 0.5px;
+}
+
+.header-titles span { 
+    font-size: 0.7rem; 
+    color: var(--color-dorado); 
+    text-transform: uppercase; 
+    letter-spacing: 0.5px; 
+    font-weight: 700;
+}
+
+/* Botón de Apagar */
+.btn-icon {
+    background: transparent;
+    border: 1px solid var(--color-azul-borde);
+    color: var(--white);
+    width: 38px;
+    height: 38px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1rem;
+    position: relative;
+}
+
+.btn-icon:hover { 
+    background: rgba(255, 255, 255, 0.1); 
+}
+
+/* --- CENTRO: NAVEGACIÓN --- */
+.header-nav { 
+    display: flex; 
+    gap: 8px; 
+}
+
+.nav-item {
+    background: transparent;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 8px;
+    color: var(--white);
+    font-weight: 600;
+    font-size: 0.9rem;
+    cursor: pointer;
+    transition: all 0.3s;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-family: 'Inter', sans-serif;
+}
+
+.nav-item:hover:not(.active) { 
+    background-color: rgba(255, 255, 255, 0.05);
+}
+
+.nav-item.active { 
+    background-color: var(--color-dorado);
+    color: var(--color-azul-marino); 
+}
+
+/* --- DERECHA: NOTIFICACIONES Y PERFIL --- */
+.header-right { 
+    display: flex; 
+    align-items: center; 
+    gap: 25px; 
+}
+
+.notification-box {
+    position: relative;
+}
+
+.badge-red {
+    position: absolute;
+    top: -5px;
+    right: -5px;
+    background-color: #EF4444;
+    color: white;
+    font-size: 0.65rem;
+    font-weight: 800;
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 2px solid var(--color-azul-marino);
+}
+
+.user-profile { 
+    display: flex; 
+    align-items: center; 
+    gap: 12px; 
+}
+
+.user-info { 
+    text-align: right; 
+    display: flex; 
+    flex-direction: column; 
+}
+
+.user-name { 
+    color: var(--white); 
+    font-weight: 700; 
+    font-size: 0.9rem; 
+}
+
+.user-role { 
+    color: var(--color-dorado); 
+    font-size: 0.75rem; 
+    font-weight: 600;
+}
+
+/* Avatar de iniciales estilo dorado */
+.user-avatar-circle { 
+    width: 40px; 
+    height: 40px; 
+    border-radius: 50%; 
+    background-color: var(--color-dorado);
+    color: var(--color-azul-marino);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 800;
+    font-size: 1.1rem;
+    letter-spacing: 1px;
+}
+
+/* ============================================
+   CONTENEDOR PRINCIPAL
+============================================ */
+main {
+    flex: 1;
+    padding: 2.5rem 2rem;
+    max-width: 1400px;
+    margin: 0 auto;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.fade-in {
+    animation: fadeIn 0.4s ease-out;
+}
+
+@keyframes fadeIn {
+    from { 
+        opacity: 0; 
+        transform: translateY(10px); 
+    }
+    to { 
+        opacity: 1; 
+        transform: translateY(0); 
+    }
+}
+
+/* ============================================
+   FOOTER INSTITUCIONAL
+============================================ */
+.creative-footer {
+    background: var(--color-azul-marino);
+    color: var(--color-gris-claro);
+    position: relative;
+    padding-top: 4rem;
+    margin-top: auto;
+}
+
+.footer-wave {
+    position: absolute;
+    top: -1px;
+    left: 0;
+    width: 100%;
+    line-height: 0;
+    transform: rotate(180deg);
+}
+
+.footer-wave svg { 
+    width: 100%; 
+    height: 60px; 
+}
+
+.footer-wave .shape-fill { 
+    fill: var(--bg); 
+}
+
+.footer-content { 
+    max-width: 1200px; 
+    margin: 0 auto; 
+    padding: 2rem; 
+}
+
+.footer-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid rgba(255,255,255,0.1);
+    padding-bottom: 2rem;
+}
+
+.footer-brand h3 { 
+    color: var(--white); 
+    margin: 0; 
+    letter-spacing: 2px; 
+    font-family: 'Nunito', sans-serif;
+    font-size: 1.2rem;
+}
+
+.footer-brand p { 
+    margin: 5px 0 0; 
+    font-size: 0.85rem; 
+    opacity: 0.8;
+}
+
+.status-indicator {
+    background: rgba(214, 168, 72, 0.15);
+    color: var(--color-dorado);
+    padding: 6px 16px;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    border: 1px solid rgba(214, 168, 72, 0.3);
+}
+
+.dot { 
+    width: 8px; 
+    height: 8px; 
+    background: var(--color-dorado); 
+    border-radius: 50%; 
+    animation: pulse 2s infinite; 
+}
+
+@keyframes pulse {
+    0% { box-shadow: 0 0 0 0 rgba(214, 168, 72, 0.7); }
+    70% { box-shadow: 0 0 0 8px rgba(214, 168, 72, 0); }
+    100% { box-shadow: 0 0 0 0 rgba(214, 168, 72, 0); }
+}
+
+.footer-bottom { 
+    padding: 1.5rem 0; 
+    text-align: center; 
+    font-size: 0.8rem; 
+    opacity: 0.7;
+}
+
+/* ============================================
+   CLASES REUTILIZABLES
+============================================ */
+.list-container {
+    background: #FFF;
+    border-radius: 16px;
+    overflow: hidden;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.03);
+}
+
+.list-header {
+    padding: 20px;
+    border-bottom: 1px solid #F1F5F9;
+    background: #F8FAFC;
+}
+
+.list-header h3 {
+    margin: 0;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    color: #1E293B;
+    font-weight: 700;
+}
+
+.badge {
+    padding: 5px 12px;
+    border-radius: 20px;
+    font-size: 0.75rem;
+    font-weight: 700;
+}
+
+.badge.success { background: #D1FAE5; color: #10B981; }
+.badge.warning { background: #FEF3C7; color: #F59E0B; }
+.badge.danger { background: #FEE2E2; color: #EF4444; }
+
+/* ============================================
+   RESPONSIVE
+============================================ */
+@media (max-width: 1024px) {
+    .header-container {
+        flex-wrap: wrap;
+        gap: 15px;
+    }
+    
+    .header-nav {
+        order: 3;
+        width: 100%;
+        justify-content: center;
+    }
+    
+    .header-right {
+        gap: 15px;
+    }
+    
+    main {
+        padding: 1.5rem 1rem;
+    }
+}
+
+@media (max-width: 768px) {
+    .header-titles h1 {
+        font-size: 1.1rem;
+    }
+    
+    .nav-item span {
+        display: none;
+    }
+    
+    .nav-item {
+        padding: 8px 12px;
+    }
+    
+    .footer-top {
+        flex-direction: column;
+        gap: 20px;
+        text-align: center;
+    }
+    
+    .user-info {
+        display: none;
+    }
+}

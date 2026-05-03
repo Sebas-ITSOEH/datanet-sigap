@@ -1,0 +1,335 @@
+/* =========================================
+   REGISTRO - Estilos integrados al index
+   Paleta: Azul Marino, Dorado, Rojo Oscuro
+========================================= */
+
+.registro-wrapper {
+    width: 100%;
+    max-width: 950px;
+    margin: 0 auto;
+    animation: fadeInUp 0.5s ease;
+}
+
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.card-register {
+    background: #ffffff;
+    width: 100%;
+    display: flex;
+    border-radius: 25px;
+    overflow: hidden;
+    box-shadow: 0 20px 50px rgba(10, 31, 68, 0.2);
+    border: 1px solid rgba(199, 160, 61, 0.2);
+}
+
+/* LADO IZQUIERDO - INFORMATIVO */
+.side-info {
+    flex: 1;
+    background: linear-gradient(180deg, #192A56 0%, #0a1f44 100%);
+    padding: 40px 30px;
+    color: #ffffff;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+}
+
+.side-info::before {
+    content: '';
+    position: absolute;
+    width: 200px;
+    height: 200px;
+    background: rgba(199, 160, 61, 0.1);
+    border-radius: 50%;
+    top: -50px;
+    right: -50px;
+}
+
+.side-info::after {
+    content: '';
+    position: absolute;
+    width: 150px;
+    height: 150px;
+    background: rgba(199, 160, 61, 0.08);
+    border-radius: 50%;
+    bottom: -30px;
+    left: -30px;
+}
+
+.brand {
+    position: relative;
+    z-index: 1;
+}
+
+.emoji {
+    font-size: 3rem;
+    display: block;
+    margin-bottom: 10px;
+}
+
+.brand h1 { 
+    font-size: 1.5rem; 
+    line-height: 1.2; 
+    font-weight: 700;
+    letter-spacing: 2px;
+    font-family: 'Outfit', sans-serif;
+    color: #C7A03D;
+    position: relative;
+    z-index: 1;
+}
+
+.stepper { 
+    display: flex; 
+    align-items: center; 
+    gap: 0; 
+    margin: 30px 0;
+    position: relative;
+    z-index: 1;
+}
+
+.step {
+    width: 40px; 
+    height: 40px; 
+    border-radius: 50%;
+    border: 3px solid rgba(255,255,255,0.3);
+    display: flex; 
+    align-items: center; 
+    justify-content: center;
+    font-weight: 700;
+    font-size: 1rem;
+    transition: all 0.3s ease;
+    background: transparent;
+    color: rgba(255,255,255,0.5);
+}
+
+.step.active { 
+    background: #C7A03D; 
+    color: #192A56;
+    border-color: #C7A03D;
+    box-shadow: 0 0 20px rgba(199, 160, 61, 0.4);
+    transform: scale(1.1);
+}
+
+.line { 
+    width: 40px; 
+    height: 3px; 
+    background: rgba(255,255,255,0.3);
+    border-radius: 2px;
+}
+
+.illustration-box { 
+    margin-top: auto;
+    position: relative;
+    z-index: 1;
+}
+
+.grad-cap { 
+    font-size: 4rem;
+    margin-bottom: 15px;
+}
+
+.illustration-box h3 {
+    color: #ffffff;
+    font-size: 1.3rem;
+    margin-bottom: 10px;
+    font-family: 'Outfit', sans-serif;
+}
+
+.illustration-box p {
+    color: rgba(255,255,255,0.7);
+    font-size: 0.85rem;
+    line-height: 1.5;
+}
+
+/* LADO DERECHO - FORMULARIO */
+.form-container { 
+    flex: 1.5; 
+    padding: 35px 40px; 
+    max-height: 550px; 
+    overflow-y: auto;
+    background: #ffffff;
+}
+
+/* Scrollbar personalizado */
+.form-container::-webkit-scrollbar {
+    width: 6px;
+}
+
+.form-container::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 3px;
+}
+
+.form-container::-webkit-scrollbar-thumb {
+    background: #C7A03D;
+    border-radius: 3px;
+}
+
+.form-container h2 { 
+    color: #192A56; 
+    margin-bottom: 25px;
+    font-size: 1.6rem;
+    font-weight: 700;
+    font-family: 'Outfit', sans-serif;
+    position: relative;
+    padding-bottom: 10px;
+}
+
+.form-container h2::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 50px;
+    height: 3px;
+    background: #C7A03D;
+    border-radius: 2px;
+}
+
+.input-group { 
+    margin-bottom: 18px; 
+}
+
+.input-group label { 
+    display: block; 
+    font-size: 0.8rem; 
+    font-weight: 600; 
+    color: #192A56;
+    margin-bottom: 6px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.input-group input {
+    width: 100%; 
+    padding: 13px 15px; 
+    border: 2px solid #e8ecf1;
+    border-radius: 12px; 
+    font-size: 0.95rem;
+    transition: all 0.3s ease;
+    background: #fafbfc;
+    font-family: 'Poppins', sans-serif;
+}
+
+.input-group input:focus {
+    outline: none;
+    border-color: #C7A03D;
+    background: #ffffff;
+    box-shadow: 0 0 0 4px rgba(199, 160, 61, 0.1);
+}
+
+.btn-primary {
+    width: 100%; 
+    padding: 14px; 
+    background: #192A56;
+    color: #ffffff; 
+    border: none; 
+    border-radius: 12px; 
+    cursor: pointer; 
+    font-weight: 600;
+    font-size: 1rem;
+    transition: all 0.3s ease;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-top: 10px;
+}
+
+.btn-primary:hover { 
+    background: #C7A03D;
+    color: #192A56;
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(199, 160, 61, 0.3);
+}
+
+.btn-sec { 
+    padding: 14px 25px; 
+    background: #f0f2f5; 
+    color: #192A56;
+    border: none; 
+    border-radius: 12px; 
+    cursor: pointer;
+    font-weight: 600;
+    transition: all 0.3s ease;
+}
+
+.btn-sec:hover {
+    background: #e0e3e8;
+    transform: translateY(-1px);
+}
+
+.btn-row { 
+    display: flex; 
+    gap: 12px; 
+    margin-top: 25px; 
+}
+
+.btn-row .btn-primary {
+    margin-top: 0;
+}
+
+.tutor-box {
+    background: linear-gradient(135deg, #fffdf0 0%, #fff9e0 100%);
+    padding: 20px; 
+    border-radius: 15px;
+    margin: 20px 0; 
+    border-left: 5px solid #C7A03D;
+    animation: slideIn 0.3s ease;
+}
+
+@keyframes slideIn {
+    from {
+        opacity: 0;
+        transform: translateX(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+.tutor-title { 
+    font-weight: 700; 
+    color: #192A56; 
+    margin-bottom: 15px; 
+    padding-bottom: 8px;
+    border-bottom: 2px solid #C7A03D;
+    font-size: 0.9rem;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+/* RESPONSIVE */
+@media (max-width: 768px) {
+    .card-register { 
+        flex-direction: column; 
+        max-width: 450px;
+        margin: 0 auto;
+    }
+    .side-info { 
+        padding: 25px 20px; 
+    }
+    .side-info h1 {
+        font-size: 1.2rem;
+    }
+    .form-container { 
+        padding: 25px 20px; 
+        max-height: none;
+    }
+    .btn-row {
+        flex-direction: column;
+    }
+    .grad-cap {
+        font-size: 2.5rem;
+    }
+}

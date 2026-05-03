@@ -1,0 +1,95 @@
+<div class="lista-layout fade-in">
+    <!-- HEADER MODERNO -->
+    <div class="section-header-modern">
+        <div class="header-icon-box">
+            <i class="fa-solid fa-clipboard-user"></i>
+        </div>
+        <div class="header-text">
+            <h2>Control de Asistencia</h2>
+            <p>Gestión diaria de alumnos y reportes inmediatos</p>
+        </div>
+    </div>
+
+    <!-- TARJETA DE CONTROLES -->
+    <div class="control-card">
+        <div class="control-grid">
+            <!-- Selector de Grupo -->
+            <div class="input-group">
+                <label><i class="fa-solid fa-users-rectangle"></i> Grupo / Materia</label>
+                <select id="grupo-select" onchange="cargarAlumnos(this.value)" class="modern-select">
+                    <option value="" disabled selected>Seleccione una clase...</option>
+                    <option value="MAT2A">Matemáticas II - 2°A</option>
+                    <option value="HIS1B">Historia Universal - 1°B</option>
+                    <option value="FIS3C">Física III - 3°C</option>
+                </select>
+            </div>
+
+            <!-- Fecha Dinámica -->
+            <div class="input-group">
+                <label><i class="fa-solid fa-calendar-day"></i> Fecha de Registro</label>
+                <div class="date-simulator">
+                    <span id="current-date-display">Cargando fecha...</span>
+                    <i class="fa-solid fa-circle-check status-icon-ok"></i>
+                </div>
+            </div>
+
+            <!-- Trimestre Actual -->
+            <div class="input-group">
+                <label><i class="fa-solid fa-clock"></i> Periodo Actual</label>
+                <input type="text" id="trimestre-activo" value="Calculando..." readonly class="input-readonly">
+            </div>
+        </div>
+    </div>
+
+   
+
+    <!-- PANEL DE LISTA DE ALUMNOS -->
+    <div id="panel-asistencia" style="display: none;" class="table-card fade-in">
+        
+        <!-- Encabezado de la tabla con botones de exportación -->
+        <div class="table-header-actions">
+            <h3><i class="fa-solid fa-list-check"></i> Lista de Estudiantes</h3>
+            <div class="export-buttons">
+                <button class="btn-exp excel" onclick="exportarExcelLista()" title="Exportar a Excel">
+                    <i class="fa-solid fa-file-excel"></i> Excel
+                </button>
+                <button class="btn-exp pdf" onclick="exportarPDFLista()" title="Exportar a PDF">
+                    <i class="fa-solid fa-file-pdf"></i> PDF
+                </button>
+            </div>
+        </div>
+
+        <!-- Tabla de alumnos -->
+        <div class="scrollable-table">
+            <table class="tabla-moderna">
+                <thead>
+                    <tr>
+                        <th>Alumno</th>
+                        <th>Estado Actual</th>
+                        <th style="text-align: center;">Acciones de Pase de Lista</th>
+                    </tr>
+                </thead>
+                <tbody id="lista-alumnos-body">
+                    <!-- Se llena dinámicamente con JS -->
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Pie con botón de guardar -->
+        <div class="footer-actions">
+            <button class="btn-reset" onclick="resetearAsistencia()" title="Reiniciar selección">
+                <i class="fa-solid fa-rotate-left"></i> Reiniciar
+            </button>
+            <button class="btn-save-attendance" onclick="guardarAsistencia()">
+                <i class="fa-solid fa-cloud-arrow-up"></i> Finalizar y Guardar Registro
+            </button>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Inicializar pase de lista si la función existe
+    if (typeof inicializarPaseLista === 'function') {
+        inicializarPaseLista();
+    }
+</script>

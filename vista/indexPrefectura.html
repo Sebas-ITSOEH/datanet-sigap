@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WolfTrack - Panel de Control Prefectura</title>
+    
+    <!-- Fuentes -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Nunito:wght@600;700;800&display=swap" rel="stylesheet">
+    
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Estilos Prefectura -->
+    <link rel="stylesheet" href="css/prefectura/stylePrefectura.css">
+    <link rel="stylesheet" href="css/prefectura/control.css">
+    <link rel="stylesheet" href="css/prefectura/bienvenida.css">
+    <link rel="stylesheet" href="css/prefectura/personal.css">
+    <link rel="stylesheet" href="css/prefectura/sistema.css">
+</head>
+<body>
+
+    <!-- ============================================ -->
+    <!-- HEADER INSTITUCIONAL (ESTILO DOCENTE) -->
+    <!-- ============================================ -->
+    <header class="main-header">
+        <div class="header-container">
+            
+            <!-- IZQUIERDA: Logo + Títulos + Botón Cerrar Sesión -->
+            <div class="header-left">
+                <div style="display: flex; align-items: center; cursor: pointer;" onclick="window.location.href='indexPrefectura.html'">
+                    <div class="logo-box">
+                        <i class="fa-solid fa-shield-halved"></i>
+                    </div>
+                    <div class="header-titles">
+                        <h1>D.A.T.A.N.E.T.</h1>
+                        <span>Prefectura • Benito Juárez</span>
+                    </div>
+                </div>
+                <button class="btn-icon" title="Cerrar Sesión" style="margin-left: 15px;">
+                    <i class="fa-solid fa-power-off"></i>
+                </button>
+            </div>
+
+            <!-- CENTRO: Navegación Principal -->
+            <nav class="header-nav">
+                <button class="nav-item active" data-section="control">
+                    <i class="fa-solid fa-sliders"></i> <span>Control</span>
+                </button>
+                <button class="nav-item" data-section="personal">
+                    <i class="fa-solid fa-users-gear"></i> <span>Personal</span>
+                </button>
+                <button class="nav-item" data-section="sistema">
+                    <i class="fa-solid fa-gears"></i> <span>Sistema</span>
+                </button>
+            </nav>
+
+            <!-- DERECHA: Notificaciones + Perfil -->
+            <div class="header-right">
+                <!-- Campana de Notificaciones -->
+                <div class="btn-icon notification-box" title="Notificaciones">
+                    <i class="fa-solid fa-bell"></i>
+                    <span class="badge-red">5</span>
+                </div>
+
+                <!-- Perfil de Usuario -->
+                <div class="user-profile">
+                    <div class="user-info">
+                        <span class="user-name">Admin. Prefectura</span>
+                        <span class="user-role">Prefecto(a)</span>
+                    </div>
+                    <div class="user-avatar-circle">
+                        PR
+                    </div>
+                </div>
+            </div>
+            
+        </div>
+    </header>
+
+    <!-- ============================================ -->
+    <!-- CONTENEDOR PRINCIPAL DE VISTAS -->
+    <!-- ============================================ -->
+    <main id="view-container">
+        <!-- Aquí se cargarán dinámicamente las vistas -->
+    </main>
+
+    <!-- ============================================ -->
+    <!-- FOOTER INSTITUCIONAL -->
+    <!-- ============================================ -->
+    <footer class="creative-footer">
+        <div class="footer-wave">
+            <svg viewBox="0 0 1200 120" preserveAspectRatio="none">
+                <path d="M321.39,56.44c58-10.79,114.16-30.13,172-41.86,82.39-16.72,168.19-17.73,250.45-.39C823.78,31,906.67,72,985.66,92.83c70.05,18.48,146.53,26.09,214.34,3V0H0V46.35C50.7,56.33,115.05,62,176,63.26,242.4,64.62,283.08,60.61,321.39,56.44Z" class="shape-fill"></path>
+            </svg>
+        </div>
+        <div class="footer-content">
+            <div class="footer-top">
+                <div class="footer-brand">
+                    <h3>SIGAP - PREFECTURA</h3>
+                    <p>Sistema de Gestión de Asistencia y Permisos</p>
+                </div>
+                <div class="status-indicator">
+                    <span class="dot"></span> Servidor Activo
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2026 D.A.T.A.N.E.T. • Panel de Control de Prefectura</p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Scripts -->
+    <script src="js/mainPrefectura.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+</body>
+</html>

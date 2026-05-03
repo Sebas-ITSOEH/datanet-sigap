@@ -1,0 +1,42 @@
+/* =========================================
+   ESTILOS DE LA SECCIÓN: RESUMEN
+========================================= */
+.resumen-layout { display: flex; flex-direction: column; gap: 20px; }
+
+.profile-card { 
+    background: linear-gradient(135deg, #1E293B 0%, #0F172A 100%); 
+    padding: 30px 40px; 
+    border-radius: 16px; 
+    display: flex; 
+    justify-content: space-between; 
+    align-items: center; 
+    box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+}
+
+.profile-info h2 { font-size: 1.8rem; color: #FFFFFF; margin: 0 0 8px 0; font-weight: 700; }
+.profile-info p { color: #94A3B8; font-size: 0.95rem; margin: 0; font-weight: 500; }
+
+.profile-stats { text-align: right; }
+.profile-stats h3 { font-size: 3rem; color: #3B82F6; margin: 0; line-height: 1; font-weight: 800; }
+.profile-stats span { color: #94A3B8; font-size: 0.85rem; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; }
+
+.kpi-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; }
+
+.kpi-card { 
+    background-color: #FFFFFF; 
+    border-radius: 16px; 
+    padding: 20px; 
+    display: flex; 
+    flex-direction: column; 
+    gap: 12px; 
+    box-shadow: 0 4px 12px rgba(0,0,0,0.03); 
+}
+
+.kpi-card span { font-size: 0.9rem; font-weight: 600; color: #64748B; display: flex; align-items: center; gap: 8px; }
+.kpi-card h4 { font-size: 1.8rem; color: #1E293B; margin: 0; font-weight: 700; }
+
+/* Colores de los iconos */
+.kpi-card:nth-child(1) span i { color: #10B981; } /* Presentes */
+.kpi-card:nth-child(2) span i { color: #F59E0B; } /* Retardos */
+.kpi-card:nth-child(3) span i { color: #EF4444; } /* Faltas */
+.kpi-card:nth-child(4) span i { color: #3B82F6; } /* Justificados */

@@ -1,0 +1,89 @@
+<div class="historial-container fade-in">
+    <div class="historial-header">
+        <div class="header-info">
+            <h3><i class="fa-solid fa-clock-rotate-left"></i> Mi Actividad</h3>
+            <p>Registro detallado de tus asistencias y retardos de la semana.</p>
+        </div>
+        <div class="historial-stats-brief">
+            <div class="stat-mini">
+                <span class="label">Asistencias</span>
+                <span class="value text-success">18</span>
+            </div>
+            <div class="stat-mini">
+                <span class="label">Retardos</span>
+                <span class="value text-warning">2</span>
+            </div>
+            <div class="stat-mini">
+                <span class="label">Faltas</span>
+                <span class="value text-danger">1</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="historial-filters">
+        <button class="filter-btn active" data-filter="all">Todos</button>
+        <button class="filter-btn" data-filter="presente">Asistencias</button>
+        <button class="filter-btn" data-filter="retardo">Retardos</button>
+        <button class="filter-btn" data-filter="falta">Faltas</button>
+    </div>
+
+    <div class="timeline-container">
+        
+        <div class="timeline-group">
+            <span class="group-date">Hoy - 24 de Abril</span>
+            
+            <div class="timeline-item status-presente">
+                <div class="item-icon"><i class="fa-solid fa-check"></i></div>
+                <div class="item-content">
+                    <div class="item-main">
+                        <h4>Matemáticas Avanzadas</h4>
+                        <span class="time">07:05 AM</span>
+                    </div>
+                    <p>Prof. Eduardo García</p>
+                </div>
+                <div class="item-badge success">Presente</div>
+            </div>
+
+            <div class="timeline-item status-retardo">
+                <div class="item-icon"><i class="fa-solid fa-clock"></i></div>
+                <div class="item-content">
+                    <div class="item-main">
+                        <h4>Historia de México</h4>
+                        <span class="time">09:15 AM</span>
+                    </div>
+                    <p>Profra. Silvia Ortiz</p>
+                </div>
+                <div class="item-badge warning">Retardo (15 min)</div>
+            </div>
+        </div>
+
+        <div class="timeline-group">
+            <span class="group-date">Ayer - 23 de Abril</span>
+            
+            <div class="timeline-item status-falta">
+                <div class="item-icon"><i class="fa-solid fa-xmark"></i></div>
+                <div class="item-content">
+                    <div class="item-main">
+                        <h4>Física II</h4>
+                        <span class="time">11:00 AM</span>
+                    </div>
+                    <p>Pendiente de justificar</p>
+                </div>
+                <div class="item-badge danger">Inasistencia</div>
+            </div>
+
+            <div class="timeline-item status-presente">
+                <div class="item-icon"><i class="fa-solid fa-check"></i></div>
+                <div class="item-content">
+                    <div class="item-main">
+                        <h4>Taller de Lectura</h4>
+                        <span class="time">01:00 PM</span>
+                    </div>
+                    <p>Prof. Roberto Gómez</p>
+                </div>
+                <div class="item-badge success">Presente</div>
+            </div>
+        </div>
+
+    </div>
+</div>

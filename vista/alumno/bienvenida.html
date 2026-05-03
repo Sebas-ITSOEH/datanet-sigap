@@ -1,0 +1,154 @@
+<!-- VISTA DE BIENVENIDA / DASHBOARD DEL ALUMNO -->
+<div class="welcome-container">
+    <!-- Hero de bienvenida -->
+    <div class="welcome-hero">
+        <div class="welcome-badge">
+            <i class="fa-solid fa-calendar-check"></i>
+            <span>¡Bienvenido de vuelta!</span>
+        </div>
+        
+        <div class="welcome-title">
+            Hola, <span>Juan Pérez</span>
+        </div>
+        
+        <div class="welcome-description">
+            Tu viaje académico continúa. Revisa tus materias, solicita justificantes y mantente al día con tus actividades escolares.
+        </div>
+        
+        <!-- Estadísticas del alumno -->
+        <div class="stats-row">
+            <div class="stat-card-welcome">
+                <div class="stat-icon">
+                    <i class="fa-solid fa-graduation-cap"></i>
+                </div>
+                <div class="stat-info">
+                    <h4>Promedio General</h4>
+                    <p>9.2</p>
+                </div>
+            </div>
+            <div class="stat-card-welcome">
+                <div class="stat-icon">
+                    <i class="fa-solid fa-chart-line"></i>
+                </div>
+                <div class="stat-info">
+                    <h4>Materias Cursando</h4>
+                    <p>8</p>
+                </div>
+            </div>
+            <div class="stat-card-welcome">
+                <div class="stat-icon">
+                    <i class="fa-solid fa-check-circle"></i>
+                </div>
+                <div class="stat-info">
+                    <h4>Asistencia (Ene-Mar)</h4>
+                    <p>94%</p>
+                </div>
+            </div>
+            <div class="stat-card-welcome">
+                <div class="stat-icon">
+                    <i class="fa-solid fa-file-lines"></i>
+                </div>
+                <div class="stat-info">
+                    <h4>Trámites Activos</h4>
+                    <p>2</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Accesos directos -->
+    <div class="section-title-welcome">
+        <i class="fa-solid fa-bolt"></i>
+        <span>Accesos directos</span>
+    </div>
+    
+    <div class="quick-links-grid">
+        <div class="quick-link-card" onclick="window.loadSection('materias')">
+            <div class="quick-icon">
+                <i class="fa-solid fa-book-open"></i>
+            </div>
+            <div class="quick-info">
+                <h4>Mis Materias</h4>
+                <p>Ver horario y contenidos</p>
+            </div>
+        </div>
+        
+        <div class="quick-link-card" onclick="window.loadSection('justificantes')">
+            <div class="quick-icon">
+                <i class="fa-solid fa-pen-to-square"></i>
+            </div>
+            <div class="quick-info">
+                <h4>Solicitar Justificante</h4>
+                <p>Inasistencias, salud, viajes</p>
+            </div>
+        </div>
+        
+        <div class="quick-link-card" onclick="window.loadSection('historial')">
+            <div class="quick-icon">
+                <i class="fa-solid fa-timeline"></i>
+            </div>
+            <div class="quick-info">
+                <h4>Historial Académico</h4>
+                <p>Calificaciones y evaluación</p>
+            </div>
+        </div>
+        
+        <div class="quick-link-card" onclick="window.descargarHorarioDemo && window.descargarHorarioDemo()">
+            <div class="quick-icon">
+                <i class="fa-solid fa-download"></i>
+            </div>
+            <div class="quick-info">
+                <h4>Descargar Horario</h4>
+                <p>PDF semanal de clases</p>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Avisos recientes -->
+    <div class="section-title-welcome">
+        <i class="fa-solid fa-megaphone"></i>
+        <span>Avisos recientes</span>
+    </div>
+    
+    <div class="notice-board">
+        <div class="notice-item">
+            <div class="notice-icon">
+                <i class="fa-regular fa-bell"></i>
+            </div>
+            <div class="notice-text">
+                Entrega de boletas 2do trimestre: 12 de abril en horario de 9:00 a 14:00 hrs.
+            </div>
+            <div class="notice-date">Hace 2 días</div>
+        </div>
+        
+        <div class="notice-item">
+            <div class="notice-icon">
+                <i class="fa-regular fa-calendar"></i>
+            </div>
+            <div class="notice-text">
+                Consejo Técnico Escolar: Suspensión de labores el viernes 28 de marzo.
+            </div>
+            <div class="notice-date">Hace 5 días</div>
+        </div>
+        
+        <div class="notice-item">
+            <div class="notice-icon">
+                <i class="fa-solid fa-clipboard-list"></i>
+            </div>
+            <div class="notice-text">
+                Inscripciones abiertas para el curso de regularización de Matemáticas y Español.
+            </div>
+            <div class="notice-date">Hace 1 semana</div>
+        </div>
+        
+        <div class="notice-item">
+            <div class="notice-icon">
+                <i class="fa-solid fa-flag-checkered"></i>
+            </div>
+            <div class="notice-text">
+                Olimpiada del Conocimiento: Fase interna el 5 de abril. ¡Prepárate!
+            </div>
+            <div class="notice-date">Hace 2 semanas</div>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,100 @@
+<!-- ============================================ -->
+<!-- VISTA DE BIENVENIDA - PREFECTURA -->
+<!-- ============================================ -->
+<div class="bienvenida-layout fade-in">
+    
+    <!-- Hero Section -->
+    <div class="welcome-hero">
+        <div class="welcome-hero-content">
+            <div class="welcome-greeting">
+                <span class="welcome-time" id="saludo-horario">
+                    <i class="fa-solid fa-sun"></i> ¡Buenos días!
+                </span>
+                <h1 class="welcome-title">
+                    Bienvenido(a), <span class="welcome-name">Admin. Prefectura</span>
+                </h1>
+                <p class="welcome-subtitle">
+                    Panel de Control de Prefectura • Esc. Sec. Gral. Lic. "Benito Juárez"
+                </p>
+                <div class="welcome-date">
+                    <i class="fa-regular fa-calendar"></i> 
+                    <span id="fecha-actual">Cargando...</span>
+                </div>
+            </div>
+            <div class="welcome-illustration">
+                <div class="illustration-circle">
+                    <i class="fa-solid fa-shield-halved"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Funciones Principales -->
+    <div class="welcome-functions">
+        <h2 class="section-title">
+            <i class="fa-solid fa-list-check"></i> 
+            Funciones del Panel de Prefectura
+        </h2>
+        
+        <div class="functions-grid">
+            <!-- Control -->
+            <div class="function-card" onclick="navigateToSection('control')">
+                <div class="function-icon control-icon">
+                    <i class="fa-solid fa-sliders"></i>
+                </div>
+                <div class="function-info">
+                    <h3>Panel de Control</h3>
+                    <p>Gestiona y supervisa solicitudes de permisos, justificantes y asistencia de alumnos en tiempo real.</p>
+                    <ul class="function-features">
+                        <li><i class="fa-solid fa-check-circle"></i> Aprobar o rechazar solicitudes</li>
+                        <li><i class="fa-solid fa-check-circle"></i> Generar listas de asistencia</li>
+                        <li><i class="fa-solid fa-check-circle"></i> Exportar reportes PDF/Excel</li>
+                        <li><i class="fa-solid fa-check-circle"></i> Consultar historial de permisos</li>
+                    </ul>
+                    <button class="function-btn">
+                        <i class="fa-solid fa-arrow-right"></i> Ir a Control
+                    </button>
+                </div>
+            </div>
+
+            <!-- Personal -->
+            <div class="function-card" onclick="navigateToSection('personal')">
+                <div class="function-icon personal-icon">
+                    <i class="fa-solid fa-users-gear"></i>
+                </div>
+                <div class="function-info">
+                    <h3>Catálogo de Personal</h3>
+                    <p>Administra la información de alumnos, docentes y grupos escolares de forma centralizada.</p>
+                    <ul class="function-features">
+                        <li><i class="fa-solid fa-check-circle"></i> Consultar expedientes de alumnos</li>
+                        <li><i class="fa-solid fa-check-circle"></i> Ver horarios de docentes y grupos</li>
+                        <li><i class="fa-solid fa-check-circle"></i> Identificar alumnos en riesgo</li>
+                        <li><i class="fa-solid fa-check-circle"></i> Editar datos de alumnos y docentes</li>
+                    </ul>
+                    <button class="function-btn">
+                        <i class="fa-solid fa-arrow-right"></i> Ir a Personal
+                    </button>
+                </div>
+            </div>
+
+            <!-- Sistema -->
+            <div class="function-card" onclick="navigateToSection('sistema')">
+                <div class="function-icon sistema-icon">
+                    <i class="fa-solid fa-gears"></i>
+                </div>
+                <div class="function-info">
+                    <h3>Configuración del Sistema</h3>
+                    <p>Ajusta los parámetros generales del sistema, ciclos escolares y preferencias de la plataforma.</p>
+                    <ul class="function-features">
+                        <li><i class="fa-solid fa-check-circle"></i> Configurar ciclo escolar</li>
+                        <li><i class="fa-solid fa-check-circle"></i> Establecer plazos de justificación</li>
+                        <li><i class="fa-solid fa-check-circle"></i> Gestionar períodos de trimestres</li>
+                        <li><i class="fa-solid fa-check-circle"></i> Personalizar ajustes generales</li>
+                    </ul>
+                    <button class="function-btn">
+                        <i class="fa-solid fa-arrow-right"></i> Ir a Sistema
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>

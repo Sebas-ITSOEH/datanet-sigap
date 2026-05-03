@@ -1,0 +1,99 @@
+<div class="sistema-layout fade-in">
+    
+    <!-- CABECERA -->
+    <div class="control-header">
+        <h2><i class="fa-solid fa-gears"></i> Configuración del Sistema</h2>
+        <p>Administra los parámetros generales del ciclo escolar</p>
+    </div>
+
+    <!-- CONTENIDO -->
+    <div class="sistema-content">
+        
+        <!-- SECCIÓN: LÍMITES DE JUSTIFICACIÓN -->
+        <div class="config-section">
+            <div class="config-section-header">
+                <i class="fa-solid fa-hourglass-half"></i>
+                <h3>Plazo para Justificar Faltas</h3>
+            </div>
+            <div class="config-section-body">
+                <div class="config-row">
+                    <div class="config-label">
+                        Días permitidos para justificar
+                        <div class="config-hint">El alumno debe subir sus documentos en este plazo</div>
+                    </div>
+                    <input type="number" id="limite-dias" value="3" min="1" max="10" class="config-input config-input-small">
+                    <span style="color: var(--text-muted); font-size: 0.85rem;">días hábiles</span>
+                </div>
+                <div class="config-alerta">
+                    <i class="fa-solid fa-triangle-exclamation"></i>
+                    Si el alumno no justifica dentro de este plazo, la falta quedará como permanente.
+                </div>
+            </div>
+        </div>
+
+        <!-- SECCIÓN: PERIODO ESCOLAR -->
+        <div class="config-section">
+            <div class="config-section-header">
+                <i class="fa-solid fa-calendar-days"></i>
+                <h3>Ciclo Escolar Activo</h3>
+            </div>
+            <div class="config-section-body">
+                <div class="config-row">
+                    <div class="config-label">
+                        Periodo académico vigente
+                        <div class="config-hint">Selecciona el ciclo escolar actual</div>
+                    </div>
+                    <select id="ciclo-activo" class="config-input">
+                        <option value="2025-2026" selected>Ciclo 2025 - 2026</option>
+                        <option value="2026-2027">Ciclo 2026 - 2027</option>
+                        <option value="2024-2025">Ciclo 2024 - 2025</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <!-- SECCIÓN: TRIMESTRES -->
+        <div class="config-section">
+            <div class="config-section-header">
+                <i class="fa-solid fa-timeline"></i>
+                <h3>Fechas de Trimestres</h3>
+            </div>
+            <div class="config-section-body">
+                <p style="margin: 0 0 16px; color: var(--text-muted); font-size: 0.84rem;">
+                    Define las fechas de inicio y fin de cada periodo de evaluación.
+                </p>
+                <div class="trimestres-list">
+                    <!-- 1er Trimestre -->
+                    <div class="trimestre-item">
+                        <span class="trimestre-numero">1° Trimestre</span>
+                        <input type="date" id="trim1-inicio" class="config-input config-input-date" value="2025-08-28">
+                        <span class="config-separator">hasta</span>
+                        <input type="date" id="trim1-fin" class="config-input config-input-date" value="2025-11-20">
+                    </div>
+                    <!-- 2do Trimestre -->
+                    <div class="trimestre-item">
+                        <span class="trimestre-numero">2° Trimestre</span>
+                        <input type="date" id="trim2-inicio" class="config-input config-input-date" value="2025-11-21">
+                        <span class="config-separator">hasta</span>
+                        <input type="date" id="trim2-fin" class="config-input config-input-date" value="2026-03-10">
+                    </div>
+                    <!-- 3er Trimestre -->
+                    <div class="trimestre-item">
+                        <span class="trimestre-numero">3° Trimestre</span>
+                        <input type="date" id="trim3-inicio" class="config-input config-input-date" value="2026-03-11">
+                        <span class="config-separator">hasta</span>
+                        <input type="date" id="trim3-fin" class="config-input config-input-date" value="2026-07-15">
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- BOTÓN GUARDAR -->
+        <div class="sistema-footer">
+            <button class="btn-guardar-sistema" onclick="guardarConfiguracionSistema()">
+                <i class="fa-solid fa-floppy-disk"></i> Guardar Configuración
+            </button>
+        </div>
+
+    </div>
+</div>

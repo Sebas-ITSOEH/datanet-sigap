@@ -1,0 +1,343 @@
+<div class="justificantes-layout fade-in">
+    
+    <div class="j-top-navigation">
+        <div class="menu-hamburguesa-wrapper">
+            <button id="btn-hamburger" class="btn-hamburger">
+                Opciones <i class="fa-solid fa-bars-staggered"></i>
+            </button>
+            
+            <div id="j-dropdown" class="j-dropdown-menu hidden">
+                <button class="dropdown-item active" id="menu-historial">
+                    <div class="d-icon navy"><i class="fa-solid fa-folder-open"></i></div>
+                    <div class="d-text">
+                        <span>Historial de Permisos</span>
+                        <small>Ver estatus de trámites</small>
+                    </div>
+                </button>
+                <div class="dropdown-divider"></div>
+                <button class="dropdown-item" id="menu-solicitud">
+                    <div class="d-icon gold"><i class="fa-solid fa-file-signature"></i></div>
+                    <div class="d-text">
+                        <span>Solicitar Justificante</span>
+                        <small>Subir nuevo permiso</small>
+                    </div>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ==========================================
+         VISTA 1: HISTORIAL DE TRÁMITES
+    ========================================== -->
+    <div class="view-section fade-in" id="vista-lista">
+        <div class="hero-banner navy-banner">
+            <div class="banner-content">
+                <div class="banner-icon"><i class="fa-solid fa-folder-open"></i></div>
+                <div class="banner-text">
+                    <h2>Mis Trámites</h2>
+                    <p>Historial de justificantes y permisos solicitados a prefectura.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- BARRA DE BÚSQUEDA Y FILTROS -->
+        <div class="filtros-bar mt-20">
+            <div class="search-box">
+                <i class="fa-solid fa-search"></i>
+                <input type="text" id="buscar-tramite" class="input-modern input-search" placeholder="Buscar por fecha, motivo o estatus...">
+            </div>
+            <select id="filtro-estatus" class="input-modern filtro-select">
+                <option value="todos">📋 Todos los trámites</option>
+                <option value="pendiente">⏳ Pendientes</option>
+                <option value="aprobado">✅ Aprobados</option>
+                <option value="rechazado">❌ Rechazados</option>
+            </select>
+        </div>
+
+        <!-- LISTA DE TRÁMITES -->
+        <div class="j-list mt-20" id="lista-tramites">
+            <!-- EJEMPLO: PENDIENTE -->
+            <div class="j-card fade-in" data-estatus="pendiente" data-id="tramite-001">
+                <div class="j-card-header">
+                    <div class="j-title">
+                        <i class="fa-solid fa-notes-medical"></i>
+                        <h4>Enfermedad (Cita Médica)</h4>
+                    </div>
+                    <div class="j-card-actions">
+                        <span class="badge-status pendiente">En Revisión</span>
+                        <button class="btn-icon-action btn-ver" title="Ver detalles" onclick="verDetallesTramite('tramite-001')">
+                            <i class="fa-solid fa-eye"></i>
+                        </button>
+                        <button class="btn-icon-action btn-editar" title="Editar trámite" onclick="abrirEdicionTramite('tramite-001')">
+                            <i class="fa-solid fa-pen-to-square"></i>
+                        </button>
+                        <button class="btn-icon-action btn-eliminar" title="Eliminar trámite" onclick="confirmarEliminarTramite('tramite-001')">
+                            <i class="fa-solid fa-trash-can"></i>
+                        </button>
+                    </div>
+                </div>
+                <div class="j-card-body">
+                    <p><strong>Fecha:</strong> 24 de Abril, 2024</p>
+                    <p><strong>Tipo:</strong> Día Completo</p>
+                    <p><strong>Descripción:</strong> Cita médica en el IMSS por revisión general.</p>
+                    <p><strong>Archivos:</strong> Receta_Medica.pdf (245 KB)</p>
+                </div>
+                <div class="j-card-footer">
+                    <button class="btn-detalles" onclick="verDetallesTramite('tramite-001')">
+                        <i class="fa-solid fa-circle-info"></i> Ver Todos los Detalles
+                    </button>
+                </div>
+            </div>
+
+            <!-- EJEMPLO: APROBADO -->
+            <div class="j-card fade-in" data-estatus="aprobado" data-id="tramite-002">
+                <div class="j-card-header">
+                    <div class="j-title">
+                        <i class="fa-solid fa-bus"></i>
+                        <h4>Viaje Escolar</h4>
+                    </div>
+                    <div class="j-card-actions">
+                        <span class="badge-status aprobado">Aprobado</span>
+                        <button class="btn-icon-action btn-ver" title="Ver detalles" onclick="verDetallesTramite('tramite-002')">
+                            <i class="fa-solid fa-eye"></i>
+                        </button>
+                    </div>
+                </div>
+                <div class="j-card-body">
+                    <p><strong>Período:</strong> 10 al 15 de Marzo, 2024</p>
+                    <p><strong>Tipo:</strong> Rango de Fechas</p>
+                    <p><strong>Descripción:</strong> Viaje escolar al Museo de Antropología.</p>
+                    <p><strong>Archivos:</strong> Oficio_Comision.pdf, INE_Tutor.jpg</p>
+                </div>
+                <div class="j-card-footer">
+                    <button class="btn-detalles" onclick="verDetallesTramite('tramite-002')">
+                        <i class="fa-solid fa-circle-info"></i> Ver Todos los Detalles
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- MENSAJE CUANDO NO HAY TRÁMITES -->
+        <div id="sin-tramites" class="sin-resultados hidden mt-30">
+            <i class="fa-solid fa-folder-open"></i>
+            <h3>Sin trámites encontrados</h3>
+            <p>No hay trámites que coincidan con tu búsqueda.</p>
+        </div>
+    </div>
+
+    <!-- ==========================================
+         VISTA 2: FORMULARIO NUEVO JUSTIFICANTE
+    ========================================== -->
+    <div class="view-section hidden fade-in" id="vista-formulario">
+        <div class="hero-banner gold-banner">
+            <div class="banner-content">
+                <div class="banner-icon"><i class="fa-solid fa-file-signature"></i></div>
+                <div class="banner-text">
+                    <h2 id="titulo-formulario">Nuevo Justificante</h2>
+                    <p id="subtitulo-formulario">Llena los datos para solicitar la justificación de inasistencia.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- SECCIÓN 1: DATOS DEL ESTUDIANTE -->
+        <div class="panel-modern mt-20">
+            <div class="panel-header">
+                <h3><i class="fa-solid fa-user-graduate"></i> Datos del Estudiante</h3>
+            </div>
+            <div class="panel-body">
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label><i class="fa-solid fa-user text-primary"></i> Nombre del Estudiante</label>
+                        <input type="text" id="dato-nombre-alumno" class="input-modern" readonly>
+                    </div>
+                    <div class="form-group">
+                        <label><i class="fa-solid fa-id-card text-primary"></i> Número de Alumno</label>
+                        <input type="text" id="dato-numero-alumno" class="input-modern" readonly>
+                    </div>
+                    <div class="form-group">
+                        <label><i class="fa-solid fa-graduation-cap text-primary"></i> Grado</label>
+                        <input type="text" id="dato-grado" class="input-modern" readonly>
+                    </div>
+                    <div class="form-group">
+                        <label><i class="fa-solid fa-users text-primary"></i> Grupo</label>
+                        <input type="text" id="dato-grupo" class="input-modern" readonly>
+                    </div>
+                    <div class="form-group">
+                        <label><i class="fa-solid fa-user-tie text-primary"></i> Tutor</label>
+                        <input type="text" id="dato-tutor" class="input-modern" readonly>
+                    </div>
+                    <div class="form-group">
+                        <label><i class="fa-solid fa-phone text-primary"></i> Teléfono del Tutor</label>
+                        <input type="text" id="dato-telefono-tutor" class="input-modern" readonly>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- SECCIÓN 2: DETALLES DE LA INASISTENCIA -->
+        <div class="panel-modern mt-20">
+            <div class="panel-header">
+                <h3><i class="fa-solid fa-clipboard-list"></i> Detalles de la Inasistencia</h3>
+            </div>
+            <div class="panel-body">
+                <!-- TIPO DE JUSTIFICACIÓN -->
+                <div class="form-group">
+                    <label><i class="fa-solid fa-clock text-primary"></i> Tipo de Justificación</label>
+                    <div class="radio-group">
+                        <label class="radio-label">
+                            <input type="radio" name="tipo-justificacion" value="completo" checked>
+                            <span class="radio-custom"></span>
+                            <span>Día Completo</span>
+                        </label>
+                        <label class="radio-label">
+                            <input type="radio" name="tipo-justificacion" value="materias">
+                            <span class="radio-custom"></span>
+                            <span>Solo algunas materias</span>
+                        </label>
+                        <label class="radio-label">
+                            <input type="radio" name="tipo-justificacion" value="rango">
+                            <span class="radio-custom"></span>
+                            <span>Rango de Fechas</span>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- RANGO DE FECHAS -->
+                <div id="contenedor-rango-fechas" class="hidden mt-20">
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label><i class="fa-regular fa-calendar text-primary"></i> Fecha de Inicio</label>
+                            <input type="date" id="fecha-inicio-rango" class="input-modern">
+                        </div>
+                        <div class="form-group">
+                            <label><i class="fa-regular fa-calendar-check text-primary"></i> Fecha de Fin</label>
+                            <input type="date" id="fecha-fin-rango" class="input-modern">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- SELECTOR DE MATERIAS -->
+                <div id="contenedor-materias" class="hidden mt-20">
+                    <div class="form-group">
+                        <label><i class="fa-solid fa-book-open text-primary"></i> Selecciona las materias a justificar</label>
+                        <div class="checkbox-grid" id="lista-materias"></div>
+                    </div>
+                </div>
+
+                <!-- FECHA ÚNICA -->
+                <div id="contenedor-fecha-unica" class="form-group mt-20">
+                    <label><i class="fa-regular fa-calendar text-primary"></i> Fecha de Inasistencia</label>
+                    <input type="date" id="fecha-inasistencia" class="input-modern">
+                </div>
+
+                <div class="form-grid mt-20">
+                    <div class="form-group">
+                        <label><i class="fa-solid fa-clipboard-question text-primary"></i> Motivo de la falta</label>
+                        <select id="tipo-permiso" class="input-modern">
+                            <option value="">-- Seleccione una opción --</option>
+                            <option value="salud">🩺 Enfermedad / Cita Médica</option>
+                            <option value="personal">👨‍👩‍👧 Asuntos Familiares / Personales</option>
+                            <option value="viaje">🚌 Viaje Escolar / Congreso</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- DESCRIPCIÓN -->
+                <div class="form-group mt-20">
+                    <label><i class="fa-solid fa-pen-to-square text-primary"></i> Descripción del Motivo</label>
+                    <textarea id="descripcion-motivo" class="input-modern textarea-modern" rows="4" placeholder="Explica brevemente el motivo de la inasistencia..."></textarea>
+                </div>
+
+                <!-- BANNER INFORMATIVO -->
+                <div id="info-banner" class="alert-info hidden mt-20"></div>
+                
+                <!-- ZONA DE DOCUMENTOS -->
+                <div id="contenedor-documentos" class="hidden mt-20">
+                    <div class="documentos-requeridos-header">
+                        <h4><i class="fa-solid fa-paperclip"></i> Documentos Requeridos</h4>
+                        <p id="documentos-descripcion">Adjunta los siguientes documentos para validar tu justificante.</p>
+                    </div>
+                    <div class="upload-zone" id="upload-zone-dinamica"></div>
+                </div>
+
+                <!-- ERROR DE ARCHIVOS -->
+                <div id="error-archivos" class="alert-danger hidden mt-20">
+                    <i class="fa-solid fa-triangle-exclamation"></i> <b>Error:</b> Debes adjuntar todos los documentos requeridos (PDF, JPG o PNG).
+                </div>
+            </div>
+
+            <!-- PIE DEL FORMULARIO -->
+            <div class="wizard-footer mt-30">
+                <input type="hidden" id="editando-tramite-id" value="">
+                <button id="btn-cancelar-edicion" class="btn-mega btn-cancelar hidden" onclick="cancelarEdicion()">
+                    <i class="fa-solid fa-xmark"></i> Cancelar Edición
+                </button>
+                <button id="btn-enviar-solicitud" class="btn-mega">
+                    <i class="fa-solid fa-paper-plane"></i> <span id="texto-boton-enviar">Enviar Solicitud a Prefectura</span>
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ==========================================
+     MODAL: DETALLES COMPLETOS DEL TRÁMITE
+========================================== -->
+<div class="modal-detalle-overlay hidden" id="modal-detalle-tramite">
+    <div class="modal-detalle-content fade-in">
+        <button class="btn-close-modal" onclick="cerrarModalDetalle()">
+            <i class="fa-solid fa-xmark"></i>
+        </button>
+        <div class="modal-detalle-header">
+            <div class="detalle-icono" id="detalle-icono">
+                <i class="fa-solid fa-file-lines"></i>
+            </div>
+            <h3 id="detalle-titulo">Detalles del Trámite</h3>
+            <span class="badge-status" id="detalle-estatus">Pendiente</span>
+        </div>
+        <div class="modal-detalle-body" id="detalle-contenido"></div>
+        <div class="modal-detalle-footer" id="detalle-footer">
+            <button class="btn-mega btn-cerrar-detalle" onclick="cerrarModalDetalle()">
+                <i class="fa-solid fa-xmark"></i> Cerrar
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- ==========================================
+     MODAL: CONFIRMACIÓN DE ELIMINACIÓN
+========================================== -->
+<div class="modal-confirm-overlay hidden" id="modal-confirm-eliminar">
+    <div class="modal-confirm-content fade-in">
+        <div class="confirm-icon">
+            <i class="fa-solid fa-triangle-exclamation"></i>
+        </div>
+        <h3>¿Eliminar Trámite?</h3>
+        <p>Esta acción no se puede deshacer. El trámite será eliminado permanentemente del historial.</p>
+        <div class="confirm-actions">
+            <button class="btn-mega btn-cancelar" onclick="cerrarModalConfirmEliminar()">
+                <i class="fa-solid fa-xmark"></i> Cancelar
+            </button>
+            <button class="btn-mega btn-confirm-eliminar" id="btn-confirmar-eliminar" onclick="eliminarTramite()">
+                <i class="fa-solid fa-trash-can"></i> Sí, Eliminar
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- ==========================================
+     MODAL DE AUTORIZACIÓN (PIN)
+========================================== -->
+<div class="modal-auth-overlay hidden" id="modal-auth">
+    <div class="modal-auth-content fade-in">
+        <button class="btn-close-modal" id="btn-cerrar-auth"><i class="fa-solid fa-xmark"></i></button>
+        <div class="auth-icon"><i class="fa-solid fa-lock"></i></div>
+        <h3>Firma Digital Requerida</h3>
+        <p>Ingresa el PIN de padre o tutor para autorizar la creación de este trámite.</p>
+        <input type="password" id="pin-tutor" class="input-pin" placeholder="••••" maxlength="4">
+        <div id="error-pin" class="alert-danger hidden mt-10" style="margin-bottom: 15px;">
+            <i class="fa-solid fa-circle-exclamation"></i> PIN incorrecto. Intenta de nuevo.
+        </div>
+        <button id="btn-validar-pin" class="btn-pin-validate">Autorizar Trámite</button>
+    </div>
+</div>

@@ -1,0 +1,245 @@
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&display=swap');
+
+:root {
+    --color-azul-marino: #192A56;
+    --color-dorado: #C7A03D;
+    --color-rojo-oscuro: #A1232E;
+    --color-gris-claro: #EAEAEA;
+    --color-blanco: #FFFFFF;
+    --fuente-principal: 'Outfit', sans-serif;
+    --sombra: 0 10px 30px rgba(0,0,0,0.08);
+}
+
+.materias-container {
+    padding: 20px;
+    font-family: var(--fuente-principal);
+}
+
+/* Encabezados */
+.materias-header {
+    margin-bottom: 30px;
+    border-left: 5px solid var(--color-dorado);
+    padding-left: 20px;
+}
+
+.materias-header h3 {
+    font-size: 1.8rem;
+    color: var(--color-azul-marino);
+    margin: 0;
+    font-weight: 700;
+}
+
+.materias-header.secondary {
+    margin-top: 50px;
+    border-left-color: var(--color-gris-claro);
+}
+
+.materias-header p { color: #666; margin-top: 5px; }
+
+/* Grid */
+.grid-materias {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 20px;
+}
+
+/* Tarjetas */
+.materia-card {
+    background: var(--color-blanco);
+    border-radius: 15px;
+    padding: 20px;
+    box-shadow: var(--sombra);
+    transition: transform 0.3s ease;
+    position: relative;
+    overflow: hidden;
+}
+
+.materia-card:hover {
+    transform: translateY(-5px);
+}
+
+.card-status-line {
+    position: absolute;
+    top: 0; left: 0; width: 100%; height: 5px;
+}
+.card-status-line.safe { background: var(--color-dorado); }
+.card-status-line.risk { background: var(--color-rojo-oscuro); }
+
+.card-body {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+.materia-icon-box {
+    width: 50px; height: 50px;
+    background: rgba(25, 42, 86, 0.1);
+    color: var(--color-azul-marino);
+    border-radius: 12px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.5rem;
+}
+
+.materia-icon-box.gray {
+    background: #f1f5f9; color: #94a3b8;
+}
+
+.materia-main h4 { margin: 0 0 5px 0; color: var(--color-azul-marino); font-size: 1.2rem; }
+.materia-main p { margin: 0; color: #666; font-size: 0.9rem; }
+
+.btn-info-profe {
+    margin-left: auto; background: none; border: none;
+    color: var(--color-dorado); font-size: 1.2rem; cursor: pointer;
+}
+
+/* Asistencia */
+.attendance-visual { margin-top: 15px; }
+.progress-container {
+    background: var(--color-gris-claro);
+    height: 10px; border-radius: 10px; overflow: hidden; margin-bottom: 8px;
+}
+.progress-bar {
+    height: 100%; background: var(--color-dorado);
+    border-radius: 10px; transition: width 1s ease;
+}
+.progress-bar.risk { background: var(--color-rojo-oscuro); }
+
+.attendance-stats { display: flex; justify-content: space-between; font-size: 0.85rem; font-weight: 600; }
+.percentage { color: var(--color-dorado); }
+.risk-text { color: var(--color-rojo-oscuro); }
+
+/* Botones */
+.btn-action-risk {
+    width: 100%; margin-top: 15px; padding: 12px;
+    border: none; border-radius: 10px;
+    background: var(--color-azul-marino); color: white;
+    font-weight: 600; cursor: pointer;
+    display: flex; align-items: center; justify-content: center; gap: 8px;
+    transition: background 0.3s;
+}
+.btn-action-risk:hover { background: var(--color-rojo-oscuro); }
+
+/* Tarjeta Unirse */
+.add-materia {
+    border: 2px dashed var(--color-dorado);
+    background: rgba(199, 160, 61, 0.05);
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer; box-shadow: none; min-height: 180px;
+}
+.add-materia:hover { background: rgba(199, 160, 61, 0.1); }
+.add-content { text-align: center; color: var(--color-azul-marino); }
+.add-icon { font-size: 2rem; color: var(--color-dorado); margin-bottom: 10px; }
+.add-content h4 { margin: 0; font-size: 1.2rem; }
+.add-content span { font-size: 0.9rem; color: #666; }
+
+/* Tarjeta Pendiente */
+.pending-card { opacity: 0.7; }
+.pending-badge {
+    position: absolute; top: 15px; right: 15px;
+    background: #f1f5f9; color: #64748b;
+    padding: 4px 10px; border-radius: 20px; font-size: 0.8rem; font-weight: 600;
+}
+
+/* =========================================
+   MODAL "UNIRSE A CLASE" (ALUMNO)
+========================================= */
+.modal {
+    display: none;
+    position: fixed;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    background: rgba(25, 42, 86, 0.7);
+    backdrop-filter: blur(5px);
+    z-index: 2000;
+}
+
+.modal-content {
+    background: var(--color-blanco);
+    width: 90%;
+    max-width: 450px;
+    margin: 8% auto;
+    border-radius: 20px;
+    padding: 30px;
+    box-shadow: 0 20px 40px rgba(0,0,0,0.25);
+    font-family: var(--fuente-principal);
+}
+
+.close-modal { 
+    background: none; 
+    border: none; 
+    font-size: 1.8rem; 
+    cursor: pointer; 
+    color: #999; 
+    transition: color 0.3s;
+}
+.close-modal:hover { color: var(--color-rojo-oscuro); }
+
+.input-codigo {
+    width: 100%; 
+    padding: 15px; 
+    border-radius: 10px; 
+    border: 2px solid #EAEAEA; 
+    text-transform: uppercase; 
+    font-size: 1.2rem; 
+    text-align: center; 
+    letter-spacing: 3px; 
+    box-sizing: border-box; 
+    outline: none; 
+    transition: 0.3s;
+    font-family: var(--fuente-principal);
+    font-weight: 600;
+    color: var(--color-azul-marino);
+}
+
+.input-codigo:focus {
+    border-color: var(--color-dorado);
+    background: #FFFDF5;
+}
+
+.btn-cancel {
+    background: var(--color-gris-claro);
+    color: #444;
+    border: none;
+    padding: 12px 20px;
+    border-radius: 10px;
+    cursor: pointer;
+    font-weight: 600;
+    transition: all 0.3s ease;
+    font-family: var(--fuente-principal);
+}
+.btn-cancel:hover { background: #d1d1d1; color: #111; }
+
+.btn-submit {
+    background: var(--color-azul-marino);
+    color: var(--color-blanco);
+    border: none;
+    padding: 12px 24px;
+    border-radius: 10px;
+    cursor: pointer;
+    font-weight: 600;
+    transition: all 0.3s ease;
+    font-family: var(--fuente-principal);
+}
+.btn-submit:hover {
+    background: var(--color-dorado);
+    color: var(--color-azul-marino);
+}
+
+.btn-confirm-join {
+    background: #10B981; 
+}
+.btn-confirm-join:hover {
+    background: #059669;
+    color: white;
+    box-shadow: 0 4px 10px rgba(16, 185, 129, 0.3);
+}
+
+/* Animaciones */
+.fade-in {
+    animation: fadeIn 0.5s ease forwards;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}

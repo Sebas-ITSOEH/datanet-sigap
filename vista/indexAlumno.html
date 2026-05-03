@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SIGAP - Portal Alumno</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Nunito:wght@600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <link rel="stylesheet" href="css/alumno/styleAlumno.css">
+    <link rel="stylesheet" href="css/alumno/resumen.css">
+    <link rel="stylesheet" href="css/alumno/historial.css">
+    <link rel="stylesheet" href="css/alumno/bienvenida.css">
+    <link rel="stylesheet" href="css/alumno/materias.css">
+    <link rel="stylesheet" href="css/alumno/justificantes.css">
+</head>
+<body>
+
+    <header class="encabezado-principal alumno-header">
+    <nav class="contenedor-navegacion nav-alumno">
+        
+        <div class="logotipo">
+            <i class="fa-solid fa-school-flag"></i>
+            <div class="brand-text">
+                <span class="main-title">D.A.T.A.N.E.T.</span>
+                <span class="sub-title">Lic. Benito Juárez</span>
+            </div>
+        </div>
+
+        <ul class="menu-enlaces menu-alumno">
+            <li>
+                <a href="#" class="nav-item active" onclick="loadSection('materias')">
+                    <i class="fa-solid fa-book-bookmark"></i> Materias
+                </a>
+            </li>
+            <li>
+                <a href="#" class="nav-item" onclick="loadSection('historial')">
+                    <i class="fa-solid fa-clock-rotate-left"></i> Historial
+                </a>
+            </li>
+            <li>
+                <a href="#" class="nav-item" onclick="loadSection('justificantes')">
+                    <i class="fa-solid fa-file-signature"></i> Justificantes
+                </a>
+            </li>
+        </ul>
+
+        <div class="acciones-usuario-portal">
+            <button class="btn-icon btn-notifications" title="Notificaciones">
+                <i class="fa-solid fa-bell"></i>
+                <span class="notif-badge">3</span>
+            </button>
+
+            <div class="perfil-header user-profile" onclick="loadSection('perfil')">
+                <div class="user-text">
+                    <span class="name">Juan Pérez</span>
+                    <span class="role">Alumno</span>
+                </div>
+                <img src="https://ui-avatars.com/api/?name=Juan+Perez&background=C7A03D&color=fff" alt="Avatar" class="user-avatar">
+            </div>
+
+            <button class="btn-icon btn-logout" title="Cerrar Sesión">
+                <i class="fa-solid fa-power-off"></i>
+            </button>
+        </div>
+
+    </nav>
+</header>
+
+    <main id="view-container">
+        </main>
+
+    <footer class="creative-footer">
+        <div class="footer-wave">
+            <svg viewBox="0 0 1200 120" preserveAspectRatio="none">
+                <path d="M321.39,56.44c58-10.79,114.16-30.13,172-41.86,82.39-16.72,168.19-17.73,250.45-.39C823.78,31,906.67,72,985.66,92.83c70.05,18.48,146.53,26.09,214.34,3V0H0V46.35C50.7,56.33,115.05,62,176,63.26,242.4,64.62,283.08,60.61,321.39,56.44Z" class="shape-fill"></path>
+            </svg>
+        </div>
+        <div class="footer-content">
+            <div class="footer-top">
+                <div class="footer-brand">
+                    <h3>Diseño Avanzado de Telecomunicaciones y Arquitectura de Networking</h3>
+                    <p>Desarrollada por estudiantes de ISIC del Tecnologico Nacional de Mexico Campus ITSOEH </p>
+                </div>
+                <div class="footer-status">
+                    <span class="status-indicator">
+                        <span class="dot"></span> Sistema en línea
+                    </span>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2026 Secundaria General "Lic. Benito Juárez". Todos los derechos reservados.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script src="js/mainAlumno.js"></script>
+</body>
+</html>

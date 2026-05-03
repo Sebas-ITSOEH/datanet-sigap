@@ -1,0 +1,297 @@
+/* ==========================================
+   VARIABLES - PALETA INSTITUCIONAL
+   ========================================== */
+:root {
+    --color-azul-marino: #192A56;
+    --color-azul-borde: rgba(255, 255, 255, 0.2);
+    --color-dorado: #D6A848;
+    --color-rojo-oscuro: #A1232E;
+    --color-gris-claro: #EAEAEA;
+    --white: #FFFFFF;
+    --bg: #F8FAFC;
+    
+    --primary: #3B82F6;
+    --primary-dark: #1E40AF;
+    --success: #10B981;
+    --warning: #F59E0B;
+    --danger: #EF4444;
+    --text-main: #1E293B;
+    --text-muted: #64748B;
+    
+    --bg-card: #FFFFFF;
+    --bg-hover: #F1F5F9;
+    --border: #E2E8F0;
+    --border-light: #F1F5F9;
+    
+    --shadow-xs: 0 1px 2px rgba(0,0,0,0.04);
+    --shadow-sm: 0 2px 8px rgba(0,0,0,0.06);
+    --shadow-md: 0 4px 16px rgba(0,0,0,0.08);
+    
+    --radius-sm: 6px;
+    --radius-md: 10px;
+    --radius-lg: 14px;
+    --radius-xl: 18px;
+}
+
+* { box-sizing: border-box; }
+
+/* ==========================================
+   LAYOUT PRINCIPAL
+   ========================================== */
+.sistema-layout {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    background: #F8FAFC;
+}
+
+.fade-in { animation: fadeSlideIn 0.3s ease-out; }
+@keyframes fadeSlideIn {
+    from { opacity: 0; transform: translateY(8px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* ==========================================
+   CABECERA - FONDO BLANCO
+   ========================================== */
+.control-header {
+    background: #FFFFFF;
+    padding: 18px 22px;
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-xs);
+    border: 1px solid #E2E8F0;
+}
+.control-header h2 {
+    margin: 0;
+    font-size: 1.1rem;
+    color: #1E293B;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-weight: 700;
+}
+.control-header h2 i { 
+    color: #192A56;
+}
+.control-header p { 
+    margin: 4px 0 0; 
+    font-size: 0.8rem; 
+    color: #64748B; 
+}
+
+/* ==========================================
+   CONTENEDOR PRINCIPAL - FONDO BLANCO
+   ========================================== */
+.sistema-content {
+    background: #FFFFFF;
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-xs);
+    border: 1px solid #E2E8F0;
+    padding: 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+}
+
+/* ==========================================
+   SECCIÓN DE CONFIGURACIÓN
+   ========================================== */
+.config-section {
+    border: 1px solid #E2E8F0;
+    border-radius: var(--radius-md);
+    overflow: hidden;
+    background: #FFFFFF;
+}
+
+.config-section-header {
+    background: #F1F5F9;
+    padding: 14px 20px;
+    border-bottom: 1px solid #E2E8F0;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+.config-section-header i {
+    color: #192A56;
+    font-size: 1.1rem;
+    width: 22px;
+    text-align: center;
+}
+.config-section-header h3 {
+    margin: 0;
+    font-size: 0.95rem;
+    color: #1E293B;
+    font-weight: 600;
+}
+
+.config-section-body {
+    padding: 20px;
+    background: #FFFFFF;
+}
+
+/* ==========================================
+   CAMPOS DE CONFIGURACIÓN
+   ========================================== */
+.config-row {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    margin-bottom: 16px;
+    flex-wrap: wrap;
+}
+.config-row:last-child { margin-bottom: 0; }
+
+.config-label {
+    min-width: 180px;
+    font-weight: 600;
+    color: #1E293B;
+    font-size: 0.88rem;
+}
+
+.config-hint {
+    font-size: 0.75rem;
+    color: #64748B;
+    margin-top: 4px;
+    font-weight: 400;
+}
+
+/* ==========================================
+   INPUTS Y SELECTS
+   ========================================== */
+.config-input {
+    background: #F8FAFC;
+    border: 1px solid #E2E8F0;
+    border-radius: var(--radius-sm);
+    padding: 10px 14px;
+    font-size: 0.88rem;
+    color: #1E293B;
+    font-family: inherit;
+    outline: none;
+    transition: all 0.2s;
+    min-width: 200px;
+}
+.config-input:focus {
+    border-color: #192A56;
+    background: #FFFFFF;
+    box-shadow: 0 0 0 3px rgba(25, 42, 86, 0.08);
+}
+.config-input option {
+    background: #FFFFFF;
+    color: #1E293B;
+}
+
+.config-input-small {
+    width: 80px;
+    min-width: 60px;
+    text-align: center;
+}
+
+.config-input-date {
+    min-width: 150px;
+}
+
+.config-separator {
+    color: #64748B;
+    font-size: 0.85rem;
+    font-weight: 500;
+}
+
+/* ==========================================
+   ALERTA DE AVISO - FONDO ROJO CLARO
+   ========================================== */
+.config-alerta {
+    background: #FEF2F2;
+    border: 1px solid #FECACA;
+    border-radius: var(--radius-sm);
+    padding: 10px 14px;
+    font-size: 0.78rem;
+    color: #991B1B;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 8px;
+}
+.config-alerta i { 
+    font-size: 0.85rem; 
+    color: #EF4444;
+}
+
+/* ==========================================
+   TRIMESTRES
+   ========================================== */
+.trimestres-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.trimestre-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 16px;
+    background: #F8FAFC;
+    border-radius: var(--radius-sm);
+    border: 1px solid #E2E8F0;
+    flex-wrap: wrap;
+}
+
+.trimestre-numero {
+    font-weight: 700;
+    color: #192A56;
+    font-size: 0.85rem;
+    min-width: 100px;
+}
+
+/* ==========================================
+   BOTÓN GUARDAR
+   ========================================== */
+.sistema-footer {
+    display: flex;
+    justify-content: flex-end;
+    padding-top: 8px;
+}
+
+.btn-guardar-sistema {
+    background: #192A56;
+    color: #FFFFFF;
+    border: none;
+    padding: 12px 30px;
+    border-radius: var(--radius-sm);
+    font-weight: 700;
+    font-size: 0.9rem;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    transition: all 0.2s;
+    font-family: inherit;
+}
+.btn-guardar-sistema:hover {
+    background: #D6A848;
+    color: #192A56;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(214, 168, 72, 0.3);
+}
+
+/* ==========================================
+   RESPONSIVE
+   ========================================== */
+@media (max-width: 768px) {
+    .config-row {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 8px;
+    }
+    .config-label {
+        min-width: auto;
+    }
+    .trimestre-item {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+    .config-input {
+        width: 100%;
+    }
+}

@@ -1,0 +1,135 @@
+<div class="materias-container fade-in">
+    <div class="materias-header">
+        <div class="header-info">
+            <h3><i class="fa-solid fa-book-bookmark"></i> Mis Materias</h3>
+            <p>Monitorea tu asistencia y mantente al día con tus clases.</p>
+        </div>
+    </div>
+
+    <div class="grid-materias" id="grid-activas">
+        <div class="materia-card add-materia" onclick="abrirModalUnirse()">
+            <div class="add-content">
+                <div class="add-icon"><i class="fa-solid fa-plus"></i></div>
+                <h4>Unirse a clase</h4>
+                <span>Ingresa el código</span>
+            </div>
+        </div>
+
+        <div class="materia-card active-card" data-status="safe">
+            <div class="card-status-line safe"></div>
+            <div class="card-body">
+                <div class="materia-icon-box">
+                    <i class="fa-solid fa-calculator"></i>
+                </div>
+                <div class="materia-main">
+                    <h4>Matemáticas</h4>
+                    <p><i class="fa-solid fa-user-tie"></i> Eduardo García</p>
+                </div>
+                <button class="btn-info-profe" title="prof.mate@escuela.com">
+                    <i class="fa-solid fa-circle-info"></i>
+                </button>
+            </div>
+            
+            <div class="attendance-visual">
+                <div class="progress-container">
+                    <div class="progress-bar" style="width: 95%;"></div>
+                </div>
+                <div class="attendance-stats">
+                    <span class="percentage">95% de Asistencia</span>
+                    <span class="count">2 de 40 faltas</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="materia-card active-card" data-status="risk">
+            <div class="card-status-line risk"></div>
+            <div class="card-body">
+                <div class="materia-icon-box" style="background: rgba(161, 35, 46, 0.1); color: var(--color-rojo-oscuro);">
+                    <i class="fa-solid fa-flask"></i>
+                </div>
+                <div class="materia-main">
+                    <h4>Química</h4>
+                    <p><i class="fa-solid fa-user-tie"></i> Ana Martínez</p>
+                </div>
+                <button class="btn-info-profe" title="prof.quimica@escuela.com">
+                    <i class="fa-solid fa-circle-info"></i>
+                </button>
+            </div>
+            
+            <div class="attendance-visual">
+                <div class="progress-container">
+                    <div class="progress-bar risk" style="width: 75%;"></div>
+                </div>
+                <div class="attendance-stats">
+                    <span class="percentage risk-text">75% (En Riesgo)</span>
+                    <span class="count">10 de 40 faltas</span>
+                </div>
+            </div>
+            <button class="btn-action-risk" onclick="loadSection('justificantes')">
+                <i class="fa-solid fa-file-circle-plus"></i> Justificar ahora
+            </button>
+        </div>
+    </div>
+
+    <div class="materias-header secondary">
+        <h4><i class="fa-solid fa-hourglass-half"></i> Solicitudes en proceso</h4>
+    </div>
+    
+    <div class="grid-materias" id="grid-pendientes">
+        <div class="materia-card pending-card">
+            <div class="pending-badge">Pendiente</div>
+            <div class="card-body">
+                <div class="materia-icon-box gray">
+                    <i class="fa-solid fa-atom"></i>
+                </div>
+                <div class="materia-main">
+                    <h4>Física II</h4>
+                    <p>Esperando aprobación del docente</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="modal-unirse-clase" class="modal">
+        <div class="modal-content fade-in">
+            <div class="modal-header" style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #EAEAEA; padding-bottom: 15px; margin-bottom: 20px;">
+                <h3 style="color: var(--color-azul-marino); margin: 0;"><i class="fa-solid fa-right-to-bracket"></i> Unirse a una Clase</h3>
+                <button class="close-modal" onclick="cerrarModalUnirse()">&times;</button>
+            </div>
+
+            <div id="step-1-codigo">
+                <p style="color: #666; font-size: 0.95rem; margin-bottom: 20px;">Pídele a tu profesor el código de la clase e introdúcelo aquí para inscribirte.</p>
+                <div class="modern-form">
+                    <div class="form-group" style="margin-bottom: 20px;">
+                        <input type="text" id="input-codigo-clase" placeholder="Ej: HIST-101" class="input-codigo">
+                        <p id="error-codigo" style="color: var(--color-rojo-oscuro); font-size: 0.85rem; margin-top: 8px; display: none; font-weight: 600;"><i class="fa-solid fa-circle-exclamation"></i> Código inválido o no encontrado.</p>
+                    </div>
+                    <div class="form-actions" style="display: flex; justify-content: space-between;">
+                        <button type="button" class="btn-cancel" onclick="cerrarModalUnirse()">Cancelar</button>
+                        <button type="button" class="btn-submit" onclick="verificarCodigo()">Verificar Código</button>
+                    </div>
+                </div>
+            </div>
+
+            <div id="step-2-confirmacion" style="display: none;">
+                <div class="info-clase-encontrada" style="background: #F8FAFC; border: 2px solid #EAEAEA; border-radius: 16px; padding: 25px; text-align: center; margin-bottom: 20px;">
+                    <div style="width: 60px; height: 60px; background: #DCFCE7; color: #10B981; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.8rem; margin: 0 auto 15px;">
+                        <i class="fa-solid fa-check"></i>
+                    </div>
+                    <h3 id="confirm-nombre-clase" style="margin: 0 0 8px; color: var(--color-azul-marino); font-size: 1.4rem;">Nombre de la Materia</h3>
+                    <p id="confirm-docente-clase" style="margin: 0; color: #666; font-size: 1rem; font-weight: 500;">Profesor asignado</p>
+                    <div style="margin-top: 15px; display: inline-block; background: #FEF3C7; color: #B45309; padding: 6px 16px; border-radius: 20px; font-size: 0.85rem; font-weight: 700;">
+                        Ciclo: <span id="confirm-ciclo-clase">2025-2026</span>
+                    </div>
+                </div>
+                
+                <p style="text-align: center; font-weight: 700; color: var(--color-azul-marino); margin-bottom: 25px; font-size: 1.05rem;">¿Estás seguro de que deseas unirte a esta clase?</p>
+                
+                <div class="form-actions" style="display: flex; justify-content: center; gap: 15px;">
+                    <button type="button" class="btn-cancel" onclick="reiniciarModalUnirse()">No, regresar</button>
+                    <button type="button" class="btn-submit btn-confirm-join" onclick="inscribirseAClase()">Sí, unirme a la clase</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

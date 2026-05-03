@@ -1,0 +1,191 @@
+<div class="clases-layout fade-in">
+    <div class="section-header">
+        <div class="header-info">
+            <h2><i class="fa-solid fa-users-rectangle"></i> Gestión de Clases</h2>
+            <p>Administra tus grupos, crea nuevas aulas y revisa asistencias.</p>
+        </div>
+        <button class="btn-create" onclick="toggleModal('modal-crear')">
+            <i class="fa-solid fa-plus"></i> Crear Nueva Clase
+        </button>
+    </div>
+
+    <!-- Sección de Solicitudes (Simulada) -->
+    <div class="clases-content">
+        <section class="requests-section">
+            <div class="card-white">
+                <div class="card-header">
+                    <h3><i class="fa-solid fa-user-clock"></i> Solicitudes de Ingreso</h3>
+                    <span class="badge-count" id="badge-solicitudes">3 Pendientes</span>
+                </div>
+                <div class="requests-list" id="requests-container">
+                    <!-- Las solicitudes se cargarán dinámicamente con JS -->
+                </div>
+            </div>
+        </section>
+
+        <!-- Grid de Clases Activas -->
+        <section class="active-classes">
+            <h3 style="margin-bottom: 20px; color: var(--color-azul-marino);"><i class="fa-solid fa-chalkboard-user"></i> Mis Clases Activas</h3>
+            <div class="grid-clases" id="clases-activas-container">
+                <!-- Las clases se cargarán dinámicamente con JS -->
+            </div>
+        </section>
+    </div>
+
+    <!-- MODAL: CREAR NUEVA CLASE -->
+    <div id="modal-crear" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3><i class="fa-solid fa-plus-circle"></i> Crear Nueva Clase</h3>
+                <button class="close-modal" onclick="toggleModal('modal-crear')">&times;</button>
+            </div>
+            <form id="form-crear-clase" class="modern-form" onsubmit="crearClase(event)">
+                <div class="form-group">
+                    <label>Nombre de la Clase</label>
+                    <input type="text" id="nombreClase" placeholder="Ej: Historia Universal" required>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Grado</label>
+                        <select id="gradoClase" required>
+                            <option value="">Seleccionar...</option>
+                            <option value="1">1°</option>
+                            <option value="2">2°</option>
+                            <option value="3">3°</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Grupo</label>
+                        <select id="grupoClase" required>
+                            <option value="">Seleccionar...</option>
+                            <option value="A">A</option>
+                            <option value="B">B</option>
+                            <option value="C">C</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <!-- NUEVO: Horario dinámico con botón + -->
+                <div class="form-group">
+                    <label>Horarios de la Clase</label>
+                    <div id="horarios-container">
+                        <div class="horario-row">
+                            <select class="dia-select" required>
+                                <option value="">Día...</option>
+                                <option value="Lunes">Lunes</option>
+                                <option value="Martes">Martes</option>
+                                <option value="Miércoles">Miércoles</option>
+                                <option value="Jueves">Jueves</option>
+                                <option value="Viernes">Viernes</option>
+                            </select>
+                            <select class="hora-inicio-select" required>
+                                <option value="">Inicio...</option>
+                                <option value="7:00">7:00</option>
+                                <option value="8:00">8:00</option>
+                                <option value="8:30">8:30</option>
+                                <option value="9:00">9:00</option>
+                                <option value="10:00">10:00</option>
+                                <option value="11:00">11:00</option>
+                                <option value="12:00">12:00</option>
+                            </select>
+                            <span class="hora-separator">a</span>
+                            <select class="hora-fin-select" required>
+                                <option value="">Fin...</option>
+                                <option value="8:30">8:30</option>
+                                <option value="9:00">9:00</option>
+                                <option value="10:00">10:00</option>
+                                <option value="10:30">10:30</option>
+                                <option value="11:30">11:30</option>
+                                <option value="12:30">12:30</option>
+                                <option value="13:00">13:00</option>
+                            </select>
+                            <button type="button" class="btn-remove-horario" style="display:none;" onclick="eliminarHorario(this)" title="Eliminar horario">
+                                <i class="fa-solid fa-trash-can"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <button type="button" class="btn-add-horario" onclick="agregarHorario()">
+                        <i class="fa-solid fa-plus"></i> Agregar otro horario
+                    </button>
+                </div>
+
+                <div class="form-group">
+                    <label>Código de Clase</label>
+                    <input type="text" id="codigoClase" placeholder="Ej: HIST-101" required>
+                </div>
+                <div class="form-group">
+                    <label>Descripción de la clase</label>
+                    <textarea id="descripcionClase" rows="3" placeholder="Breve descripción del curso..."></textarea>
+                </div>
+                <div class="form-actions">
+                    <button type="button" class="btn-cancel" onclick="toggleModal('modal-crear')">Cancelar</button>
+                    <button type="submit" class="btn-submit"><i class="fa-solid fa-floppy-disk"></i> Guardar Clase</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- MODAL: GESTIONAR CLASE (ALUMNOS Y REPORTE SEMANAL) -->
+    <div id="modal-gestionar" class="modal">
+        <div class="modal-content modal-gestionar-content">
+            <div class="modal-header">
+                <h3 id="titulo-gestion-modal"><i class="fa-solid fa-gear"></i> Gestionar Clase</h3>
+                <button class="close-modal" onclick="toggleModal('modal-gestionar')">&times;</button>
+            </div>
+            
+            <!-- Pestañas de gestión -->
+            <div class="tabs-gestion">
+                <button class="tab-btn active" onclick="cambiarTabGestion('alumnos')">👥 Alumnos Inscritos</button>
+                <button class="tab-btn" onclick="cambiarTabGestion('reporte')">📊 Reporte Semanal</button>
+            </div>
+
+            <!-- Contenido de la pestaña Alumnos -->
+            <div id="tab-alumnos" class="tab-content active">
+                <div class="alumnos-lista-container">
+                    <div class="lista-alumnos-header">
+                        <span>Total: <strong id="total-alumnos-gestion">0</strong> alumnos</span>
+<button class="btn-add-alumno" onclick="abrirModalAgregarAlumno()"><i class="fa-solid fa-user-plus"></i> Agregar</button>                    </div>
+                    <div class="alumnos-scroll" id="lista-alumnos-gestion">
+                        <!-- Se llena dinámicamente -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Contenido de la pestaña Reporte Semanal -->
+            <div id="tab-reporte" class="tab-content">
+                <div class="reporte-container">
+                    <div class="reporte-controls">
+                        <label for="semana-reporte">Seleccionar Semana:</label>
+                        <input type="week" id="semana-reporte" class="input-semana">
+                        <button class="btn-buscar-reporte" onclick="generarReporteSemanal()"><i class="fa-solid fa-magnifying-glass-chart"></i> Consultar</button>
+                    </div>
+                    <div id="resultado-reporte" class="resultado-reporte">
+                        <p class="placeholder-message">Seleccione una semana y haga clic en "Consultar" para ver el reporte de asistencias del grupo.</p>
+                    </div>
+                    <!-- Botones de exportación (aparecen después de generar reporte) -->
+                    <div id="export-buttons" class="export-buttons" style="display: none; margin-top: 15px;">
+                        <button class="btn-export-excel" onclick="exportarReporteExcel()">
+                            <i class="fa-solid fa-file-excel"></i> Exportar a Excel
+                        </button>
+                        <button class="btn-export-pdf" onclick="exportarReportePDF()">
+                            <i class="fa-solid fa-file-pdf"></i> Exportar a PDF
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL: DETALLE DEL ALUMNO -->
+    <div id="modal-detalle-alumno" class="modal">
+        <div class="modal-content modal-detalle-content">
+            <div class="modal-header">
+                <h3><i class="fa-solid fa-id-card"></i> Ficha del Alumno</h3>
+                <button class="close-modal" onclick="toggleModal('modal-detalle-alumno')">&times;</button>
+            </div>
+            <div id="detalle-alumno-body">
+                <!-- Se llena dinámicamente -->
+            </div>
+        </div>
+    </div>
+</div>
