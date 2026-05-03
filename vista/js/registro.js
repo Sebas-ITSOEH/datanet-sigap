@@ -1,20 +1,17 @@
-// Función que se llama después de cargar el componente registro
+// Funcion que se llama despues de cargar el componente registro
 window.inicializarRegistro = function() {
     const btnSiguiente = document.getElementById('btnSiguiente');
     const btnAtras = document.getElementById('btnAtras');
     const regForm = document.getElementById('regForm');
 
-    // Botón Siguiente (Paso 1 -> Paso 2)
     if (btnSiguiente) {
         btnSiguiente.addEventListener('click', siguiente);
     }
 
-    // Botón Atrás (Paso 2 -> Paso 1)
     if (btnAtras) {
         btnAtras.addEventListener('click', anterior);
     }
 
-    // Envío del formulario
     if (regForm) {
         regForm.addEventListener('submit', function(e) {
             e.preventDefault();
@@ -28,12 +25,12 @@ function siguiente() {
     const nombre = document.getElementById('nombre')?.value.trim();
 
     if (!nombre || !email) {
-        mostrarNotificacion('Por favor, llena todos los campos básicos.', 'error');
+        mostrarNotificacion('Por favor, llena todos los campos basicos.', 'error');
         return;
     }
 
-    if (!email.endsWith('@secgralbj.edu.mx')) {
-        mostrarNotificacion('El correo debe ser institucional (@secgralbj.edu.mx)', 'error');
+    if (!email.includes('@')) {
+        mostrarNotificacion('Ingresa un correo valido.', 'error');
         return;
     }
 
@@ -45,7 +42,7 @@ function siguiente() {
     if (esAlumno) {
         titulo.innerText = 'Perfil Alumno';
         campoDinamico.innerHTML = `
-            <label>Matrícula Escolar</label>
+            <label>Matricula Escolar</label>
             <input type="text" id="id-valor" placeholder="Ej: 20240001" required>`;
         seccionTutor.style.display = 'block';
     } else {
@@ -56,20 +53,19 @@ function siguiente() {
         seccionTutor.style.display = 'none';
     }
 
-    // Transición entre pasos
     const step1 = document.getElementById('step1');
     const step2 = document.getElementById('step2');
-    
+
     step1.style.opacity = '0';
     step1.style.transform = 'translateX(-20px)';
     step1.style.transition = 'all 0.3s ease';
-    
+
     setTimeout(() => {
         step1.style.display = 'none';
         step2.style.display = 'block';
         step2.style.opacity = '0';
         step2.style.transform = 'translateX(20px)';
-        
+
         setTimeout(() => {
             step2.style.opacity = '1';
             step2.style.transform = 'translateX(0)';
@@ -83,17 +79,17 @@ function siguiente() {
 function anterior() {
     const step1 = document.getElementById('step1');
     const step2 = document.getElementById('step2');
-    
+
     step2.style.opacity = '0';
     step2.style.transform = 'translateX(20px)';
     step2.style.transition = 'all 0.3s ease';
-    
+
     setTimeout(() => {
         step2.style.display = 'none';
         step1.style.display = 'block';
         step1.style.opacity = '0';
         step1.style.transform = 'translateX(-20px)';
-        
+
         setTimeout(() => {
             step1.style.opacity = '1';
             step1.style.transform = 'translateX(0)';
@@ -107,6 +103,8 @@ function anterior() {
 function confirmarRegistro() {
     const pass = document.getElementById('pass')?.value;
     const confirmPass = document.getElementById('confirmPass')?.value;
+    const email = document.getElementById('email')?.value.trim();
+    const esAlumno = /^[0-9]/.test(email);
 
     if (!pass || !confirmPass) {
         mostrarNotificacion('Por favor completa todos los campos.', 'error');
@@ -114,39 +112,101 @@ function confirmarRegistro() {
     }
 
     if (pass !== confirmPass) {
-        mostrarNotificacion('Las contraseñas no coinciden.', 'error');
+        mostrarNotificacion('Las contrasenas no coinciden.', 'error');
         return;
     }
 
     if (pass.length < 6) {
-        mostrarNotificacion('La contraseña debe tener al menos 6 caracteres.', 'error');
+        mostrarNotificacion('La contrasena debe tener al menos 6 caracteres.', 'error');
         return;
     }
 
-    // Simulación de envío de WhatsApp
+    if (esAlumno && !validarTutor()) {
+        return;
+    }
+
     const codigoGenerado = Math.floor(1000 + Math.random() * 9000);
-    
-    mostrarNotificacion('📱 Enviando código de confirmación...', 'info');
-    
+
+    mostrarNotificacion('Enviando codigo de confirmacion...', 'info');
+
     setTimeout(() => {
         const inputCodigo = prompt(
-            `📱 WHATSAPP SIMULADO\n\nTu código de confirmación es: ${codigoGenerado}\n\nIngresa el código para finalizar el registro:`
+            `WHATSAPP SIMULADO\n\nTu codigo de confirmacion es: ${codigoGenerado}\n\nIngresa el codigo para finalizar el registro:`
         );
-        
+
         if (inputCodigo == codigoGenerado) {
-            mostrarNotificacion('✅ ¡Registro exitoso! Redirigiendo al login...', 'success');
-            setTimeout(() => {
-                // Volver al login
-                const evento = new CustomEvent('cambiarVista', { detail: 'login' });
-                document.dispatchEvent(evento);
-            }, 1500);
+            enviarRegistro();
         } else {
-            mostrarNotificacion('❌ Código incorrecto. Intenta de nuevo.', 'error');
+            mostrarNotificacion('Codigo incorrecto. Intenta de nuevo.', 'error');
         }
     }, 800);
 }
 
-// Función auxiliar para notificaciones
+function validarTutor() {
+    const campos = ['tutorPaterno', 'tutorNombres', 'tutorCorreo', 'telTutor'];
+    const incompleto = campos.some(id => !document.getElementById(id)?.value.trim());
+
+    if (incompleto) {
+        mostrarNotificacion('Completa los datos obligatorios del tutor.', 'error');
+        return false;
+    }
+
+    return true;
+}
+
+async function enviarRegistro() {
+    const email = document.getElementById('email').value.trim().toLowerCase();
+    const esAlumno = /^[0-9]/.test(email);
+    const btnSubmit = document.querySelector('#regForm button[type="submit"]');
+    const textoOriginal = btnSubmit.textContent;
+
+    btnSubmit.textContent = 'Guardando...';
+    btnSubmit.disabled = true;
+
+    const payload = {
+        nombre: document.getElementById('nombre').value.trim(),
+        apellido: document.getElementById('apellidos').value.trim(),
+        direccion: document.getElementById('direccion').value.trim(),
+        correo: email,
+        password: document.getElementById('pass').value,
+        rol: esAlumno ? 'alumno' : 'docente',
+        matricula_escolar: esAlumno ? document.getElementById('id-valor').value.trim() : null,
+        tutor: esAlumno ? {
+            nombre: document.getElementById('tutorNombres').value.trim(),
+            apellido: [
+                document.getElementById('tutorPaterno').value.trim(),
+                document.getElementById('tutorMaterno').value.trim()
+            ].filter(Boolean).join(' '),
+            correo: document.getElementById('tutorCorreo').value.trim().toLowerCase(),
+            telefono: document.getElementById('telTutor').value.trim(),
+            password: document.getElementById('pass').value
+        } : null
+    };
+
+    try {
+        const response = await fetch('controlador/registro.php', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+        });
+        const data = await response.json();
+
+        if (!response.ok || !data.ok) {
+            throw new Error(data.mensaje || 'No fue posible completar el registro');
+        }
+
+        mostrarNotificacion('Registro exitoso. Redirigiendo al login...', 'success');
+        setTimeout(() => {
+            const evento = new CustomEvent('cambiarVista', { detail: 'login' });
+            document.dispatchEvent(evento);
+        }, 1200);
+    } catch (error) {
+        mostrarNotificacion(error.message, 'error');
+        btnSubmit.textContent = textoOriginal;
+        btnSubmit.disabled = false;
+    }
+}
+
 function mostrarNotificacion(mensaje, tipo) {
     const notif = document.createElement('div');
     notif.textContent = mensaje;
