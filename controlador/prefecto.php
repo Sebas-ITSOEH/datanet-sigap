@@ -1,104 +1,78 @@
 <?php
-
-session_start();
 header('Content-Type: application/json; charset=utf-8');
+session_start();
 
-require_once __DIR__ . '/../modelo/prefecto.php';
-
-if (empty($_SESSION['usuario']) || !in_array($_SESSION['usuario']['rol'] ?? '', ['admin', 'prefecto'])) {
-    http_response_code(401);
-    echo json_encode(['ok' => false, 'mensaje' => 'Sesión de prefectura no activa.']);
-    exit;
-}
+require_once '../modelo/prefectura.php';
 
 $accion = $_GET['accion'] ?? '';
-$idPrefecto = (int) $_SESSION['usuario']['id_usuario'];
-$input = json_decode(file_get_contents('php://input'), true) ?: [];
+$metodo = $_SERVER['REQUEST_METHOD'];
+
+$respuesta = [
+    'ok' => false,
+    'mensaje' => 'Acción no válida'
+];
 
 try {
-    $modelo = new Prefecto();
+    $id_admin = $_SESSION['id_usuario'] ?? 1;
 
-    switch ($accion) {
-        // PERFIL
-        case 'perfil':
-            responder($modelo->obtenerPerfil($idPrefecto), 'perfil');
-            break;
+    if ($accion === 'actualizar_solicitud' && $metodo === 'POST') {
+        $input = json_decode(file_get_contents('php://input'), true);
+        
+        $id_solicitud = $input['id_solicitud'] ?? null;
+        $estado_frontend = $input['estado'] ?? null;
+        $motivo_rechazo = $input['motivo_rechazo'] ?? 'Revisado por Prefectura';
+        
+        if (!$id_solicitud || !$estado_frontend) {
+            throw new Exception('Faltan datos para procesar la solicitud.');
+        }
 
-        // CONTROL - BANDEJA
-        case 'justificantes_pendientes':
-            responder($modelo->listarJustificantesPendientes(), 'pendientes');
-            break;
+        $estado_bd = ($estado_frontend === 'aprobada') ? 'aprobado' : 'rechazado';
+        $resJustificante = ModeloPrefectura::mdlActualizarJustificante($id_solicitud, $estado_bd);
+        $resLog = ModeloPrefectura::mdlRegistrarValidacion($id_solicitud, $id_admin, $estado_bd, $motivo_rechazo);
 
-        // CONTROL - HISTORIAL
-        case 'historial_justificantes':
-            responder($modelo->listarHistorialJustificantes(), 'historial');
-            break;
-
-        // CONTROL - RESPONDER
-        case 'responder_justificante':
-            if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-                throw new RuntimeException('Método no permitido.');
-            }
-            if (empty($input['id_justificante']) || empty($input['estado'])) {
-                throw new RuntimeException('Faltan campos: id_justificante y estado.');
-            }
-            if (!in_array($input['estado'], ['aprobado', 'rechazado'])) {
-                throw new RuntimeException('Estado no válido.');
-            }
-            responder(
-                $modelo->responderJustificante((int)$input['id_justificante'], $input['estado'], $idPrefecto),
-                'resultado'
-            );
-            break;
-
-        // PERSONAL
-        case 'listar_alumnos':
-            $grupo = $_GET['grupo'] ?? 'all';
-            responder($modelo->listarAlumnos($grupo), 'alumnos');
-            break;
-
-        case 'listar_docentes':
-            responder($modelo->listarDocentes(), 'docentes');
-            break;
-
-        // SISTEMA
-        case 'obtener_configuracion':
-            responder($modelo->obtenerConfiguracionSistema(), 'configuracion');
-            break;
-
-        case 'guardar_configuracion':
-            if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-                throw new RuntimeException('Método no permitido.');
-            }
-            if (empty($input['configuraciones']) || !is_array($input['configuraciones'])) {
-                throw new RuntimeException('Formato de configuraciones inválido.');
-            }
-            responder(
-                $modelo->guardarConfiguracionSistema($input['configuraciones']),
-                'configuracion'
-            );
-            break;
-
-        default:
-            http_response_code(404);
-            echo json_encode(['ok' => false, 'mensaje' => 'Acción no encontrada.']);
+        if($resJustificante == "ok" && $resLog == "ok"){
+            $respuesta = ['ok' => true, 'mensaje' => "El justificante fue $estado_bd correctamente."];
+        } else {
+            throw new Exception('Error al guardar en la base de datos.');
+        }
     }
-} catch (RuntimeException $e) {
-    http_response_code(400);
-    echo json_encode(['ok' => false, 'mensaje' => $e->getMessage()]);
-} catch (Throwable $e) {
-    http_response_code(500);
-    echo json_encode(['ok' => false, 'mensaje' => 'Error de servidor: ' . $e->getMessage()]);
-}
-
-function responder($datos, $clave = null)
-{
-    $respuesta = ['ok' => true];
-    if ($clave) {
-        $respuesta[$clave] = $datos;
+    elseif ($accion === 'listar_solicitudes' && $metodo === 'GET') {
+        $respuesta = ['ok' => true, 'solicitudes' => ModeloPrefectura::mdlListarSolicitudes()];
+    }
+    elseif ($accion === 'listar_personal' && $metodo === 'GET') {
+        $respuesta = ['ok' => true, 'personal' => ModeloPrefectura::mdlListarPersonal()];
+    }
+    elseif ($accion === 'crear_usuario' && $metodo === 'POST') {
+        $input = json_decode(file_get_contents('php://input'), true);
+        if (empty($input['nombre']) || empty($input['correo']) || empty($input['password'])) {
+            throw new Exception('Nombre, correo y contraseña son obligatorios.');
+        }
+        if (ModeloPrefectura::mdlCrearUsuario($input) === "ok") {
+            $respuesta = ['ok' => true, 'mensaje' => "El usuario ha sido registrado con éxito."];
+        } else {
+            throw new Exception('Error al registrar el usuario en la base de datos.');
+        }
+    }
+    elseif ($accion === 'obtener_prefecto' && $metodo === 'GET') {
+        $respuesta = ['ok' => true, 'prefecto' => ModeloPrefectura::mdlObtenerPrefecto($id_admin)];
+    }
+    elseif ($accion === 'actualizar_prefecto' && $metodo === 'POST') {
+        $input = json_decode(file_get_contents('php://input'), true);
+        if (empty($input['nombre']) || empty($input['correo'])) {
+            throw new Exception('El nombre y el correo son obligatorios.');
+        }
+        // Pasamos nombre y apellido al modelo
+        if (ModeloPrefectura::mdlActualizarPrefecto($id_admin, $input['nombre'], $input['apellido'], $input['correo']) === "ok") {
+            $respuesta = ['ok' => true, 'mensaje' => "Datos del prefecto actualizados."];
+        } else {
+            throw new Exception('Error al actualizar en la base de datos.');
+        }
     } else {
-        $respuesta = array_merge($respuesta, $datos);
+        throw new Exception('Endpoint no encontrado.');
     }
-    echo json_encode($respuesta);
-    exit;
+} catch (Exception $e) {
+    $respuesta['mensaje'] = $e->getMessage();
 }
+
+echo json_encode($respuesta);
+?>
