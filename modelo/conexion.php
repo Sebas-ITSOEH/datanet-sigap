@@ -5,7 +5,7 @@ class Conexion
     private const HOST = 'localhost';
     private const DB_NAME = 'datanet';
     private const USER = 'root';
-    private const PASSWORD = '';
+    private const PASSWORD = '12345678';
     private const CHARSET = 'utf8mb4';
 
     private static $conexion = null;

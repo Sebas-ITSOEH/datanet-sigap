@@ -161,17 +161,17 @@ INSERT INTO usuarios (nombre, apellido, correo, password, rol, direccion, telefo
 
 -- 👤 USUARIOS - ALUMNOS
 INSERT INTO usuarios (nombre, apellido, correo, password, rol, direccion, matricula_escolar, telefono, id_tutor, estado) VALUES
-('Juan', 'Pérez', '20240001@estudiantes.edu.mx', MD5('alumno123'), 'alumno', 'Calle Principal 123, Depto 4A', '20240001', '5551234567', 1, TRUE),
+('Juan', 'Pérez', '20240001@estudiantes.edu.mx', MD5('alumno123'), 'alumno', 'Calle Principal 123, Depto 4A', '20240001', '5551234567', 2, TRUE),
 ('Luis', 'Mendoza', '20240002@estudiantes.edu.mx', MD5('alumno123'), 'alumno', 'Av. Secundaria 456, Casa 10', '20240002', '5559876543', 2, TRUE),
 ('Ana', 'Rodríguez', '20240003@estudiantes.edu.mx', MD5('alumno123'), 'alumno', 'Calle Tercera 789, Apto 2C', '20240003', '5554445555', 3, TRUE),
-('Miguel', 'Pérez', '20240004@estudiantes.edu.mx', MD5('alumno123'), 'alumno', 'Av. Cuarta 111, Casa 15', '20240004', '5556667777', 1, TRUE),
+('Miguel', 'Pérez', '20240004@estudiantes.edu.mx', MD5('alumno123'), 'alumno', 'Av. Cuarta 111, Casa 15', '20240004', '5556667777', 2, TRUE),
 ('Sofía', 'García', '20240005@estudiantes.edu.mx', MD5('alumno123'), 'alumno', 'Calle Quinta 222, Depto 3', '20240005', '5552223333', 4, TRUE),
 ('Diego', 'Flores', '20240006@estudiantes.edu.mx', MD5('alumno123'), 'alumno', 'Av. Sexta 333, Casa 20', '20240006', '5558881111', 5, TRUE),
 ('Daniela', 'Sánchez', '20240007@estudiantes.edu.mx', MD5('alumno123'), 'alumno', 'Calle Séptima 444, Apto 1B', '20240007', '5559992222', 3, TRUE),
 ('Pablo', 'Ruiz', '20240008@estudiantes.edu.mx', MD5('alumno123'), 'alumno', 'Av. Octava 555, Casa 7', '20240008', '5557773333', 2, TRUE),
 ('Valentina', 'Moreno', '20240009@estudiantes.edu.mx', MD5('alumno123'), 'alumno', 'Calle Novena 666, Depto 4C', '20240009', '5554444444', 4, TRUE),
 ('Andrés', 'Vargas', '20240010@estudiantes.edu.mx', MD5('alumno123'), 'alumno', 'Av. Décima 777, Casa 25', '20240010', '5558881112', 5, TRUE),
-('Isabella', 'Torres', '20240011@estudiantes.edu.mx', MD5('alumno123'), 'alumno', 'Calle Undécima 888, Apto 2A', '20240011', '5559992223', 1, TRUE);
+('Isabella', 'Torres', '20240011@estudiantes.edu.mx', MD5('alumno123'), 'alumno', 'Calle Undécima 888, Apto 2A', '20240011', '5559992223', 2, TRUE);
 
 -- 👥 GRUPOS
 INSERT INTO grupos (nombre) VALUES

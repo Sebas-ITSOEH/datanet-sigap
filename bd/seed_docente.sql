@@ -37,6 +37,15 @@ CREATE TABLE IF NOT EXISTS solicitudes_inscripcion (
     UNIQUE KEY uq_solicitud_curso_alumno (id_curso, id_alumno, estado)
 );
 
+UPDATE usuarios SET id_tutor = 2
+WHERE correo IN (
+    '20240001@estudiantes.edu.mx',
+    '20240004@estudiantes.edu.mx',
+    '20240011@estudiantes.edu.mx'
+)
+AND rol = 'alumno'
+AND (id_tutor IS NULL OR id_tutor = 1);
+
 INSERT IGNORE INTO inscripciones (id_curso, id_alumno)
 SELECT c.id_curso, u.id_usuario
 FROM cursos c

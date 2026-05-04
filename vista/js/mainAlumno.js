@@ -1338,3 +1338,703 @@ document.addEventListener('DOMContentLoaded', function() {
     // Configurar clic en el logo
     setupLogoHome();
 });
+
+/* ==========================================
+   INTEGRACION ALUMNO/PADRE CON BASE DE DATOS
+========================================== */
+
+const ALUMNO_API = '../controlador/alumno.php';
+const ALUMNO_SESION_API = '../controlador/sesion.php';
+let alumnoContexto = null;
+let claseEncontradaActual = null;
+let justificantesCache = [];
+
+async function apiAlumno(accion, opciones = {}) {
+    const query = opciones.query ? `&${new URLSearchParams(opciones.query).toString()}` : '';
+    const config = {
+        method: opciones.method || 'GET',
+        headers: { 'Content-Type': 'application/json' }
+    };
+
+    if (opciones.body) {
+        config.body = JSON.stringify(opciones.body);
+    }
+
+    const response = await fetch(`${ALUMNO_API}?accion=${accion}${query}`, config);
+    const data = await response.json();
+
+    if (!response.ok || !data.ok) {
+        if (response.status === 401) {
+            window.location.href = '../index.html';
+            return null;
+        }
+        throw new Error(data.mensaje || 'No se pudo completar la operacion.');
+    }
+
+    return data;
+}
+
+function alumnoEscape(texto) {
+    return String(texto ?? '').replace(/[&<>"']/g, c => ({
+        '&': '&amp;',
+        '<': '&lt;',
+        '>': '&gt;',
+        '"': '&quot;',
+        "'": '&#039;'
+    }[c]));
+}
+
+async function inicializarPortalAlumno() {
+    try {
+        alumnoContexto = await apiAlumno('perfil');
+        actualizarHeaderAlumno(alumnoContexto);
+    } catch (error) {
+        console.error(error);
+    }
+
+    document.querySelectorAll('.btn-logout').forEach(btn => {
+        btn.addEventListener('click', async () => {
+            await fetch(`${ALUMNO_SESION_API}?accion=logout`);
+            window.location.href = '../index.html';
+        });
+    });
+}
+
+function actualizarHeaderAlumno(ctx) {
+    if (!ctx) return;
+    const nombre = ctx.alumno?.nombre || `${ctx.usuario?.nombre || ''} ${ctx.usuario?.apellido || ''}`.trim() || 'Usuario';
+    const rol = ctx.usuario?.rol === 'padre' ? 'Padre/Tutor' : 'Alumno';
+
+    const nombreEl = document.getElementById('alumno-nombre-header');
+    const rolEl = document.getElementById('alumno-rol-header');
+    const avatar = document.getElementById('alumno-avatar-header');
+
+    if (nombreEl) nombreEl.textContent = nombre;
+    if (rolEl) rolEl.textContent = rol;
+    if (avatar) avatar.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(nombre)}&background=C7A03D&color=fff`;
+}
+
+async function loadSection(sectionName) {
+    if (estaCargando) return;
+    estaCargando = true;
+
+    const viewContainer = document.getElementById('view-container');
+
+    try {
+        const response = await fetch(`alumno/${sectionName}.html?t=${Date.now()}`);
+        if (!response.ok) throw new Error(`Error de red HTTP: ${response.status}`);
+        const html = await response.text();
+
+        if (viewContainer) {
+            viewContainer.innerHTML = html;
+            viewContainer.classList.remove('fade-in');
+            void viewContainer.offsetWidth;
+            viewContainer.classList.add('fade-in');
+        }
+
+        if (sectionName === 'resumen' || sectionName === 'bienvenida') {
+            await renderResumenAlumno();
+        } else if (sectionName === 'materias') {
+            await initMateriasLogic();
+        } else if (sectionName === 'historial') {
+            await initHistorialLogic();
+        } else if (sectionName === 'justificantes') {
+            yaInicializado = false;
+            initJustificantesLogic();
+            await renderJustificantesAlumno();
+        }
+    } catch (error) {
+        console.error('Error al cargar vista:', error);
+        if (viewContainer) {
+            viewContainer.innerHTML = `<div style="padding:2rem;text-align:center;color:#A1232E;">${alumnoEscape(error.message)}</div>`;
+        }
+    } finally {
+        estaCargando = false;
+    }
+}
+
+async function showWelcomeView() {
+    await loadSection('bienvenida');
+}
+
+async function renderResumenAlumno() {
+    const data = await apiAlumno('resumen');
+    alumnoContexto = data;
+    actualizarHeaderAlumno(data);
+
+    const alumno = data.alumno;
+    const resumen = data.resumen;
+    const container = document.getElementById('view-container');
+    if (!container) return;
+    if (!container || !alumno) {
+        container.innerHTML = `<div class="welcome-container"><div class="welcome-hero"><h2>No hay alumno asociado a esta cuenta.</h2></div></div>`;
+        return;
+    }
+
+    container.innerHTML = `
+        <div class="welcome-container">
+            <div class="welcome-hero">
+                <div class="welcome-badge"><i class="fa-solid fa-calendar-check"></i><span>Bienvenido de vuelta</span></div>
+                <div class="welcome-title">Hola, <span>${alumnoEscape(alumno.nombre)}</span></div>
+                <div class="welcome-description">
+                    ${data.usuario.rol === 'padre' ? 'Consulta el avance escolar, asistencias y justificantes de tu hijo(a).' : 'Revisa tus materias, solicita justificantes y mantente al dia.'}
+                </div>
+                <div class="stats-row">
+                    <div class="stat-card-welcome"><div class="stat-icon"><i class="fa-solid fa-chart-line"></i></div><div class="stat-info"><h4>Asistencia General</h4><p>${resumen.asistencia_general}%</p></div></div>
+                    <div class="stat-card-welcome"><div class="stat-icon"><i class="fa-solid fa-book"></i></div><div class="stat-info"><h4>Materias Cursando</h4><p>${resumen.materias}</p></div></div>
+                    <div class="stat-card-welcome"><div class="stat-icon"><i class="fa-solid fa-check-circle"></i></div><div class="stat-info"><h4>Presentes</h4><p>${resumen.presentes}</p></div></div>
+                    <div class="stat-card-welcome"><div class="stat-icon"><i class="fa-solid fa-file-lines"></i></div><div class="stat-info"><h4>Tramites Activos</h4><p>${resumen.tramites_activos}</p></div></div>
+                </div>
+            </div>
+            <div class="section-title-welcome"><i class="fa-solid fa-bolt"></i><span>Accesos directos</span></div>
+            <div class="quick-links-grid">
+                <div class="quick-link-card" onclick="loadSection('materias')"><div class="quick-icon"><i class="fa-solid fa-book-open"></i></div><div class="quick-info"><h4>Mis Materias</h4><p>Ver asistencia por clase</p></div></div>
+                <div class="quick-link-card" onclick="loadSection('justificantes')"><div class="quick-icon"><i class="fa-solid fa-pen-to-square"></i></div><div class="quick-info"><h4>Solicitar Justificante</h4><p>Inasistencias y permisos</p></div></div>
+                <div class="quick-link-card" onclick="loadSection('historial')"><div class="quick-icon"><i class="fa-solid fa-timeline"></i></div><div class="quick-info"><h4>Historial</h4><p>Asistencias y retardos</p></div></div>
+                <div class="quick-link-card" onclick="descargarHorarioDemo()"><div class="quick-icon"><i class="fa-solid fa-download"></i></div><div class="quick-info"><h4>Descargar Horario</h4><p>Resumen de materias</p></div></div>
+            </div>
+            <div class="section-title-welcome"><i class="fa-solid fa-megaphone"></i><span>Avisos recientes</span></div>
+            <div class="notice-board">
+                ${(data.avisos || []).map(a => `
+                    <div class="notice-item">
+                        <div class="notice-icon"><i class="${alumnoEscape(a.icono)}"></i></div>
+                        <div class="notice-text">${alumnoEscape(a.texto)}</div>
+                        <div class="notice-date">${alumnoEscape(a.fecha)}</div>
+                    </div>
+                `).join('')}
+            </div>
+        </div>`;
+}
+
+async function initMateriasLogic() {
+    const data = await apiAlumno('materias');
+    const gridActivas = document.getElementById('grid-activas');
+    const gridPendientes = document.getElementById('grid-pendientes');
+    if (!gridActivas || !gridPendientes) return;
+
+    gridActivas.innerHTML = `
+        <div class="materia-card add-materia" onclick="abrirModalUnirse()">
+            <div class="add-content">
+                <div class="add-icon"><i class="fa-solid fa-plus"></i></div>
+                <h4>Unirse a clase</h4>
+                <span>Ingresa el codigo</span>
+            </div>
+        </div>
+        ${(data.materias || []).map(m => `
+            <div class="materia-card active-card" data-status="${m.estado}">
+                <div class="card-status-line ${m.estado}"></div>
+                <div class="card-body">
+                    <div class="materia-icon-box ${m.estado === 'risk' ? 'gray' : ''}"><i class="fa-solid ${alumnoEscape(m.icono)}"></i></div>
+                    <div class="materia-main">
+                        <h4>${alumnoEscape(m.materia)}</h4>
+                        <p><i class="fa-solid fa-user-tie"></i> ${alumnoEscape(m.docente)}</p>
+                    </div>
+                    <button class="btn-info-profe" title="${alumnoEscape(m.correo_docente)}"><i class="fa-solid fa-circle-info"></i></button>
+                </div>
+                <div class="attendance-visual">
+                    <div class="progress-container"><div class="progress-bar ${m.estado === 'risk' ? 'risk' : ''}" style="width:${m.porcentaje_asistencia}%;"></div></div>
+                    <div class="attendance-stats">
+                        <span class="percentage ${m.estado === 'risk' ? 'risk-text' : ''}">${m.porcentaje_asistencia}% de Asistencia</span>
+                        <span class="count">${m.faltas || 0} faltas registradas</span>
+                    </div>
+                </div>
+                ${m.estado === 'risk' ? `<button class="btn-action-risk" onclick="loadSection('justificantes')"><i class="fa-solid fa-file-circle-plus"></i> Justificar ahora</button>` : ''}
+            </div>
+        `).join('')}`;
+
+    gridPendientes.innerHTML = (data.solicitudes || []).length
+        ? data.solicitudes.map(s => `
+            <div class="materia-card pending-card">
+                <div class="pending-badge">Pendiente</div>
+                <div class="card-body">
+                    <div class="materia-icon-box gray"><i class="fa-solid fa-hourglass-half"></i></div>
+                    <div class="materia-main">
+                        <h4>${alumnoEscape(s.materia)} (${alumnoEscape(s.grupo)})</h4>
+                        <p>Esperando aprobacion de ${alumnoEscape(s.docente)}</p>
+                    </div>
+                </div>
+            </div>
+        `).join('')
+        : `<p style="color:#64748B;padding:1rem;">No tienes solicitudes pendientes.</p>`;
+}
+
+async function verificarCodigo() {
+    const input = document.getElementById('input-codigo-clase');
+    const errorText = document.getElementById('error-codigo');
+    const codigo = input?.value.trim().toUpperCase();
+    if (!codigo) {
+        errorText.innerHTML = '<i class="fa-solid fa-circle-exclamation"></i> Por favor, ingresa un codigo.';
+        errorText.style.display = 'block';
+        return;
+    }
+
+    try {
+        const data = await apiAlumno('verificar_codigo', { query: { codigo } });
+        claseEncontradaActual = data.clase;
+        if (!claseEncontradaActual) throw new Error('Codigo invalido. Verifica con tu profesor.');
+        if (Number(claseEncontradaActual.inscrito) === 1) throw new Error('Ya estas inscrito en esta clase.');
+        if (Number(claseEncontradaActual.pendiente) === 1) throw new Error('Ya tienes una solicitud pendiente para esta clase.');
+
+        errorText.style.display = 'none';
+        document.getElementById('confirm-nombre-clase').innerText = `${claseEncontradaActual.materia} (${claseEncontradaActual.grupo})`;
+        document.getElementById('confirm-docente-clase').innerText = `Prof. ${claseEncontradaActual.docente}`;
+        document.getElementById('confirm-ciclo-clase').innerText = claseEncontradaActual.periodo || 'Actual';
+        document.getElementById('step-1-codigo').style.display = 'none';
+        document.getElementById('step-2-confirmacion').style.display = 'block';
+    } catch (error) {
+        errorText.innerHTML = `<i class="fa-solid fa-circle-exclamation"></i> ${alumnoEscape(error.message)}`;
+        errorText.style.display = 'block';
+    }
+}
+
+async function inscribirseAClase() {
+    if (!claseEncontradaActual) return;
+    await apiAlumno('solicitar_inscripcion', {
+        method: 'POST',
+        body: { id_curso: claseEncontradaActual.id }
+    });
+    alert(`Solicitud enviada para ${claseEncontradaActual.materia}.`);
+    cerrarModalUnirse();
+    await initMateriasLogic();
+}
+
+async function initHistorialLogic() {
+    const data = await apiAlumno('historial');
+    const stats = document.querySelector('.historial-stats-brief');
+    const timeline = document.querySelector('.timeline-container');
+    if (!stats || !timeline) return;
+
+    stats.innerHTML = `
+        <div class="stat-mini"><span class="label">Asistencias</span><span class="value text-success">${data.resumen.presentes}</span></div>
+        <div class="stat-mini"><span class="label">Retardos</span><span class="value text-warning">${data.resumen.retardos}</span></div>
+        <div class="stat-mini"><span class="label">Faltas</span><span class="value text-danger">${data.resumen.faltas}</span></div>`;
+
+    const eventos = data.eventos || [];
+    timeline.innerHTML = eventos.length ? `
+        <div class="timeline-group">
+            <span class="group-date">Registros recientes</span>
+            ${eventos.map(e => {
+                const tipo = e.estado === 'presente' ? 'presente' : e.estado === 'retardo' ? 'retardo' : 'falta';
+                const badge = tipo === 'presente' ? 'success' : tipo === 'retardo' ? 'warning' : 'danger';
+                const icon = tipo === 'presente' ? 'fa-check' : tipo === 'retardo' ? 'fa-clock' : 'fa-xmark';
+                return `
+                    <div class="timeline-item status-${tipo}" data-status="${tipo}">
+                        <div class="item-icon"><i class="fa-solid ${icon}"></i></div>
+                        <div class="item-content">
+                            <div class="item-main"><h4>${alumnoEscape(e.materia)}</h4><span class="time">${alumnoEscape(e.fecha)} ${alumnoEscape(e.hora)}</span></div>
+                            <p>${alumnoEscape(e.docente)}</p>
+                        </div>
+                        <div class="item-badge ${badge}">${tipo === 'falta' ? 'Inasistencia' : alumnoEscape(e.estado)}</div>
+                    </div>`;
+            }).join('')}
+        </div>` : `<p style="padding:2rem;color:#64748B;">No hay registros de asistencia todavia.</p>`;
+
+    document.querySelectorAll('.filter-btn').forEach(btn => {
+        btn.onclick = () => {
+            document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            const filter = btn.dataset.filter;
+            document.querySelectorAll('.timeline-item').forEach(item => {
+                item.style.display = filter === 'all' || item.dataset.status === filter ? '' : 'none';
+            });
+        };
+    });
+}
+
+async function renderJustificantesAlumno() {
+    const data = await apiAlumno('justificantes');
+    alumnoContexto = data;
+    justificantesCache = data.justificantes || [];
+    if (data.alumno) {
+        llenarDatosAlumno({
+            nombre: data.alumno.nombre,
+            numero: data.alumno.matricula || '',
+            grado: extraerGrado(data.alumno.grupo),
+            grupo: data.alumno.grupo || '',
+            tutor: data.alumno.tutor || '',
+            telefonoTutor: data.alumno.telefonoTutor || ''
+        });
+    }
+    generarCheckboxesMaterias(data.materias || []);
+    renderListaJustificantes(justificantesCache);
+}
+
+function renderListaJustificantes(items) {
+    const lista = document.getElementById('lista-tramites');
+    const sinTramites = document.getElementById('sin-tramites');
+    if (!lista) return;
+
+    if (!items.length) {
+        lista.innerHTML = '';
+        if (sinTramites) sinTramites.classList.remove('hidden');
+        return;
+    }
+    if (sinTramites) sinTramites.classList.add('hidden');
+
+    lista.innerHTML = items.map(j => {
+        const motivo = motivoDesdeAsunto(j.asunto);
+        return `
+            <div class="j-card fade-in" data-estatus="${alumnoEscape(j.estado)}" data-id="${j.id}"
+                 data-motivo="${motivo}" data-fecha="${alumnoEscape(j.fecha_inicio)}" data-tipo="${j.fecha_inicio === j.fecha_fin ? 'completo' : 'rango'}"
+                 data-descripcion="${alumnoEscape(j.descripcion)}" data-archivos="${alumnoEscape(j.archivo_url || 'Sin archivos')}" data-archivos-json="[]">
+                <div class="j-card-header">
+                    <div class="j-title"><i class="fa-solid ${iconoJustificante(motivo)}"></i><h4>${alumnoEscape(j.asunto)}</h4></div>
+                    <div class="j-card-actions">
+                        <span class="badge-status ${alumnoEscape(j.estado)}">${estadoJustificante(j.estado)}</span>
+                        <button class="btn-icon-action btn-ver" title="Ver detalles" onclick="verDetallesTramite('${j.id}')"><i class="fa-solid fa-eye"></i></button>
+                        ${j.estado === 'pendiente' ? `<button class="btn-icon-action btn-eliminar" title="Eliminar tramite" onclick="confirmarEliminarTramite('${j.id}')"><i class="fa-solid fa-trash-can"></i></button>` : ''}
+                    </div>
+                </div>
+                <div class="j-card-body">
+                    <p><strong>${j.fecha_inicio === j.fecha_fin ? 'Fecha' : 'Periodo'}:</strong> ${alumnoEscape(j.fecha_inicio)}${j.fecha_inicio !== j.fecha_fin ? ' al ' + alumnoEscape(j.fecha_fin) : ''}</p>
+                    <p><strong>Descripcion:</strong> ${alumnoEscape(j.descripcion)}</p>
+                    <p><strong>Archivos:</strong> ${alumnoEscape(j.archivo_url || 'Sin archivos registrados')}</p>
+                </div>
+                <div class="j-card-footer"><button class="btn-detalles" onclick="verDetallesTramite('${j.id}')"><i class="fa-solid fa-circle-info"></i> Ver Todos los Detalles</button></div>
+            </div>`;
+    }).join('');
+}
+
+async function validarYEnviarSolicitud() {
+    const motivo = document.getElementById('tipo-permiso');
+    const descripcion = document.getElementById('descripcion-motivo');
+    const tipoJustificacion = document.querySelector('input[name="tipo-justificacion"]:checked')?.value || 'completo';
+    const fecha = document.getElementById('fecha-inasistencia')?.value;
+    const fechaInicio = document.getElementById('fecha-inicio-rango')?.value;
+    const fechaFin = document.getElementById('fecha-fin-rango')?.value;
+
+    if (!motivo?.value || !descripcion?.value.trim()) {
+        alert('Completa motivo y descripcion.');
+        return;
+    }
+
+    const payload = {
+        motivo: motivo.value,
+        asunto: asuntoJustificante(motivo.value),
+        descripcion: descripcion.value.trim(),
+        fecha_inicio: tipoJustificacion === 'rango' ? fechaInicio : fecha,
+        fecha_fin: tipoJustificacion === 'rango' ? fechaFin : fecha,
+        archivo_url: Array.from(document.querySelectorAll('.doc-upload'))
+            .filter(input => input.files && input.files[0])
+            .map(input => input.files[0].name)
+            .join(', ')
+    };
+
+    if (!payload.fecha_inicio || !payload.fecha_fin) {
+        alert('Selecciona la fecha del justificante.');
+        return;
+    }
+
+    const data = await apiAlumno('crear_justificante', { method: 'POST', body: payload });
+    justificantesCache = data.justificantes || [];
+    renderListaJustificantes(justificantesCache);
+    alert('Solicitud enviada correctamente.');
+
+    document.getElementById('vista-formulario')?.classList.add('hidden');
+    document.getElementById('vista-lista')?.classList.remove('hidden');
+    resetearFormularioJustificante();
+}
+
+async function eliminarTramite() {
+    if (!tramiteAEliminar) return;
+    const data = await apiAlumno('eliminar_justificante', {
+        method: 'POST',
+        body: { id_justificante: tramiteAEliminar }
+    });
+    justificantesCache = data.justificantes || [];
+    renderListaJustificantes(justificantesCache);
+    cerrarModalConfirmEliminar();
+    alert('Tramite eliminado correctamente.');
+}
+
+function extraerGrado(grupo) {
+    const match = String(grupo || '').match(/[0-9]+/);
+    return match ? `${match[0]}°` : '';
+}
+
+function motivoDesdeAsunto(asunto) {
+    const texto = String(asunto || '').toLowerCase();
+    if (texto.includes('méd') || texto.includes('med') || texto.includes('enfer')) return 'salud';
+    if (texto.includes('viaje') || texto.includes('congreso')) return 'viaje';
+    return 'personal';
+}
+
+function iconoJustificante(motivo) {
+    return { salud: 'fa-notes-medical', personal: 'fa-users', viaje: 'fa-bus' }[motivo] || 'fa-file-lines';
+}
+
+function estadoJustificante(estado) {
+    return estado === 'aprobado' ? 'Aprobado' : estado === 'rechazado' ? 'Rechazado' : 'En Revision';
+}
+
+function asuntoJustificante(motivo) {
+    return {
+        salud: 'Enfermedad / Cita Medica',
+        personal: 'Asuntos Familiares / Personales',
+        viaje: 'Viaje Escolar / Congreso'
+    }[motivo] || 'Justificante';
+}
+
+function descargarHorarioDemo() {
+    alert('El horario se genera a partir de tus materias inscritas. Esta descarga quedara disponible en la siguiente etapa.');
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+    inicializarPortalAlumno();
+    loadSection('resumen');
+    setupLogoHome();
+});
+
+window.loadSection = loadSection;
+window.showWelcomeView = showWelcomeView;
+window.descargarHorarioDemo = descargarHorarioDemo;
+
+/* ==========================================
+   AJUSTES FINALES DE COHERENCIA ALUMNO/PADRE
+========================================== */
+
+async function loadSectionAlumnoFinal(sectionName) {
+    if (estaCargando) return;
+    estaCargando = true;
+
+    const viewContainer = document.getElementById('view-container');
+
+    try {
+        if (sectionName === 'resumen' || sectionName === 'bienvenida' || sectionName === 'perfil') {
+            await renderResumenAlumno();
+            return;
+        }
+
+        const response = await fetch(`alumno/${sectionName}.html?t=${Date.now()}`);
+        if (!response.ok) throw new Error(`Error de red HTTP: ${response.status}`);
+
+        if (viewContainer) {
+            viewContainer.innerHTML = await response.text();
+            viewContainer.classList.remove('fade-in');
+            void viewContainer.offsetWidth;
+            viewContainer.classList.add('fade-in');
+        }
+
+        if (sectionName === 'materias') {
+            await initMateriasLogic();
+        } else if (sectionName === 'historial') {
+            await initHistorialLogic();
+        } else if (sectionName === 'justificantes') {
+            await initJustificantesLogic();
+        }
+    } catch (error) {
+        console.error('Error al cargar vista:', error);
+        if (viewContainer) {
+            viewContainer.innerHTML = `<div style="padding:2rem;text-align:center;color:#A1232E;">${alumnoEscape(error.message)}</div>`;
+        }
+    } finally {
+        estaCargando = false;
+    }
+}
+
+async function showWelcomeViewAlumnoFinal() {
+    await loadSectionAlumnoFinal('bienvenida');
+}
+
+async function initJustificantesLogic() {
+    yaInicializado = true;
+
+    const data = await apiAlumno('justificantes');
+    alumnoContexto = data;
+    justificantesCache = data.justificantes || [];
+
+    const btnHam = document.getElementById('btn-hamburger');
+    const drop = document.getElementById('j-dropdown');
+    const menuSol = document.getElementById('menu-solicitud');
+    const menuHis = document.getElementById('menu-historial');
+    const vistaLista = document.getElementById('vista-lista');
+    const vistaForm = document.getElementById('vista-formulario');
+    const modal = document.getElementById('modal-auth');
+    const inputPin = document.getElementById('pin-tutor');
+    const btnValidarPin = document.getElementById('btn-validar-pin');
+    const btnCerrarAuth = document.getElementById('btn-cerrar-auth');
+    const errorPin = document.getElementById('error-pin');
+    const buscarTramite = document.getElementById('buscar-tramite');
+    const filtroEstatus = document.getElementById('filtro-estatus');
+    const btnEnviar = document.getElementById('btn-enviar-solicitud');
+
+    if (btnHam && drop) {
+        btnHam.onclick = e => {
+            e.stopPropagation();
+            drop.classList.toggle('hidden');
+        };
+    }
+
+    if (menuHis) {
+        menuHis.onclick = () => {
+            if (drop) drop.classList.add('hidden');
+            if (vistaForm) vistaForm.classList.add('hidden');
+            if (vistaLista) vistaLista.classList.remove('hidden');
+            menuHis.classList.add('active');
+            if (menuSol) menuSol.classList.remove('active');
+            resetearFormularioJustificante();
+        };
+    }
+
+    if (menuSol && modal && inputPin) {
+        menuSol.onclick = () => {
+            if (drop) drop.classList.add('hidden');
+            restaurarTextosModalPin();
+            modal.classList.remove('hidden');
+            inputPin.value = '';
+            if (errorPin) errorPin.classList.add('hidden');
+            setTimeout(() => inputPin.focus(), 100);
+            menuSol.classList.add('active');
+            if (menuHis) menuHis.classList.remove('active');
+        };
+    }
+
+    if (btnCerrarAuth && modal) {
+        btnCerrarAuth.onclick = () => {
+            modal.classList.add('hidden');
+            tramitePendienteEdicion = null;
+        };
+    }
+
+    if (btnValidarPin && inputPin && modal) {
+        btnValidarPin.onclick = () => {
+            if (inputPin.value !== '1234') {
+                if (errorPin) errorPin.classList.remove('hidden');
+                inputPin.value = '';
+                inputPin.focus();
+                return;
+            }
+
+            modal.classList.add('hidden');
+            if (errorPin) errorPin.classList.add('hidden');
+            if (vistaLista) vistaLista.classList.add('hidden');
+            if (vistaForm) vistaForm.classList.remove('hidden');
+            prepararFormularioJustificante(data);
+        };
+
+        inputPin.onkeypress = e => {
+            if (e.key === 'Enter') btnValidarPin.click();
+        };
+    }
+
+    configurarCamposJustificante();
+
+    if (btnEnviar) btnEnviar.onclick = validarYEnviarSolicitud;
+    if (buscarTramite) buscarTramite.oninput = filtrarTramites;
+    if (filtroEstatus) filtroEstatus.onchange = filtrarTramites;
+
+    renderListaJustificantes(justificantesCache);
+}
+
+function prepararFormularioJustificante(data) {
+    const alumno = data.alumno;
+    if (alumno) {
+        llenarDatosAlumno({
+            nombre: alumno.nombre,
+            numero: alumno.matricula || '',
+            grado: extraerGrado(alumno.grupo),
+            grupo: alumno.grupo || '',
+            tutor: alumno.tutor || '',
+            telefonoTutor: alumno.telefonoTutor || ''
+        });
+    }
+
+    generarCheckboxesMaterias(data.materias || []);
+    resetearFormularioJustificante();
+}
+
+function configurarCamposJustificante() {
+    const radioCompleto = document.querySelector('input[name="tipo-justificacion"][value="completo"]');
+    const radioMaterias = document.querySelector('input[name="tipo-justificacion"][value="materias"]');
+    const radioRango = document.querySelector('input[name="tipo-justificacion"][value="rango"]');
+    const contenedorMaterias = document.getElementById('contenedor-materias');
+    const contenedorRangoFechas = document.getElementById('contenedor-rango-fechas');
+    const contenedorFechaUnica = document.getElementById('contenedor-fecha-unica');
+    const selectPermiso = document.getElementById('tipo-permiso');
+    const contenedorDocumentos = document.getElementById('contenedor-documentos');
+    const uploadZone = document.getElementById('upload-zone-dinamica');
+    const infoBanner = document.getElementById('info-banner');
+    const documentosDescripcion = document.getElementById('documentos-descripcion');
+
+    if (radioCompleto) {
+        radioCompleto.onchange = () => {
+            if (contenedorMaterias) contenedorMaterias.classList.add('hidden');
+            if (contenedorRangoFechas) contenedorRangoFechas.classList.add('hidden');
+            if (contenedorFechaUnica) contenedorFechaUnica.classList.remove('hidden');
+        };
+    }
+
+    if (radioMaterias) {
+        radioMaterias.onchange = () => {
+            if (contenedorMaterias) contenedorMaterias.classList.remove('hidden');
+            if (contenedorRangoFechas) contenedorRangoFechas.classList.add('hidden');
+            if (contenedorFechaUnica) contenedorFechaUnica.classList.remove('hidden');
+        };
+    }
+
+    if (radioRango) {
+        radioRango.onchange = () => {
+            if (contenedorMaterias) contenedorMaterias.classList.add('hidden');
+            if (contenedorRangoFechas) contenedorRangoFechas.classList.remove('hidden');
+            if (contenedorFechaUnica) contenedorFechaUnica.classList.add('hidden');
+        };
+    }
+
+    if (selectPermiso) {
+        selectPermiso.onchange = function() {
+            if (uploadZone) uploadZone.innerHTML = '';
+            if (contenedorDocumentos) contenedorDocumentos.classList.add('hidden');
+            if (infoBanner) infoBanner.classList.add('hidden');
+
+            const config = {
+                salud: {
+                    info: '<i class="fa-solid fa-circle-info"></i> <b>Motivo de Salud:</b> Adjunta receta medica o comprobante de consulta.',
+                    desc: 'Sube tu receta medica o comprobante de consulta.',
+                    inputs: crearInputFile('Receta Medica', 'receta', 'Formato: PDF, JPG o PNG')
+                },
+                personal: {
+                    info: '<i class="fa-solid fa-circle-info"></i> <b>Asuntos Familiares:</b> Adjunta carta firmada por el tutor.',
+                    desc: 'Sube la carta firmada por el tutor.',
+                    inputs: crearInputFile('Carta Firmada por el Tutor', 'carta-familiar', 'Formato: PDF, JPG o PNG')
+                },
+                viaje: {
+                    info: '<i class="fa-solid fa-circle-info"></i> <b>Viaje Escolar:</b> Adjunta oficio e identificacion del tutor.',
+                    desc: 'Sube los documentos para validar el viaje escolar.',
+                    inputs: crearInputFile('Oficio de Comision', 'oficio', 'PDF') + crearInputFile('INE del Tutor', 'ine', 'PDF, JPG o PNG')
+                }
+            }[this.value];
+
+            if (!config) return;
+            if (infoBanner) {
+                infoBanner.classList.remove('hidden');
+                infoBanner.innerHTML = config.info;
+            }
+            if (contenedorDocumentos) contenedorDocumentos.classList.remove('hidden');
+            if (documentosDescripcion) documentosDescripcion.textContent = config.desc;
+            if (uploadZone) uploadZone.innerHTML = config.inputs;
+            vincularEventosArchivosJustificante();
+        };
+    }
+}
+
+function setupLogoHome() {
+    const logo = document.querySelector('.logotipo');
+    if (logo) {
+        logo.onclick = e => {
+            e.preventDefault();
+            showWelcomeViewAlumnoFinal();
+            document.querySelectorAll('.nav-item').forEach(item => item.classList.remove('active'));
+        };
+    }
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+    window.loadSection = loadSectionAlumnoFinal;
+    window.showWelcomeView = showWelcomeViewAlumnoFinal;
+    inicializarPortalAlumno();
+    setupLogoHome();
+    loadSectionAlumnoFinal('bienvenida');
+});
+
+window.loadSection = loadSectionAlumnoFinal;
+window.showWelcomeView = showWelcomeViewAlumnoFinal;
