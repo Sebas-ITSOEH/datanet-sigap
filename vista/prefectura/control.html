@@ -1,5 +1,4 @@
 <div class="control-layout fade-in">
-    <!-- SIDEBAR IZQUIERDO -->
     <aside class="sidebar-vertical">
         <div class="sidebar-brand">
             <div class="brand-icon">
@@ -58,10 +57,8 @@
         </div>
     </aside>
 
-    <!-- CONTENIDO PRINCIPAL -->
     <main class="control-main-container">
         
-        <!-- SECCIÓN BANDEJA DE SOLICITUDES -->
         <section id="section-bandeja" class="control-view">
             <div class="control-header">
                 <div class="header-title">
@@ -114,132 +111,11 @@
                         </tr>
                     </thead>
                     <tbody>
-                        <tr class="solicitud-row" 
-                            data-id="1"
-                            data-nombre="Ana López García" 
-                            data-grupo="1A" 
-                            data-matricula="20241001"
-                            data-tutor="María García Hernández"
-                            data-telefono-tutor="55-1234-5678"
-                            data-motivo="Salud" 
-                            data-descripcion="Fiebre alta y malestar general. Reposo por 48 horas."
-                            data-fecha="2026-04-28"
-                            data-hora-inicio="07:00"
-                            data-hora-fin="12:30"
-                            data-tipo-falta="completa"
-                            data-dias="2 días (28 abril - 29 abril)"
-                            data-materias-afectadas='[{"docente":"Prof. Ricardo Mendoza","materia":"Matemáticas I","hora":"07:00 - 08:40"},{"docente":"Profa. Patricia Luna","materia":"Historia Universal","hora":"08:40 - 10:20"},{"docente":"Prof. Carlos Vega","materia":"Ciencias Naturales","hora":"10:50 - 12:30"}]'
-                            data-documentos='[{"nombre":"Receta_Medica.pdf","tipo":"pdf"},{"nombre":"INE_Tutor.jpg","tipo":"imagen"}]'
-                            data-estado="pendiente">
-                            <td>
-                                <div class="alumno-cell">
-                                    <div class="avatar-wrapper">
-                                        <img src="https://ui-avatars.com/api/?name=Ana+Lopez&background=D6A848&color=192A56&size=36" alt="Ana López">
-                                    </div>
-                                    <div class="alumno-details">
-                                        <span class="alumno-name">Ana López García</span>
-                                        <span class="alumno-matricula">Matrícula: 20241001</span>
-                                    </div>
-                                </div>
-                            </td>
-                            <td><span class="grupo-tag">1°A</span></td>
-                            <td><span class="motivo-tag salud">Salud</span></td>
-                            <td><div class="fecha-cell"><span class="fecha">28 Abr 2026</span><span class="hora">08:30 AM</span></div></td>
-                            <td><span class="estado-tag pendiente">Pendiente</span></td>
-                            <td>
-                                <div class="acciones-cell">
-                                    <button class="btn-accion aprobar" title="Aprobar"><i class="fa-solid fa-check"></i></button>
-                                    <button class="btn-accion rechazar" title="Rechazar"><i class="fa-solid fa-xmark"></i></button>
-                                    <button class="btn-accion detalle" title="Ver Detalle"><i class="fa-solid fa-eye"></i></button>
-                                </div>
-                            </td>
-                        </tr>
-
-                        <tr class="solicitud-row" 
-                            data-id="2"
-                            data-nombre="Carlos Ruiz Méndez" 
-                            data-grupo="2B" 
-                            data-matricula="20241015"
-                            data-tutor="José Ruiz Martínez"
-                            data-telefono-tutor="55-9876-5432"
-                            data-motivo="Viaje Escolar" 
-                            data-descripcion="Competencia Estatal de Ajedrez representando a la institución."
-                            data-fecha="2026-04-27"
-                            data-hora-inicio="07:00"
-                            data-hora-fin="10:20"
-                            data-tipo-falta="parcial"
-                            data-dias="1 día (27 abril)"
-                            data-materias-afectadas='[{"docente":"Prof. Ricardo Mendoza","materia":"Matemáticas II","hora":"07:00 - 08:40"},{"docente":"Profa. Ana Castillo","materia":"Español Avanzado","hora":"08:40 - 10:20"}]'
-                            data-documentos='[{"nombre":"Autorizacion_Viaje.pdf","tipo":"pdf"}]'
-                            data-estado="pendiente">
-                            <td>
-                                <div class="alumno-cell">
-                                    <div class="avatar-wrapper">
-                                        <img src="https://ui-avatars.com/api/?name=Carlos+Ruiz&background=192A56&color=fff&size=36" alt="Carlos Ruiz">
-                                    </div>
-                                    <div class="alumno-details">
-                                        <span class="alumno-name">Carlos Ruiz Méndez</span>
-                                        <span class="alumno-matricula">Matrícula: 20241015</span>
-                                    </div>
-                                </div>
-                            </td>
-                            <td><span class="grupo-tag">2°B</span></td>
-                            <td><span class="motivo-tag viaje">Viaje</span></td>
-                            <td><div class="fecha-cell"><span class="fecha">27 Abr 2026</span><span class="hora">14:15 PM</span></div></td>
-                            <td><span class="estado-tag pendiente">Pendiente</span></td>
-                            <td>
-                                <div class="acciones-cell">
-                                    <button class="btn-accion aprobar" title="Aprobar"><i class="fa-solid fa-check"></i></button>
-                                    <button class="btn-accion rechazar" title="Rechazar"><i class="fa-solid fa-xmark"></i></button>
-                                    <button class="btn-accion detalle" title="Ver Detalle"><i class="fa-solid fa-eye"></i></button>
-                                </div>
-                            </td>
-                        </tr>
-
-                        <tr class="solicitud-row" 
-                            data-id="3"
-                            data-nombre="María Fernanda Torres" 
-                            data-grupo="1A" 
-                            data-matricula="20241008"
-                            data-tutor="Laura Torres Sánchez"
-                            data-telefono-tutor="55-4567-8901"
-                            data-motivo="Familiar" 
-                            data-descripcion="Trámite familiar urgente relacionado con salud de su abuela materna."
-                            data-fecha="2026-04-26"
-                            data-hora-inicio="07:00"
-                            data-hora-fin="12:30"
-                            data-tipo-falta="completa"
-                            data-dias="1 día (26 abril)"
-                            data-materias-afectadas='[{"docente":"Prof. Ricardo Mendoza","materia":"Matemáticas I","hora":"07:00 - 08:40"},{"docente":"Profa. Patricia Luna","materia":"Historia Universal","hora":"08:40 - 10:20"}]'
-                            data-documentos='[{"nombre":"Comprobante.pdf","tipo":"pdf"}]'
-                            data-estado="aprobada">
-                            <td>
-                                <div class="alumno-cell">
-                                    <div class="avatar-wrapper">
-                                        <img src="https://ui-avatars.com/api/?name=Maria+Torres&background=10B981&color=fff&size=36" alt="María Torres">
-                                    </div>
-                                    <div class="alumno-details">
-                                        <span class="alumno-name">María Fernanda Torres</span>
-                                        <span class="alumno-matricula">Matrícula: 20241008</span>
-                                    </div>
-                                </div>
-                            </td>
-                            <td><span class="grupo-tag">1°A</span></td>
-                            <td><span class="motivo-tag familiar">Familiar</span></td>
-                            <td><div class="fecha-cell"><span class="fecha">26 Abr 2026</span><span class="hora">10:00 AM</span></div></td>
-                            <td><span class="estado-tag aprobada">Aprobada</span></td>
-                            <td>
-                                <div class="acciones-cell">
-                                    <button class="btn-accion detalle" title="Ver Detalle"><i class="fa-solid fa-eye"></i></button>
-                                </div>
-                            </td>
-                        </tr>
                     </tbody>
                 </table>
             </div>
         </section>
 
-        <!-- SECCIÓN HISTORIAL -->
         <section id="section-historial" class="control-view hidden">
             <div class="control-header">
                 <div class="header-title">
@@ -267,27 +143,11 @@
                         <tr><th>Información del Alumno</th><th>Grupo</th><th>Motivo</th><th>Fecha</th><th>Estado</th><th>Resuelto por</th><th>Permiso</th></tr>
                     </thead>
                     <tbody>
-                        <tr class="solicitud-row historial-row" data-id="101" data-nombre="María Fernanda Torres" data-grupo="1A" data-matricula="20241008" data-tutor="Laura Torres Sánchez" data-telefono-tutor="55-4567-8901" data-motivo="Familiar" data-descripcion="Trámite familiar urgente." data-fecha="2026-04-26" data-hora-inicio="07:00" data-hora-fin="12:30" data-tipo-falta="completa" data-dias="1 día (26 abril)" data-estado="aprobada">
-                            <td><div class="alumno-cell"><div class="avatar-wrapper"><img src="https://ui-avatars.com/api/?name=Maria+Torres&background=10B981&color=fff&size=36" alt="María Torres"></div><div class="alumno-details"><span class="alumno-name">María Fernanda Torres</span><span class="alumno-matricula">Matrícula: 20241008</span></div></div></td>
-                            <td><span class="grupo-tag">1°A</span></td><td><span class="motivo-tag familiar">Familiar</span></td><td><div class="fecha-cell"><span class="fecha">26 Abr 2026</span></div></td><td><span class="estado-tag aprobada">Aprobada</span></td><td><span class="text-muted-small">Prefecto Juan</span></td>
-                            <td><button class="btn-descargar-permiso" title="Descargar Permiso PDF" onclick="event.stopPropagation();descargarPermisoDesdeBoton(this);"><i class="fa-solid fa-file-pdf"></i> PDF</button></td>
-                        </tr>
-                        <tr class="solicitud-row historial-row" data-id="102" data-nombre="Luis Hernández Díaz" data-grupo="2A" data-matricula="20241022" data-tutor="Carmen Díaz Flores" data-telefono-tutor="55-2345-6789" data-motivo="Salud" data-descripcion="Cita con oftalmólogo." data-fecha="2026-04-25" data-hora-inicio="07:00" data-hora-fin="08:40" data-tipo-falta="parcial" data-dias="1 día (25 abril)" data-estado="aprobada">
-                            <td><div class="alumno-cell"><div class="avatar-wrapper"><img src="https://ui-avatars.com/api/?name=Luis+Hernandez&background=D6A848&color=192A56&size=36" alt="Luis Hernández"></div><div class="alumno-details"><span class="alumno-name">Luis Hernández Díaz</span><span class="alumno-matricula">Matrícula: 20241022</span></div></div></td>
-                            <td><span class="grupo-tag">2°A</span></td><td><span class="motivo-tag salud">Salud</span></td><td><div class="fecha-cell"><span class="fecha">25 Abr 2026</span></div></td><td><span class="estado-tag aprobada">Aprobada</span></td><td><span class="text-muted-small">Prefecto Juan</span></td>
-                            <td><button class="btn-descargar-permiso" title="Descargar Permiso PDF" onclick="event.stopPropagation();descargarPermisoDesdeBoton(this);"><i class="fa-solid fa-file-pdf"></i> PDF</button></td>
-                        </tr>
-                        <tr class="solicitud-row historial-row" data-id="103" data-nombre="Andrea Morales Ruiz" data-grupo="3A" data-matricula="20241035" data-tutor="Roberto Morales" data-telefono-tutor="55-8765-4321" data-motivo="Personal" data-descripcion="Sin documentación suficiente." data-fecha="2026-04-24" data-hora-inicio="07:00" data-hora-fin="12:30" data-tipo-falta="completa" data-dias="1 día (24 abril)" data-estado="rechazada">
-                            <td><div class="alumno-cell"><div class="avatar-wrapper"><img src="https://ui-avatars.com/api/?name=Andrea+Morales&background=A1232E&color=fff&size=36" alt="Andrea Morales"></div><div class="alumno-details"><span class="alumno-name">Andrea Morales Ruiz</span><span class="alumno-matricula">Matrícula: 20241035</span></div></div></td>
-                            <td><span class="grupo-tag">3°A</span></td><td><span class="motivo-tag personal">Personal</span></td><td><div class="fecha-cell"><span class="fecha">24 Abr 2026</span></div></td><td><span class="estado-tag rechazada">Rechazada</span></td><td><span class="text-muted-small">Prefecto Juan</span></td>
-                            <td><span class="text-muted-small">N/A</span></td>
-                        </tr>
                     </tbody>
                 </table>
             </div>
         </section>
 
-        <!-- SECCIÓN ESTADÍSTICAS -->
         <section id="section-estadisticas" class="control-view hidden">
             <div class="control-header">
                 <div class="header-title">
@@ -298,12 +158,6 @@
                     <button class="btn-exportar" onclick="descargarReporteGeneral()"><i class="fa-solid fa-download"></i> Descargar Reporte PDF</button>
                 </div>
             </div>
-             <!-- <div class="stats-cards">
-                <div class="stat-card"><div class="stat-icon green"><i class="fa-solid fa-user-check"></i></div><div class="stat-info"><span class="stat-number">4,520</span><span class="stat-label">Total Asistencias</span></div></div>
-                <div class="stat-card"><div class="stat-icon red"><i class="fa-solid fa-user-xmark"></i></div><div class="stat-info"><span class="stat-number">142</span><span class="stat-label">Inasistencias Totales</span></div></div>
-                <div class="stat-card"><div class="stat-icon warning-icon"><i class="fa-solid fa-file-circle-check"></i></div><div class="stat-info"><span class="stat-number">85</span><span class="stat-label">Faltas Justificadas</span></div></div>
-                <div class="stat-card"><div class="stat-icon danger-icon"><i class="fa-solid fa-triangle-exclamation"></i></div><div class="stat-info"><span class="stat-number">57</span><span class="stat-label">Faltas Sin Justificar</span></div></div>
-            </div>-->
             <div class="table-wrapper">
                 <h3 class="table-title"><i class="fa-solid fa-users-line"></i> Desglose por Grupos</h3>
                 <table class="stats-table">
@@ -318,7 +172,6 @@
             </div>
         </section>
 
-        <!-- SECCIÓN EXPORTAR DATOS -->
         <section id="section-exportar" class="control-view hidden">
             <div class="control-header">
                 <div class="header-title"><h2><i class="fa-solid fa-file-export"></i> Exportar Listas de Asistencia</h2><p>Descarga listas detalladas por grupo, materia y semana</p></div>
@@ -350,7 +203,6 @@
             </div>
         </section>
 
-        <!-- SECCIÓN CONFIGURACIÓN -->
         <section id="section-configuracion" class="control-view hidden">
             <div class="control-header">
                 <div class="header-title"><h2><i class="fa-solid fa-gear"></i> Configuración del Sistema</h2><p>Personaliza los parámetros de la prefectura escolar</p></div>
@@ -365,11 +217,13 @@
                         <button class="btn-guardar-config" onclick="guardarConfiguracion()"><i class="fa-solid fa-floppy-disk"></i> Guardar Cambios</button>
                     </div>
                 </div>
+                
                 <div class="config-card">
                     <div class="config-card-header"><i class="fa-solid fa-user-tie"></i><h3>Datos del Prefecto</h3></div>
                     <div class="config-card-body">
-                        <div class="config-field"><label>Nombre del Prefecto</label><input type="text" id="config-nombre-prefecto" value="Prefecto Juan Pérez" class="config-input"></div>
-                        <div class="config-field"><label>Correo Electrónico</label><input type="email" id="config-email" value="prefectura@escuela.edu.mx" class="config-input"></div>
+                        <div class="config-field"><label>Nombre</label><input type="text" id="config-nombre-prefecto" class="config-input"></div>
+                        <div class="config-field"><label>Apellido(s)</label><input type="text" id="config-apellido-prefecto" class="config-input"></div>
+                        <div class="config-field"><label>Correo Electrónico</label><input type="email" id="config-email" class="config-input"></div>
                         <button class="btn-guardar-config" onclick="guardarConfiguracion()"><i class="fa-solid fa-floppy-disk"></i> Guardar Cambios</button>
                     </div>
                 </div>
