@@ -56,8 +56,7 @@ class ModeloPrefectura {
         $pdo = Conexion::conectar();
         $stmt = $pdo->prepare("
             INSERT INTO usuarios (nombre, apellido, correo, password, rol, matricula_escolar, telefono) 
-            VALUES (:nombre, :apellido, :correo, MD5(:password), :rol, :matricula, :telefono)
-        ");
+            VALUES (:nombre, :apellido, :correo, MD5(:password), :rol, :matricula, :telefono)");
         $stmt->bindParam(":nombre", $datos["nombre"], PDO::PARAM_STR);
         $stmt->bindParam(":apellido", $datos["apellido"], PDO::PARAM_STR);
         $stmt->bindParam(":correo", $datos["correo"], PDO::PARAM_STR);
