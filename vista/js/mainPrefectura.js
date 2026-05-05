@@ -1,3 +1,9 @@
+/**
+ * mainPrefectura.js - Panel de Control Unificado
+ * DIVIDIDO: SECCIÓN BIENVENIDA | SECCIÓN CONTROL | SECCIÓN PERSONAL | SECCIÓN SISTEMA
+ */
+
+// === CONFIGURACIÓN DE API ===
 const PREFECTURA_API = '../controlador/prefectura.php';
 
 async function apiPrefectura(accion, opciones = {}) {
@@ -17,6 +23,7 @@ async function apiPrefectura(accion, opciones = {}) {
     }
     return data;
 }
+// ===================================
 
 document.addEventListener('DOMContentLoaded', function() {
     const navItems = document.querySelectorAll('.nav-item');
@@ -97,6 +104,9 @@ function navigateToSection(sectionName) {
     }
 }
 
+// ==========================================
+//      SECCIÓN: BIENVENIDA
+// ==========================================
 function initBienvenidaLogic() {
     console.log('✔ Vista de Bienvenida inicializada');
     updateGreeting();
@@ -136,6 +146,9 @@ function initBienvenidaLogic() {
     }
 }
 
+// ==========================================
+//      SECCIÓN: PANEL DE CONTROL
+// ==========================================
 function initControlLogic() {
     console.log('✔ Panel de Control inicializado');
     
@@ -145,6 +158,7 @@ function initControlLogic() {
     var filtroGrupo = document.getElementById('filtro-grupo');
     var filtroMotivo = document.getElementById('filtro-motivo');
 
+    // === CARGAR SOLICITUDES DESDE LA BD ===
     async function cargarSolicitudes() {
         try {
             const data = await apiPrefectura('listar_solicitudes');
@@ -160,6 +174,7 @@ function initControlLogic() {
                 tbody.innerHTML = '<tr><td colspan="6" style="text-align:center; padding: 20px;">No hay solicitudes registradas.</td></tr>';
             }
 
+            // CONTADORES PARA LOS NÚMEROS ROJOS Y VERDES
             let countPendientes = 0;
             let countHistorial = 0;
 
@@ -263,6 +278,7 @@ function initControlLogic() {
                 }
             });
 
+            // ACTUALIZAR LOS CONTADORES EN EL DOM
             const badgeBandeja = document.querySelector('button[data-target="section-bandeja"] .badge');
             const badgeHistorial = document.querySelector('button[data-target="section-historial"] .badge');
             const campanaNotif = document.querySelector('.notification-box .badge-red');
@@ -290,7 +306,7 @@ function initControlLogic() {
         }
     }
 
-    cargarSolicitudes();
+    cargarSolicitudes(); // Ejecutar al entrar a la vista
 
     function getFilas() { return document.querySelectorAll('.solicitud-row'); }
 
@@ -340,6 +356,7 @@ function initControlLogic() {
                 if (e.target.closest('.btn-accion.aprobar')) { e.stopPropagation(); aprobar(fila); return; }
                 if (e.target.closest('.btn-accion.rechazar')) { e.stopPropagation(); rechazar(fila); return; }
                 
+                // Si el clic no fue en el botón de PDF, entonces abrimos el detalle
                 if (!e.target.closest('.btn-descargar-permiso') && !e.target.closest('.btn-accion.aprobar') && !e.target.closest('.btn-accion.rechazar')) {
                     mostrarDetalle(fila);
                 }
@@ -486,6 +503,7 @@ function initControlLogic() {
         });
     }
 
+    // Funciones de PDF
     window.descargarPermisoDesdeBoton = function(btn) {
         var f = btn.closest('.historial-row');
         if(!f) return;
@@ -624,6 +642,9 @@ function initControlLogic() {
     }
 }
 
+// ==========================================
+//      SECCIÓN: CATÁLOGO DE PERSONAL
+// ==========================================
 function initPersonalLogic() {
     console.log('✔ Catálogo de Personal inicializado');
     
@@ -633,6 +654,7 @@ function initPersonalLogic() {
     var tablaAlumnos = document.getElementById('tabla-alumnos');
     var tablaDocentes = document.getElementById('tabla-docentes');
 
+    // === CARGAR PERSONAL DESDE LA BD ===
     async function cargarPersonal() {
         try {
             const data = await apiPrefectura('listar_personal');
@@ -683,6 +705,7 @@ function initPersonalLogic() {
 
     cargarPersonal();
     
+    // === NUEVO REGISTRO DE PERSONAL ===
     window.nuevoRegistro = function() {
         Swal.fire({
             title: 'Nuevo Registro de Personal',
@@ -761,7 +784,7 @@ function initPersonalLogic() {
                     });
                     
                     Swal.fire('¡Registrado!', 'El usuario se ha guardado correctamente.', 'success');
-                    cargarPersonal();
+                    cargarPersonal(); // Refrescar la tabla
                 } catch (error) {
                     Swal.fire('Error', error.message, 'error');
                 }
@@ -832,6 +855,9 @@ function initPersonalLogic() {
     if (tablaDocentes) tablaDocentes.addEventListener('click', clickEnTabla);
 }
 
+// ==========================================
+//      SECCIÓN: CONFIGURACIÓN DEL SISTEMA
+// ==========================================
 function initSistemaLogic() {
     console.log('✔ Configuración del Sistema inicializada');
     
