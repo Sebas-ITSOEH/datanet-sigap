@@ -61,7 +61,6 @@ try {
         if (empty($input['nombre']) || empty($input['correo'])) {
             throw new Exception('El nombre y el correo son obligatorios.');
         }
-        // Pasamos nombre y apellido al modelo
         if (ModeloPrefectura::mdlActualizarPrefecto($id_admin, $input['nombre'], $input['apellido'], $input['correo']) === "ok") {
             $respuesta = ['ok' => true, 'mensaje' => "Datos del prefecto actualizados."];
         } else {
