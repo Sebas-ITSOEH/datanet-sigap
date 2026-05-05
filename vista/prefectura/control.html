@@ -1,4 +1,5 @@
 <div class="control-layout fade-in">
+    <!-- SIDEBAR IZQUIERDO -->
     <aside class="sidebar-vertical">
         <div class="sidebar-brand">
             <div class="brand-icon">
@@ -57,8 +58,10 @@
         </div>
     </aside>
 
+    <!-- CONTENIDO PRINCIPAL -->
     <main class="control-main-container">
         
+        <!-- SECCIÓN BANDEJA DE SOLICITUDES -->
         <section id="section-bandeja" class="control-view">
             <div class="control-header">
                 <div class="header-title">
@@ -111,11 +114,13 @@
                         </tr>
                     </thead>
                     <tbody>
+                        <!-- Las solicitudes se cargarán dinámicamente con JS -->
                     </tbody>
                 </table>
             </div>
         </section>
 
+        <!-- SECCIÓN HISTORIAL -->
         <section id="section-historial" class="control-view hidden">
             <div class="control-header">
                 <div class="header-title">
@@ -143,11 +148,13 @@
                         <tr><th>Información del Alumno</th><th>Grupo</th><th>Motivo</th><th>Fecha</th><th>Estado</th><th>Resuelto por</th><th>Permiso</th></tr>
                     </thead>
                     <tbody>
+                        <!-- El historial se cargará dinámicamente con JS -->
                     </tbody>
                 </table>
             </div>
         </section>
 
+        <!-- SECCIÓN ESTADÍSTICAS -->
         <section id="section-estadisticas" class="control-view hidden">
             <div class="control-header">
                 <div class="header-title">
@@ -172,6 +179,7 @@
             </div>
         </section>
 
+        <!-- SECCIÓN EXPORTAR DATOS -->
         <section id="section-exportar" class="control-view hidden">
             <div class="control-header">
                 <div class="header-title"><h2><i class="fa-solid fa-file-export"></i> Exportar Listas de Asistencia</h2><p>Descarga listas detalladas por grupo, materia y semana</p></div>
@@ -203,6 +211,7 @@
             </div>
         </section>
 
+        <!-- SECCIÓN CONFIGURACIÓN -->
         <section id="section-configuracion" class="control-view hidden">
             <div class="control-header">
                 <div class="header-title"><h2><i class="fa-solid fa-gear"></i> Configuración del Sistema</h2><p>Personaliza los parámetros de la prefectura escolar</p></div>
@@ -218,6 +227,7 @@
                     </div>
                 </div>
                 
+                <!-- AQUÍ ESTÁ LA MAGIA DE LOS IDs SEPARADOS -->
                 <div class="config-card">
                     <div class="config-card-header"><i class="fa-solid fa-user-tie"></i><h3>Datos del Prefecto</h3></div>
                     <div class="config-card-body">
