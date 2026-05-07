@@ -4,6 +4,9 @@ window.inicializarRegistro = function() {
     const btnAtras = document.getElementById('btnAtras');
     const regForm = document.getElementById('regForm');
 
+    // Inicializar validación dinámica
+    GestorValidacion.inicializar();
+
     if (btnSiguiente) {
         btnSiguiente.addEventListener('click', siguiente);
     }
@@ -21,6 +24,12 @@ window.inicializarRegistro = function() {
 };
 
 function siguiente() {
+    // Validar que el formulario del paso 1 sea válido
+    if (!GestorValidacion.validarFormularioCompleto(1)) {
+        mostrarNotificacion('Por favor, completa todos los campos correctamente.', 'error');
+        return;
+    }
+
     const email = document.getElementById('email')?.value.trim();
     const nombre = document.getElementById('nombre')?.value.trim();
 
@@ -42,14 +51,24 @@ function siguiente() {
     if (esAlumno) {
         titulo.innerText = 'Perfil Alumno';
         campoDinamico.innerHTML = `
-            <label>Matricula Escolar</label>
-            <input type="text" id="id-valor" placeholder="Ej: 20240001" required>`;
+            <div class="input-group">
+                <label>Matricula Escolar</label>
+                <input type="text" id="id-valor" placeholder="Ej: 20240001" required>
+                <div class="validation-feedback" id="id-valor-feedback"></div>
+            </div>`;
         seccionTutor.style.display = 'block';
+        
+        // Inicializar validador de matrícula después de insertarlo en el DOM
+        setTimeout(() => {
+            GestorValidacion.agregarListenerMatricula();
+        }, 0);
     } else {
         titulo.innerText = 'Perfil Docente';
         campoDinamico.innerHTML = `
-            <label>ID de Maestro (Iniciales)</label>
-            <input type="text" id="id-valor" placeholder="Ej: JPMX" required>`;
+            <div class="input-group">
+                <label>ID de Maestro (Iniciales)</label>
+                <input type="text" id="id-valor" placeholder="Ej: JPMX" required>
+            </div>`;
         seccionTutor.style.display = 'none';
     }
 
@@ -101,10 +120,29 @@ function anterior() {
 }
 
 function confirmarRegistro() {
-    const pass = document.getElementById('pass')?.value;
-    const confirmPass = document.getElementById('confirmPass')?.value;
+    // Validar paso 2
+    if (!GestorValidacion.validarFormularioCompleto(2)) {
+        mostrarNotificacion('Por favor, completa todos los campos correctamente.', 'error');
+        return;
+    }
+
     const email = document.getElementById('email')?.value.trim();
     const esAlumno = /^[0-9]/.test(email);
+
+    // Validar matrícula si es alumno
+    if (esAlumno && !GestorValidacion.validarMatriculaEscolar()) {
+        mostrarNotificacion('La matrícula escolar no es válida.', 'error');
+        return;
+    }
+
+    // Validar tutor si es alumno
+    if (esAlumno && !GestorValidacion.validarTutorCompleto()) {
+        mostrarNotificacion('Completa todos los datos obligatorios del tutor.', 'error');
+        return;
+    }
+
+    const pass = document.getElementById('pass')?.value;
+    const confirmPass = document.getElementById('confirmPass')?.value;
 
     if (!pass || !confirmPass) {
         mostrarNotificacion('Por favor completa todos los campos.', 'error');
@@ -113,15 +151,6 @@ function confirmarRegistro() {
 
     if (pass !== confirmPass) {
         mostrarNotificacion('Las contrasenas no coinciden.', 'error');
-        return;
-    }
-
-    if (pass.length < 6) {
-        mostrarNotificacion('La contrasena debe tener al menos 6 caracteres.', 'error');
-        return;
-    }
-
-    if (esAlumno && !validarTutor()) {
         return;
     }
 
@@ -142,18 +171,6 @@ function confirmarRegistro() {
     }, 800);
 }
 
-function validarTutor() {
-    const campos = ['tutorPaterno', 'tutorNombres', 'tutorCorreo', 'telTutor'];
-    const incompleto = campos.some(id => !document.getElementById(id)?.value.trim());
-
-    if (incompleto) {
-        mostrarNotificacion('Completa los datos obligatorios del tutor.', 'error');
-        return false;
-    }
-
-    return true;
-}
-
 async function enviarRegistro() {
     const email = document.getElementById('email').value.trim().toLowerCase();
     const esAlumno = /^[0-9]/.test(email);
@@ -171,23 +188,28 @@ async function enviarRegistro() {
         password: document.getElementById('pass').value,
         rol: esAlumno ? 'alumno' : 'docente',
         matricula_escolar: esAlumno ? document.getElementById('id-valor').value.trim() : null,
-        tutor: esAlumno ? {
-            nombre: document.getElementById('tutorNombres').value.trim(),
-            apellido: [
-                document.getElementById('tutorPaterno').value.trim(),
-                document.getElementById('tutorMaterno').value.trim()
-            ].filter(Boolean).join(' '),
-            correo: document.getElementById('tutorCorreo').value.trim().toLowerCase(),
-            telefono: document.getElementById('telTutor').value.trim(),
-            password: document.getElementById('pass').value
-        } : null
+        telefono: document.getElementById('email')?.dataset.telefono || null,
+        tutor: esAlumno
+            ? {
+                  nombre: document.getElementById('tutorNombres').value.trim(),
+                  apellido: [
+                      document.getElementById('tutorPaterno').value.trim(),
+                      document.getElementById('tutorMaterno').value.trim(),
+                  ]
+                      .filter(Boolean)
+                      .join(' '),
+                  correo: document.getElementById('tutorCorreo').value.trim().toLowerCase(),
+                  telefono: document.getElementById('telTutor').value.trim(),
+                  password: document.getElementById('pass').value,
+              }
+            : null,
     };
 
     try {
         const response = await fetch('controlador/registro.php', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(payload)
+            body: JSON.stringify(payload),
         });
         const data = await response.json();
 

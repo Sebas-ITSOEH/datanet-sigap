@@ -61,105 +61,275 @@ try {
 // ------------------------------------------------------------
 // FUNCIÓN DE VALIDACIÓN CON EXPRESIONES REGULARES
 // ------------------------------------------------------------
-function validarRegistro(array $input)
+function validarRegistro(array $input): array
 {
     $errores = [];
-    $rol = $input['rol'] ?? '';
 
-    // 1. Obligatoriedad de campos básicos
-    foreach (['nombre', 'apellido', 'correo', 'password', 'rol'] as $campo) {
-        if (trim((string) ($input[$campo] ?? '')) === '') {
-            $errores[] = "El campo {$campo} es obligatorio.";
+    $rol = trim($input['rol'] ?? '');
+
+    // =========================================================
+    // REGEX CENTRALIZADAS
+    // =========================================================
+
+    $regexNombre =
+        '/^([A-ZÁÉÍÓÚÑ][a-záéíóúñ]+)(\s[A-ZÁÉÍÓÚÑ][a-záéíóúñ]+)*$/u';
+
+    $regexAlumno =
+        '/^\d{8}@secgralbj\.edu\.mx$/';
+
+    $regexDocente =
+        '/^[a-záéíóúñ]+\.[a-záéíóúñ]+@secgralbj\.edu\.mx$/u';
+
+    $regexTelefono =
+        '/^\d{10}$/';
+
+    $regexMatricula =
+        '/^\d{8}$/';
+
+    $regexPassword =
+        '/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9]).{8,}$/';
+
+    // =========================================================
+    // CAMPOS OBLIGATORIOS
+    // =========================================================
+
+    foreach (
+        [
+            'nombre',
+            'apellido',
+            'direccion',
+            'correo',
+            'password',
+            'rol'
+        ] as $campo
+    ) {
+
+        if (trim((string)($input[$campo] ?? '')) === '') {
+            $errores[] =
+                "El campo {$campo} es obligatorio.";
         }
     }
 
-    // 2. Validación de nombre (español: letras, acentos, ñ, espacios, apóstrofes, guiones)
+    // =========================================================
+    // VALIDACIÓN DE NOMBRE
+    // =========================================================
+
     $nombre = trim($input['nombre'] ?? '');
-    if ($nombre !== '' && !preg_match('/^[a-zA-ZáéíóúüñÁÉÍÓÚÜÑ\s\'-]+$/u', $nombre)) {
-        $errores[] = 'El nombre solo puede contener letras, espacios, apóstrofes o guiones.';
+
+    if (
+        $nombre !== '' &&
+        !preg_match($regexNombre, $nombre)
+    ) {
+        $errores[] =
+            'El nombre debe iniciar con mayúscula y contener solo letras.';
     }
 
-    // 3. Validación de apellido (mismo patrón español)
+    // =========================================================
+    // VALIDACIÓN DE APELLIDO
+    // =========================================================
+
     $apellido = trim($input['apellido'] ?? '');
-    if ($apellido !== '' && !preg_match('/^[a-zA-ZáéíóúüñÁÉÍÓÚÜÑ\s\'-]+$/u', $apellido)) {
-        $errores[] = 'El apellido solo puede contener letras, espacios, apóstrofes o guiones.';
+
+    if (
+        $apellido !== '' &&
+        !preg_match($regexNombre, $apellido)
+    ) {
+        $errores[] =
+            'El apellido debe iniciar con mayúscula y contener solo letras.';
     }
 
-    // 4. Correo: primero validación genérica, luego regex según dominio según rol
-    $correo = strtolower(trim($input['correo'] ?? ''));
-    if ($correo !== '' && !filter_var($correo, FILTER_VALIDATE_EMAIL)) {
-        $errores[] = 'El correo del usuario no es válido.';
-    } else {
-        // Validación de dominio según rol, usando regex específicos de la BD
-        if ($rol === 'alumno' && !preg_match('/^\d{8}@estudiantes\.edu\.mx$/', $correo)) {
-            $errores[] = 'El correo del alumno debe ser matrícula (8 dígitos) @estudiantes.edu.mx';
-        } elseif ($rol === 'docente' && !preg_match('/^[a-zA-Z]+\.[a-zA-Z]+@secundaria\.edu\.mx$/', $correo)) {
-            $errores[] = 'El correo del docente debe tener formato nombre.apellido@secundaria.edu.mx';
-        } elseif ($rol === 'padre' && !preg_match('/^[a-zA-Z]+\.[a-zA-Z]+@email\.mx$/', $correo)) {
-            // Los padres no se registran directamente por este controlador (solo tutor), pero se incluye por si acaso
-            $errores[] = 'El correo del padre debe tener formato nombre.apellido@email.mx';
-        }
-    }
+    // =========================================================
+    // VALIDACIÓN DE ROL
+    // =========================================================
 
-    // 5. Rol válido
     if (!in_array($rol, ['alumno', 'docente'], true)) {
-        $errores[] = 'El rol de registro no es válido.';
+        $errores[] =
+            'El rol especificado no es válido.';
     }
 
-    // 6. Contraseña segura (basado en datos de ejemplo: MD5, pero ahora con requisitos de complejidad)
-    $password = (string) ($input['password'] ?? '');
-    if (strlen($password) < 6) {
-        $errores[] = 'La contraseña debe tener al menos 6 caracteres.';
-    } elseif (!preg_match('/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{8,}$/', $password)) {
-        // Mínimo 8 caracteres, al menos una mayúscula, una minúscula y un dígito
-        $errores[] = 'La contraseña debe tener al menos 8 caracteres, una mayúscula, una minúscula y un número.';
-    }
+    // =========================================================
+    // VALIDACIÓN DE CORREO
+    // =========================================================
 
-    // 7. Teléfono (opcional, pero si se proporciona debe ser 10 dígitos)
-    $telefono = trim($input['telefono'] ?? '');
-    if ($telefono !== '' && !preg_match('/^\d{10}$/', $telefono)) {
-        $errores[] = 'El teléfono debe tener 10 dígitos.';
-    }
+    $correo =
+        strtolower(trim($input['correo'] ?? ''));
 
-    // 8. Validaciones específicas para alumno
-    if ($rol === 'alumno') {
-        // Matrícula obligatoria y formato exacto: 8 dígitos
-        $matricula = trim((string) ($input['matricula_escolar'] ?? ''));
-        if ($matricula === '') {
-            $errores[] = 'La matrícula escolar es obligatoria para alumnos.';
-        } elseif (!preg_match('/^\d{8}$/', $matricula)) {
-            // Coincide exactamente con 8 dígitos (20240001, etc.)
-            $errores[] = 'La matrícula debe tener 8 dígitos.';
+    if (
+        $correo !== '' &&
+        !filter_var($correo, FILTER_VALIDATE_EMAIL)
+    ) {
+        $errores[] =
+            'El correo electrónico no es válido.';
+    } else {
+
+        if (
+            $rol === 'alumno' &&
+            !preg_match($regexAlumno, $correo)
+        ) {
+
+            $errores[] =
+                'El correo del alumno debe tener formato matricula@secgralbj.edu.mx';
         }
 
-        // Datos del tutor obligatorios
-        $tutor = $input['tutor'] ?? [];
-        foreach (['nombre', 'apellido', 'correo', 'telefono'] as $campo) {
-            if (trim((string) ($tutor[$campo] ?? '')) === '') {
-                $errores[] = "El campo {$campo} del tutor es obligatorio.";
+        if (
+            $rol === 'docente' &&
+            !preg_match($regexDocente, $correo)
+        ) {
+
+            $errores[] =
+                'El correo del docente debe tener formato nombre.apellido@secgralbj.edu.mx';
+        }
+    }
+
+    // =========================================================
+    // VALIDACIÓN DE CONTRASEÑA
+    // =========================================================
+
+    $password =
+        (string)($input['password'] ?? '');
+
+    if (
+        !preg_match($regexPassword, $password)
+    ) {
+
+        $errores[] =
+            'La contraseña debe tener mínimo 8 caracteres, mayúscula, minúscula, número y carácter especial.';
+    }
+
+    // =========================================================
+    // TELÉFONO
+    // =========================================================
+
+    $telefono =
+        trim($input['telefono'] ?? '');
+
+    if (
+        $telefono !== '' &&
+        !preg_match($regexTelefono, $telefono)
+    ) {
+
+        $errores[] =
+            'El teléfono debe contener exactamente 10 dígitos.';
+    }
+
+    // =========================================================
+    // VALIDACIONES DE ALUMNO
+    // =========================================================
+
+    if ($rol === 'alumno') {
+
+        // -----------------------------------------------------
+        // MATRÍCULA
+        // -----------------------------------------------------
+
+        $matricula =
+            trim($input['matricula_escolar'] ?? '');
+
+        if ($matricula === '') {
+
+            $errores[] =
+                'La matrícula escolar es obligatoria.';
+        } elseif (
+            !preg_match($regexMatricula, $matricula)
+        ) {
+
+            $errores[] =
+                'La matrícula debe contener exactamente 8 dígitos.';
+        }
+
+        // -----------------------------------------------------
+        // TUTOR
+        // -----------------------------------------------------
+
+        $tutor =
+            $input['tutor'] ?? [];
+
+        foreach (
+            [
+                'nombre',
+                'apellido',
+                'correo',
+                'telefono'
+            ] as $campo
+        ) {
+
+            if (
+                trim((string)($tutor[$campo] ?? '')) === ''
+            ) {
+
+                $errores[] =
+                    "El campo {$campo} del tutor es obligatorio.";
             }
         }
 
-        // Nombre y apellido del tutor con el mismo patrón español
-        $tutorNombre = trim($tutor['nombre'] ?? '');
-        if ($tutorNombre !== '' && !preg_match('/^[a-zA-ZáéíóúüñÁÉÍÓÚÜÑ\s\'-]+$/u', $tutorNombre)) {
-            $errores[] = 'El nombre del tutor solo puede contener letras y espacios.';
-        }
-        $tutorApellido = trim($tutor['apellido'] ?? '');
-        if ($tutorApellido !== '' && !preg_match('/^[a-zA-ZáéíóúüñÁÉÍÓÚÜÑ\s\'-]+$/u', $tutorApellido)) {
-            $errores[] = 'El apellido del tutor solo puede contener letras y espacios.';
+        // -----------------------------------------------------
+        // NOMBRE TUTOR
+        // -----------------------------------------------------
+
+        $tutorNombre =
+            trim($tutor['nombre'] ?? '');
+
+        if (
+            $tutorNombre !== '' &&
+            !preg_match($regexNombre, $tutorNombre)
+        ) {
+
+            $errores[] =
+                'El nombre del tutor no es válido.';
         }
 
-        // Correo del tutor con el dominio que usan los padres: nombre.apellido@email.mx
-        $tutorCorreo = strtolower(trim($tutor['correo'] ?? ''));
-        if ($tutorCorreo !== '' && !preg_match('/^[a-zA-Z]+\.[a-zA-Z]+@email\.mx$/', $tutorCorreo)) {
-            $errores[] = 'El correo del tutor debe tener el formato nombre.apellido@email.mx';
+        // -----------------------------------------------------
+        // APELLIDO TUTOR
+        // -----------------------------------------------------
+
+        $tutorApellido =
+            trim($tutor['apellido'] ?? '');
+
+        if (
+            $tutorApellido !== '' &&
+            !preg_match($regexNombre, $tutorApellido)
+        ) {
+
+            $errores[] =
+                'El apellido del tutor no es válido.';
         }
 
-        // Teléfono del tutor (10 dígitos)
-        $tutorTelefono = trim($tutor['telefono'] ?? '');
-        if ($tutorTelefono !== '' && !preg_match('/^\d{10}$/', $tutorTelefono)) {
-            $errores[] = 'El teléfono del tutor debe tener 10 dígitos.';
+        // -----------------------------------------------------
+        // CORREO TUTOR
+        // -----------------------------------------------------
+
+        $tutorCorreo =
+            strtolower(trim($tutor['correo'] ?? ''));
+
+        if (
+            $tutorCorreo !== '' &&
+            !filter_var(
+                $tutorCorreo,
+                FILTER_VALIDATE_EMAIL
+            )
+        ) {
+
+            $errores[] =
+                'El correo del tutor no es válido.';
+        }
+
+        // -----------------------------------------------------
+        // TELÉFONO TUTOR
+        // -----------------------------------------------------
+
+        $tutorTelefono =
+            trim($tutor['telefono'] ?? '');
+
+        if (
+            $tutorTelefono !== '' &&
+            !preg_match(
+                $regexTelefono,
+                $tutorTelefono
+            )
+        ) {
+
+            $errores[] =
+                'El teléfono del tutor debe tener exactamente 10 dígitos.';
         }
     }
 

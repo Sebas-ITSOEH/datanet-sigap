@@ -1,91 +1,144 @@
 <div class="registro-wrapper">
-    <div class="card-register">
-        <div class="side-info">
-            <div class="brand">
-                <span class="emoji">🏫</span>
-                <h1>SEC. BENITO <br> JUÁREZ</h1>
-            </div>
-            
-            <div class="stepper">
-                <div class="step active" id="dot1">1</div>
-                <div class="line"></div>
-                <div class="step" id="dot2">2</div>
-            </div>
+  <div class="card-register">
+    <div class="side-info">
+      <div class="brand">
+        <span class="emoji">🏫</span>
+        <h1>
+          SEC. BENITO <br />
+          JUÁREZ
+        </h1>
+      </div>
 
-            <div class="illustration-box">
-                <div class="grad-cap">🎓</div>
-                <h3>Crea tu cuenta</h3>
-                <p>Usa tu correo institucional para validar tu identidad en el sistema.</p>
-            </div>
-        </div>
+      <div class="stepper">
+        <div class="step active" id="dot1">1</div>
+        <div class="line"></div>
+        <div class="step" id="dot2">2</div>
+      </div>
 
-        <div class="form-container">
-            <form id="regForm">
-                <div class="step-content active" id="step1">
-                    <h2>Datos Personales</h2>
-                    <div class="input-group">
-                        <label>Nombre(s)</label>
-                        <input type="text" id="nombre" required>
-                    </div>
-                    <div class="input-group">
-                        <label>Apellidos</label>
-                        <input type="text" id="apellidos" required>
-                    </div>
-                    <div class="input-group">
-                        <label>Dirección Particular</label>
-                        <input type="text" id="direccion" placeholder="Calle, Número y Colonia" required>
-                    </div>
-                    <div class="input-group">
-                        <label>Correo @secgralbj.edu.mx</label>
-                        <input type="email" id="email" required>
-                    </div>
-                    <button type="button" class="btn-primary" id="btnSiguiente">Siguiente</button>
-                </div>
-
-                <div class="step-content" id="step2" style="display:none;">
-                    <h2 id="step2-title">Validación</h2>
-                    
-                    <div class="input-group" id="dynamic-field"></div>
-
-                    <div id="seccion-tutor" style="display:none;" class="tutor-box">
-                        <p class="tutor-title">Datos del Tutor</p>
-                        <div class="input-group">
-                            <label>Apellido Paterno</label>
-                            <input type="text" id="tutorPaterno">
-                        </div>
-                        <div class="input-group">
-                            <label>Apellido Materno</label>
-                            <input type="text" id="tutorMaterno">
-                        </div>
-                        <div class="input-group">
-                            <label>Nombre(s)</label>
-                            <input type="text" id="tutorNombres">
-                        </div>
-                        <div class="input-group">
-                            <label>Correo del Tutor</label>
-                            <input type="email" id="tutorCorreo">
-                        </div>
-                        <div class="input-group">
-                            <label>Teléfono (WhatsApp)</label>
-                            <input type="tel" id="telTutor" placeholder="10 dígitos">
-                        </div>
-                    </div>
-
-                    <div class="input-group">
-                        <label>Contraseña</label>
-                        <input type="password" id="pass" required>
-                    </div>
-                    <div class="input-group">
-                        <label>Confirmar Contraseña</label>
-                        <input type="password" id="confirmPass" required>
-                    </div>
-
-                    <div class="btn-row">
-                        <button type="button" class="btn-sec" id="btnAtras">Atrás</button>
-                        <button type="submit" class="btn-primary">Confirmar vía WhatsApp</button>
-                    </div>
-                </div>
-            </form>
-        </div>
+      <div class="illustration-box">
+        <div class="grad-cap">🎓</div>
+        <h3>Crea tu cuenta</h3>
+        <p>
+          Usa tu correo institucional para validar tu identidad en el sistema.
+        </p>
+      </div>
     </div>
+
+    <div class="form-container">
+      <form id="regForm">
+        <div class="step-content active" id="step1">
+          <h2>Datos Personales</h2>
+          <div class="input-group">
+            <label>Nombre(s)</label>
+            <input type="text" id="nombre" required />
+            <div class="validation-feedback" id="nombre-feedback"></div>
+          </div>
+          <div class="input-group">
+            <label>Apellidos</label>
+            <input type="text" id="apellidos" required />
+            <div class="validation-feedback" id="apellidos-feedback"></div>
+          </div>
+          <div class="input-group">
+            <label>Dirección Particular</label>
+            <input
+              type="text"
+              id="direccion"
+              placeholder="Calle, Número y Colonia"
+              required
+            />
+            <div class="validation-feedback" id="direccion-feedback"></div>
+          </div>
+          <div class="input-group">
+            <label>Correo @secgralbj.edu.mx</label>
+            <input type="email" id="email" required />
+            <div class="validation-feedback" id="email-feedback"></div>
+          </div>
+          <button type="button" class="btn-primary" id="btnSiguiente">
+            Siguiente
+          </button>
+        </div>
+
+        <div class="step-content" id="step2" style="display: none">
+          <h2 id="step2-title">Validación</h2>
+
+          <div class="input-group" id="dynamic-field"></div>
+
+          <div id="seccion-tutor" style="display: none" class="tutor-box">
+            <p class="tutor-title">Datos del Tutor</p>
+            <div class="input-group">
+              <label>Apellido Paterno</label>
+              <input type="text" id="tutorPaterno" />
+              <div class="validation-feedback" id="tutorPaterno-feedback"></div>
+            </div>
+            <div class="input-group">
+              <label>Apellido Materno</label>
+              <input type="text" id="tutorMaterno" />
+              <div class="validation-feedback" id="tutorMaterno-feedback"></div>
+            </div>
+            <div class="input-group">
+              <label>Nombre(s)</label>
+              <input type="text" id="tutorNombres" />
+              <div class="validation-feedback" id="tutorNombres-feedback"></div>
+            </div>
+            <div class="input-group">
+              <label>Correo del Tutor</label>
+              <input type="email" id="tutorCorreo" />
+              <div class="validation-feedback" id="tutorCorreo-feedback"></div>
+            </div>
+            <div class="input-group">
+              <label>Teléfono (WhatsApp)</label>
+              <input type="tel" id="telTutor" placeholder="10 dígitos" />
+              <div class="validation-feedback" id="telTutor-feedback"></div>
+            </div>
+          </div>
+
+          <div class="input-group">
+            <label>Contraseña</label>
+            <input type="password" id="pass" required />
+            <div class="password-requirements">
+              <div class="requirement" id="req-length">
+                <span class="requirement-check">✓</span>
+                <span class="requirement-text">Mínimo 8 caracteres</span>
+              </div>
+              <div class="requirement" id="req-upper">
+                <span class="requirement-check">✓</span>
+                <span class="requirement-text"
+                  >Al menos una mayúscula (A-Z)</span
+                >
+              </div>
+              <div class="requirement" id="req-lower">
+                <span class="requirement-check">✓</span>
+                <span class="requirement-text"
+                  >Al menos una minúscula (a-z)</span
+                >
+              </div>
+              <div class="requirement" id="req-number">
+                <span class="requirement-check">✓</span>
+                <span class="requirement-text">Al menos un número (0-9)</span>
+              </div>
+              <div class="requirement" id="req-special">
+                <span class="requirement-check">✓</span>
+                <span class="requirement-text">
+                  Al menos un carácter especial
+                </span>
+              </div>
+            </div>
+            <div class="validation-feedback" id="pass-feedback"></div>
+          </div>
+          <div class="input-group">
+            <label>Confirmar Contraseña</label>
+            <input type="password" id="confirmPass" required />
+            <div class="validation-feedback" id="confirmPass-feedback"></div>
+          </div>
+
+          <div class="btn-row">
+            <button type="button" class="btn-sec" id="btnAtras">Atrás</button>
+            <button type="submit" class="btn-primary">
+              Confirmar vía WhatsApp
+            </button>
+          </div>
+        </div>
+      </form>
+    </div>
+  </div>
 </div>

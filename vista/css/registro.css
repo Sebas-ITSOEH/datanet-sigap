@@ -333,3 +333,129 @@
         font-size: 2.5rem;
     }
 }
+
+/* =========================================
+   VALIDACIÓN DINÁMICA - Estilos
+========================================= */
+
+/* Estados del input */
+.input-valid {
+    border-color: #2d6a4f !important;
+    background: rgba(45, 106, 79, 0.05) !important;
+}
+
+.input-invalid {
+    border-color: #a1232e !important;
+    background: rgba(161, 35, 46, 0.05) !important;
+}
+
+/* Feedback de validación */
+.validation-feedback {
+    font-size: 0.75rem;
+    margin-top: 4px;
+    min-height: 18px;
+    display: flex;
+    align-items: center;
+    color: #2d6a4f;
+    font-weight: 500;
+    animation: fadeInFast 0.2s ease;
+}
+
+.validation-feedback.error {
+    color: #a1232e;
+}
+
+@keyframes fadeInFast {
+    from {
+        opacity: 0;
+        transform: translateY(-2px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Requisitos de contraseña */
+.password-requirements {
+    background: #f5f7fa;
+    border: 1px solid #e0e3e8;
+    border-radius: 8px;
+    padding: 12px 15px;
+    margin-top: 10px;
+    margin-bottom: 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.requirement {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.8rem;
+    color: #555;
+    transition: all 0.2s ease;
+}
+
+.requirement-check {
+    width: 18px;
+    height: 18px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    background: #e0e3e8;
+    color: #999;
+    font-weight: 700;
+    font-size: 0.7rem;
+    transition: all 0.2s ease;
+}
+
+.requirement.met .requirement-check {
+    background: #2d6a4f;
+    color: #ffffff;
+}
+
+.requirement.met .requirement-text {
+    color: #2d6a4f;
+    font-weight: 600;
+}
+
+.requirement.unmet .requirement-check {
+    background: #fce0de;
+    color: #a1232e;
+}
+
+.requirement.unmet .requirement-text {
+    color: #a1232e;
+    font-weight: 600;
+}
+
+/* Animación de entrada para requisitos */
+@keyframes requirementPulse {
+    0% {
+        transform: scale(0.95);
+        opacity: 0.7;
+    }
+    50% {
+        transform: scale(1.05);
+    }
+    100% {
+        transform: scale(1);
+        opacity: 1;
+    }
+}
+
+.requirement.met {
+    animation: requirementPulse 0.3s ease;
+}
+
+/* Enfoque en el input durante validación */
+.input-group input:focus.input-invalid {
+    box-shadow: 0 0 0 4px rgba(161, 35, 46, 0.15);
+}
+
+.input-group input:focus.input-valid {
+    box-shadow: 0 0 0 4px rgba(45, 106, 79, 0.15);
+}
