@@ -17,7 +17,7 @@ async function apiPrefectura(accion, opciones = {}) {
     }
     const response = await fetch(`${PREFECTURA_API}?accion=${accion}${query}`, config);
     const data = await response.json();
-    
+
     if (!response.ok || !data.ok) {
         throw new Error(data.mensaje || 'No se pudo completar la operación.');
     }
@@ -25,7 +25,7 @@ async function apiPrefectura(accion, opciones = {}) {
 }
 // ===================================
 
-document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('DOMContentLoaded', function () {
     const navItems = document.querySelectorAll('.nav-item');
     const viewContainer = document.getElementById('view-container');
 
@@ -35,12 +35,12 @@ document.addEventListener('DOMContentLoaded', function() {
             const response = await fetch('prefectura/' + sectionName + '.html?t=' + Date.now());
             if (!response.ok) throw new Error('No se encontró: ' + sectionName + '.html');
             const html = await response.text();
-            
+
             viewContainer.innerHTML = html;
             viewContainer.classList.remove('fade-in');
             void viewContainer.offsetWidth;
             viewContainer.classList.add('fade-in');
-            
+
             if (sectionName === 'bienvenida') { initBienvenidaLogic(); }
             else if (sectionName === 'control') { initControlLogic(); }
             else if (sectionName === 'personal') { initPersonalLogic(); }
@@ -51,9 +51,9 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     if (navItems.length > 0) {
-        navItems.forEach(function(item) {
-            item.addEventListener('click', function() {
-                navItems.forEach(function(i) { i.classList.remove('active'); });
+        navItems.forEach(function (item) {
+            item.addEventListener('click', function () {
+                navItems.forEach(function (i) { i.classList.remove('active'); });
                 item.classList.add('active');
                 loadSection(item.getAttribute('data-section'));
             });
@@ -61,11 +61,39 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     loadSection('bienvenida');
-    
+
+    // === FUNCIÓN PARA CERRAR SESIÓN ===
+    const btnLogout = document.getElementById('btn-logout');
+    if (btnLogout) {
+        btnLogout.addEventListener('click', function() {
+            Swal.fire({
+                title: '¿Cerrar Sesión?',
+                text: 'Vas a salir del Panel de Control.',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#EF4444',
+                cancelButtonColor: '#64748B',
+                confirmButtonText: '<i class="fa-solid fa-right-from-bracket"></i> Sí, salir',
+                cancelButtonText: 'Cancelar',
+                customClass: { popup: 'swal-solicitud-popup' }
+            }).then(async (result) => {
+                if (result.isConfirmed) {
+                    try {
+                        await apiPrefectura('logout', { method: 'POST' });
+                        window.location.href = '../index.html'; 
+                    } catch (error) {
+                        console.error('Error al cerrar sesión:', error);
+                        window.location.href = '../index.html';
+                    }
+                }
+            });
+        });
+    }
+
     const logoBox = document.querySelector('.logo-box');
     if (logoBox) {
-        logoBox.parentElement.addEventListener('click', function() {
-            navItems.forEach(function(i) { i.classList.remove('active'); });
+        logoBox.parentElement.addEventListener('click', function () {
+            navItems.forEach(function (i) { i.classList.remove('active'); });
             loadSection('bienvenida');
         });
     }
@@ -78,13 +106,13 @@ document.addEventListener('DOMContentLoaded', function() {
 
 function navigateToSection(sectionName) {
     const navItems = document.querySelectorAll('.nav-item');
-    navItems.forEach(function(item) {
+    navItems.forEach(function (item) {
         item.classList.remove('active');
         if (item.getAttribute('data-section') === sectionName) {
             item.classList.add('active');
         }
     });
-    
+
     const viewContainer = document.getElementById('view-container');
     if (viewContainer) {
         fetch('prefectura/' + sectionName + '.html?t=' + Date.now())
@@ -94,7 +122,7 @@ function navigateToSection(sectionName) {
                 viewContainer.classList.remove('fade-in');
                 void viewContainer.offsetWidth;
                 viewContainer.classList.add('fade-in');
-                
+
                 if (sectionName === 'bienvenida') initBienvenidaLogic();
                 else if (sectionName === 'control') initControlLogic();
                 else if (sectionName === 'personal') initPersonalLogic();
@@ -115,10 +143,10 @@ function initBienvenidaLogic() {
     function updateGreeting() {
         const greetingElement = document.getElementById('saludo-horario');
         if (!greetingElement) return;
-        
+
         const hour = new Date().getHours();
         let greeting, icon;
-        
+
         if (hour >= 6 && hour < 12) {
             greeting = '¡Buenos días!';
             icon = 'fa-sun';
@@ -132,14 +160,14 @@ function initBienvenidaLogic() {
             greeting = '¡Buenas noches!';
             icon = 'fa-moon';
         }
-        
+
         greetingElement.innerHTML = `<i class="fa-solid ${icon}"></i> ${greeting}`;
     }
 
     function updateDate() {
         const dateElement = document.getElementById('fecha-actual');
         if (!dateElement) return;
-        
+
         const now = new Date();
         const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
         dateElement.textContent = now.toLocaleDateString('es-MX', options);
@@ -151,7 +179,7 @@ function initBienvenidaLogic() {
 // ==========================================
 function initControlLogic() {
     console.log('✔ Panel de Control inicializado');
-    
+
     var subNavItems = document.querySelectorAll('.sub-nav-item');
     var sections = document.querySelectorAll('.control-view');
     var searchAlumno = document.getElementById('searchAlumno');
@@ -164,13 +192,13 @@ function initControlLogic() {
             const data = await apiPrefectura('listar_solicitudes');
             const tbody = document.querySelector('#tabla-solicitudes tbody');
             const tbodyHistorial = document.querySelector('#tabla-historial tbody');
-            
+
             if (!tbody || !tbodyHistorial) return;
-            
+
             tbody.innerHTML = '';
             tbodyHistorial.innerHTML = '';
 
-            if(data.solicitudes.length === 0) {
+            if (data.solicitudes.length === 0) {
                 tbody.innerHTML = '<tr><td colspan="6" style="text-align:center; padding: 20px;">No hay solicitudes registradas.</td></tr>';
             }
 
@@ -182,12 +210,15 @@ function initControlLogic() {
                 const nombreCompleto = `${sol.alumno_nombre} ${sol.alumno_apellido}`;
                 const tutorCompleto = sol.tutor_nombre ? `${sol.tutor_nombre} ${sol.tutor_apellido}` : 'Sin tutor asignado';
                 const claseMotivo = (sol.asunto || '').toLowerCase().includes('salud') ? 'salud' : ((sol.asunto || '').toLowerCase().includes('viaje') ? 'viaje' : 'familiar');
-                
+
                 let docJSON = '[]';
-                if(sol.archivo_url) {
+                if (sol.archivo_url) {
                     const tipo = sol.archivo_url.toLowerCase().endsWith('.pdf') ? 'pdf' : 'imagen';
-                    docJSON = JSON.stringify([{nombre: sol.archivo_url, tipo: tipo}]);
+                    docJSON = JSON.stringify([{ nombre: sol.archivo_url, tipo: tipo }]).replace(/'/g, "&apos;");
                 }
+
+                // RECIBIENDO LAS MATERIAS EN FORMATO JSON
+                const materiasJSON = (sol.materias_afectadas_json || '[]').replace(/'/g, "&apos;");
 
                 const fInicio = new Date(sol.fecha_inicio);
                 const fFin = new Date(sol.fecha_fin);
@@ -210,13 +241,13 @@ function initControlLogic() {
                     data-tipo-falta="${diffDays === 1 ? 'completa' : 'rango'}"
                     data-dias="${textoDias} (${sol.fecha_inicio} al ${sol.fecha_fin})"
                     data-documentos='${docJSON}'
-                    data-materias-afectadas='[]'
+                    data-materias-afectadas='${materiasJSON}'
                     data-estado="${sol.estado}"
                 `;
 
                 if (sol.estado === 'pendiente') {
                     countPendientes++;
-                    
+
                     const filaHTML = `
                         <tr class="solicitud-row" ${atributosFila}>
                             <td>
@@ -246,7 +277,7 @@ function initControlLogic() {
                     tbody.insertAdjacentHTML('beforeend', filaHTML);
                 } else {
                     countHistorial++;
-                    
+
                     const bgAvatar = sol.estado === 'aprobado' ? '10B981' : 'EF4444';
                     const filaHistorial = `
                         <tr class="solicitud-row historial-row" ${atributosFila}>
@@ -285,7 +316,7 @@ function initControlLogic() {
 
             if (badgeBandeja) badgeBandeja.textContent = countPendientes;
             if (badgeHistorial) badgeHistorial.textContent = countHistorial;
-            
+
             if (campanaNotif) {
                 if (countPendientes > 0) {
                     campanaNotif.style.display = 'block';
@@ -311,20 +342,20 @@ function initControlLogic() {
     function getFilas() { return document.querySelectorAll('.solicitud-row'); }
 
     function switchSubView(targetId) {
-        sections.forEach(function(s) { s.classList.add('hidden'); });
+        sections.forEach(function (s) { s.classList.add('hidden'); });
         var target = document.getElementById(targetId);
         if (target) {
             target.classList.remove('hidden'); target.classList.remove('fade-in');
             void target.offsetWidth; target.classList.add('fade-in');
         }
-        subNavItems.forEach(function(b) { b.classList.remove('active'); });
+        subNavItems.forEach(function (b) { b.classList.remove('active'); });
         var ab = document.querySelector('.sub-nav-item[data-target="' + targetId + '"]');
         if (ab) ab.classList.add('active');
         if (targetId === 'section-historial') initHistorialLogic();
     }
 
-    subNavItems.forEach(function(btn) {
-        btn.addEventListener('click', function() {
+    subNavItems.forEach(function (btn) {
+        btn.addEventListener('click', function () {
             var tid = btn.getAttribute('data-target');
             if (tid) switchSubView(tid);
         });
@@ -334,7 +365,7 @@ function initControlLogic() {
         var st = searchAlumno ? searchAlumno.value.toLowerCase().trim() : '';
         var gf = filtroGrupo ? filtroGrupo.value : 'todos';
         var mf = filtroMotivo ? filtroMotivo.value : 'todos';
-        getFilas().forEach(function(f) {
+        getFilas().forEach(function (f) {
             var n = f.getAttribute('data-nombre') || '', m = f.getAttribute('data-matricula') || '';
             var g = f.getAttribute('data-grupo') || '', mo = f.getAttribute('data-motivo') || '';
             var ok = (!st || n.toLowerCase().includes(st) || m.includes(st)) && (gf === 'todos' || g === gf) && (mf === 'todos' || mo.toLowerCase() === mf);
@@ -349,13 +380,13 @@ function initControlLogic() {
     // EVENTOS CLIC EN TABLAS
     [document.getElementById('tabla-solicitudes'), document.getElementById('tabla-historial')].forEach(tabla => {
         if (tabla) {
-            tabla.addEventListener('click', function(e) {
-                var fila = e.target.closest('.solicitud-row'); 
+            tabla.addEventListener('click', function (e) {
+                var fila = e.target.closest('.solicitud-row');
                 if (!fila) return;
-                
+
                 if (e.target.closest('.btn-accion.aprobar')) { e.stopPropagation(); aprobar(fila); return; }
                 if (e.target.closest('.btn-accion.rechazar')) { e.stopPropagation(); rechazar(fila); return; }
-                
+
                 // Si el clic no fue en el botón de PDF, entonces abrimos el detalle
                 if (!e.target.closest('.btn-descargar-permiso') && !e.target.closest('.btn-accion.aprobar') && !e.target.closest('.btn-accion.rechazar')) {
                     mostrarDetalle(fila);
@@ -374,7 +405,7 @@ function initControlLogic() {
             icon: 'question', showCancelButton: true,
             confirmButtonText: 'Sí, Aprobar', confirmButtonColor: '#10B981',
             cancelButtonText: 'Cancelar', cancelButtonColor: '#64748B'
-        }).then(async function(r) {
+        }).then(async function (r) {
             if (r.isConfirmed) {
                 try {
                     await apiPrefectura('actualizar_solicitud', {
@@ -400,12 +431,12 @@ function initControlLogic() {
             icon: 'warning', showCancelButton: true,
             confirmButtonText: 'Rechazar', confirmButtonColor: '#EF4444',
             cancelButtonText: 'Cancelar', cancelButtonColor: '#64748B',
-            preConfirm: function() {
+            preConfirm: function () {
                 var motivo = document.getElementById('motivo-rechazo').value;
                 if (!motivo) Swal.showValidationMessage('Escribe un motivo');
                 return motivo;
             }
-        }).then(async function(r) {
+        }).then(async function (r) {
             if (r.isConfirmed) {
                 try {
                     await apiPrefectura('actualizar_solicitud', {
@@ -437,18 +468,18 @@ function initControlLogic() {
 
     function construirModal(d) {
         var mat = [], doc = [];
-        try { mat = JSON.parse(d.materiasAfectadas || '[]'); } catch(e) { mat = []; }
-        try { doc = JSON.parse(d.documentos || '[]'); } catch(e) { doc = []; }
+        try { mat = JSON.parse(d.materiasAfectadas || '[]'); } catch (e) { mat = []; }
+        try { doc = JSON.parse(d.documentos || '[]'); } catch (e) { doc = []; }
         var tf = d.tipoFalta === 'completa' ? 'Día Completo' : `Parcial (${d.horaInicio} - ${d.horaFin})`;
-        
-        var mh = mat.length ? mat.map(function(m) {
+
+        var mh = mat.length ? mat.map(function (m) {
             return `<tr><td><div class="docente-info"><i class="fa-solid fa-user-tie"></i>${m.docente}</div></td><td><strong>${m.materia}</strong></td><td><span class="horario-badge"><i class="fa-regular fa-clock"></i> ${m.hora}</span></td></tr>`;
         }).join('') : '<tr><td colspan="3" class="vacio">Sin materias registradas</td></tr>';
-        
-        var dh = doc.length ? doc.map(function(dc) {
+
+        var dh = doc.length ? doc.map(function (dc) {
             return `<div class="documento-item"><i class="fa-solid fa-file-${dc.tipo === 'pdf' ? 'pdf' : 'image'}"></i><div class="documento-info"><span class="documento-nombre">${dc.nombre}</span><a href="#" class="documento-ver" onclick="return false;">Ver documento</a></div></div>`;
         }).join('') : '<p class="vacio">Sin documentos adjuntos</p>';
-        
+
         return `
         <div class="modal-solicitud-detalle">
             <div class="modal-header-section">
@@ -491,22 +522,22 @@ function initControlLogic() {
     function abrirModalDetalle(html, d) {
         var op = { title: 'Detalle de Solicitud', html: html, width: 750, showCloseButton: true, confirmButtonText: 'Cerrar', confirmButtonColor: '#192A56', customClass: { popup: 'swal-solicitud-popup', htmlContainer: 'swal-solicitud-content' } };
         if (d.estado === 'pendiente') { op.showDenyButton = true; op.denyButtonText = 'Rechazar'; op.denyButtonColor = '#EF4444'; op.confirmButtonText = 'Aprobar'; op.confirmButtonColor = '#10B981'; }
-        Swal.fire(op).then(async function(r) {
+        Swal.fire(op).then(async function (r) {
             if (r.isConfirmed && d.estado === 'pendiente') {
                 var fila = document.querySelector(`.solicitud-row[data-id="${d.id}"]`);
-                if(fila) await aprobar(fila);
+                if (fila) await aprobar(fila);
             }
             else if (r.isDenied) {
                 var fila = document.querySelector(`.solicitud-row[data-id="${d.id}"]`);
-                if(fila) await rechazar(fila);
+                if (fila) await rechazar(fila);
             }
         });
     }
 
     // Funciones de PDF
-    window.descargarPermisoDesdeBoton = function(btn) {
+    window.descargarPermisoDesdeBoton = function (btn) {
         var f = btn.closest('.historial-row');
-        if(!f) return;
+        if (!f) return;
         descargarPermiso({
             id: f.getAttribute('data-id'), nombre: f.getAttribute('data-nombre'), grupo: f.getAttribute('data-grupo'),
             matricula: f.getAttribute('data-matricula'), tutor: f.getAttribute('data-tutor'),
@@ -518,7 +549,7 @@ function initControlLogic() {
     };
 
     function descargarPermiso(d) {
-        var fh = new Date().toLocaleDateString('es-MX', {year: 'numeric', month: 'long', day: 'numeric'});
+        var fh = new Date().toLocaleDateString('es-MX', { year: 'numeric', month: 'long', day: 'numeric' });
         var tf = d.tipoFalta === 'completa' ? 'Día Completo' : `Parcial (${d.horaInicio} - ${d.horaFin} hrs)`;
         var esc = {
             nombre: 'Esc.Sec.Gral. Lic. "Benito Juarez"',
@@ -529,7 +560,7 @@ function initControlLogic() {
         var folio = 'SEC-2026-' + String(d.id || '000').padStart(4, '0');
         var datosQR = encodeURIComponent(`FOLIO: ${folio}\nALUMNO: ${d.nombre}\nGRUPO: ${d.grupo}\nTUTOR: ${d.tutor}\nFECHA: ${d.fecha}\nMOTIVO: ${d.motivo}`);
         var qrURL = `https://api.qrserver.com/v1/create-qr-code/?size=120x120&data=${datosQR}&bgcolor=FFFFFF&color=192A56`;
-        
+
         var c = `
             <!DOCTYPE html><html lang="es"><head><meta charset="UTF-8"><title>Justificante - ${d.nombre}</title>
             <style>
@@ -580,10 +611,10 @@ function initControlLogic() {
                 </div>
                 <div class="j-footer"><p>${esc.nombre} • ${esc.direccion} • Tel: ${esc.telefono}</p></div>
             </div></body></html>`;
-            
+
         var w = window.open('', '_blank', 'width=900,height=700');
         w.document.write(c); w.document.close();
-        setTimeout(function() { w.print(); }, 800);
+        setTimeout(function () { w.print(); }, 800);
         Swal.fire({ title: '✔ Justificante Generado', icon: 'success', confirmButtonColor: '#192A56', timer: 2500 });
     }
 
@@ -593,52 +624,52 @@ function initControlLogic() {
         var s = document.getElementById('export-semana').value;
         if (!g || !m || !s) { Swal.fire({ title: 'Selección Incompleta', icon: 'warning', confirmButtonColor: '#192A56' }); return; }
         document.getElementById('vista-previa-asistencia').classList.remove('hidden');
-        var cfg = { semana1: { d: ['Lun 01','Mar 02','Mié 03','Jue 04','Vie 05'], mes: 'Abril' }, semana2: { d: ['Lun 07','Mar 08','Mié 09','Jue 10','Vie 11'], mes: 'Abril' }, semana3: { d: ['Lun 14','Mar 15','Mié 16','Jue 17','Vie 18'], mes: 'Abril' }, semana4: { d: ['Lun 21','Mar 22','Mié 23','Jue 24','Vie 25'], mes: 'Abril' } };
+        var cfg = { semana1: { d: ['Lun 01', 'Mar 02', 'Mié 03', 'Jue 04', 'Vie 05'], mes: 'Abril' }, semana2: { d: ['Lun 07', 'Mar 08', 'Mié 09', 'Jue 10', 'Vie 11'], mes: 'Abril' }, semana3: { d: ['Lun 14', 'Mar 15', 'Mié 16', 'Jue 17', 'Vie 18'], mes: 'Abril' }, semana4: { d: ['Lun 21', 'Mar 22', 'Mié 23', 'Jue 24', 'Vie 25'], mes: 'Abril' } };
         var sem = cfg[s];
         var docs = { matematicas: 'Prof. Ricardo Mendoza', historia: 'Profa. Patricia Luna', ciencias: 'Prof. Carlos Vega', espanol: 'Profa. Ana Castillo', ingles: 'Prof. Miguel Ángel', fisica: 'Prof. Carlos Vega' };
         var nm = document.getElementById('export-materia-asistencia').selectedOptions[0].text;
         var doc = docs[m] || 'Prof. Asignado';
-        document.getElementById('titulo-vista-previa').innerHTML = '<i class="fa-solid fa-list-check"></i> Grupo ' + g + ' | ' + nm + ' | ' + doc + ' | ' + sem.d[0] + ' al ' + sem.d[sem.d.length-1] + ' ' + sem.mes;
-        document.getElementById('dias-semana-header').innerHTML = sem.d.map(function(d) { return '<th><span class="dia-header">' + d.split(' ')[0] + '</span><span class="fecha-dia">' + d.split(' ')[1] + ' ' + sem.mes + '</span><span class="materia-header">' + nm + '</span></th>'; }).join('');
-        var al = [{n:1,nom:'Ana López García'},{n:2,nom:'Carlos Ruiz'},{n:3,nom:'María Torres'},{n:4,nom:'Luis Hernández'},{n:5,nom:'Sofía Martínez'},{n:6,nom:'Diego Sánchez'},{n:7,nom:'Valentina Flores'},{n:8,nom:'Emiliano García'}];
-        var ta=0,tf=0;
-        document.getElementById('cuerpo-tabla-asistencia').innerHTML = al.map(function(a) {
-            var as=[],ca=0,cf=0;
-            sem.d.forEach(function() { var r=Math.random(); if(r>0.15){as.push('<td class="asistio">✓</td>');ca++;}else if(r>0.08){as.push('<td class="falta">✗</td>');cf++;}else{as.push('<td class="justificada">J</td>');cf++;} });
-            ta+=ca;tf+=cf;
-            return '<tr><td>'+a.n+'</td><td class="alumno-nombre">'+a.nom+'</td>'+as.join('')+'<td><strong>'+ca+'</strong></td><td><strong>'+cf+'</strong></td></tr>';
+        document.getElementById('titulo-vista-previa').innerHTML = '<i class="fa-solid fa-list-check"></i> Grupo ' + g + ' | ' + nm + ' | ' + doc + ' | ' + sem.d[0] + ' al ' + sem.d[sem.d.length - 1] + ' ' + sem.mes;
+        document.getElementById('dias-semana-header').innerHTML = sem.d.map(function (d) { return '<th><span class="dia-header">' + d.split(' ')[0] + '</span><span class="fecha-dia">' + d.split(' ')[1] + ' ' + sem.mes + '</span><span class="materia-header">' + nm + '</span></th>'; }).join('');
+        var al = [{ n: 1, nom: 'Ana López García' }, { n: 2, nom: 'Carlos Ruiz' }, { n: 3, nom: 'María Torres' }, { n: 4, nom: 'Luis Hernández' }, { n: 5, nom: 'Sofía Martínez' }, { n: 6, nom: 'Diego Sánchez' }, { n: 7, nom: 'Valentina Flores' }, { n: 8, nom: 'Emiliano García' }];
+        var ta = 0, tf = 0;
+        document.getElementById('cuerpo-tabla-asistencia').innerHTML = al.map(function (a) {
+            var as = [], ca = 0, cf = 0;
+            sem.d.forEach(function () { var r = Math.random(); if (r > 0.15) { as.push('<td class="asistio">✓</td>'); ca++; } else if (r > 0.08) { as.push('<td class="falta">✗</td>'); cf++; } else { as.push('<td class="justificada">J</td>'); cf++; } });
+            ta += ca; tf += cf;
+            return '<tr><td>' + a.n + '</td><td class="alumno-nombre">' + a.nom + '</td>' + as.join('') + '<td><strong>' + ca + '</strong></td><td><strong>' + cf + '</strong></td></tr>';
         }).join('');
-        document.getElementById('resumen-asistencia').innerHTML = '<div class="resumen-item"><div class="resumen-icono green"><i class="fa-solid fa-check"></i></div><div><strong>'+ta+'</strong> Asistencias</div></div><div class="resumen-item"><div class="resumen-icono red"><i class="fa-solid fa-xmark"></i></div><div><strong>'+tf+'</strong> Faltas</div></div><div class="resumen-item"><div class="resumen-icono warning"><i class="fa-solid fa-chart-simple"></i></div><div><strong>'+Math.round((ta/(ta+tf))*100)+'%</strong></div></div>';
-        document.getElementById('vista-previa-asistencia').scrollIntoView({behavior:'smooth'});
+        document.getElementById('resumen-asistencia').innerHTML = '<div class="resumen-item"><div class="resumen-icono green"><i class="fa-solid fa-check"></i></div><div><strong>' + ta + '</strong> Asistencias</div></div><div class="resumen-item"><div class="resumen-icono red"><i class="fa-solid fa-xmark"></i></div><div><strong>' + tf + '</strong> Faltas</div></div><div class="resumen-item"><div class="resumen-icono warning"><i class="fa-solid fa-chart-simple"></i></div><div><strong>' + Math.round((ta / (ta + tf)) * 100) + '%</strong></div></div>';
+        document.getElementById('vista-previa-asistencia').scrollIntoView({ behavior: 'smooth' });
     }
 
     window.mostrarVistaPreviaAsistencia = mostrarVistaPreviaAsistencia;
-    window.descargarListaPDF = function() {
-        var g=document.getElementById('export-grupo-asistencia').value,m=document.getElementById('export-materia-asistencia').value,s=document.getElementById('export-semana').value;
-        if(!g||!m||!s){Swal.fire({title:'Sin datos',icon:'warning',confirmButtonColor:'#192A56'});return;}
-        var th=document.getElementById('tabla-asistencia-previa').outerHTML,tit=document.getElementById('titulo-vista-previa').textContent,res=document.getElementById('resumen-asistencia').innerHTML;
-        var c='<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Lista</title><style>body{font-family:sans-serif;padding:30px;}table{width:100%;border-collapse:collapse;}th{background:#192A56;color:#fff;padding:8px;}td{padding:6px 8px;border:1px solid #ddd;text-align:center;}.header{text-align:center;border-bottom:2px solid #D6A848;margin-bottom:20px;}</style></head><body><div class="header"><h2>Esc.Sec.Gral. Lic. "Benito Juarez"</h2><p>'+tit+'</p></div>'+th+'<div style="margin-top:15px;padding:12px;background:#FEF9F0;">'+res+'</div></body></html>';
-        var w=window.open('','_blank');w.document.write(c);w.document.close();setTimeout(function(){w.print();},500);
-        Swal.fire({title:'¡PDF Generado!',icon:'success',confirmButtonColor:'#192A56',timer:1500});
+    window.descargarListaPDF = function () {
+        var g = document.getElementById('export-grupo-asistencia').value, m = document.getElementById('export-materia-asistencia').value, s = document.getElementById('export-semana').value;
+        if (!g || !m || !s) { Swal.fire({ title: 'Sin datos', icon: 'warning', confirmButtonColor: '#192A56' }); return; }
+        var th = document.getElementById('tabla-asistencia-previa').outerHTML, tit = document.getElementById('titulo-vista-previa').textContent, res = document.getElementById('resumen-asistencia').innerHTML;
+        var c = '<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Lista</title><style>body{font-family:sans-serif;padding:30px;}table{width:100%;border-collapse:collapse;}th{background:#192A56;color:#fff;padding:8px;}td{padding:6px 8px;border:1px solid #ddd;text-align:center;}.header{text-align:center;border-bottom:2px solid #D6A848;margin-bottom:20px;}</style></head><body><div class="header"><h2>Esc.Sec.Gral. Lic. "Benito Juarez"</h2><p>' + tit + '</p></div>' + th + '<div style="margin-top:15px;padding:12px;background:#FEF9F0;">' + res + '</div></body></html>';
+        var w = window.open('', '_blank'); w.document.write(c); w.document.close(); setTimeout(function () { w.print(); }, 500);
+        Swal.fire({ title: '¡PDF Generado!', icon: 'success', confirmButtonColor: '#192A56', timer: 1500 });
     };
-    
-    window.descargarListaExcel = function() {
-        var g=document.getElementById('export-grupo-asistencia').value,s=document.getElementById('export-semana').value;
-        if(!g||!s){Swal.fire({title:'Sin datos',icon:'warning',confirmButtonColor:'#192A56'});return;}
-        var filas=document.querySelectorAll('#tabla-asistencia-previa tbody tr'),csv='\uFEFFNo.,Alumno,';
-        document.querySelectorAll('#dias-semana-header th').forEach(function(th){csv+='"'+((th.querySelector('.dia-header')||{}).textContent||'')+' '+((th.querySelector('.fecha-dia')||{}).textContent||'')+'",';});
-        csv+='Asistencias,Faltas\n';
-        filas.forEach(function(f){var celdas=f.querySelectorAll('td');celdas.forEach(function(c,i){var v=c.textContent.trim();if(c.classList.contains('asistio'))v='Asistió';if(c.classList.contains('falta'))v='Falta';if(c.classList.contains('justificada'))v='Justificada';csv+='"'+v+'"';if(i<celdas.length-1)csv+=',';});csv+='\n';});
-        var blob=new Blob([csv],{type:'text/csv;charset=utf-8;'}),url=URL.createObjectURL(blob),a=document.createElement('a');
-        a.href=url;a.download='Lista_'+g+'_'+s+'.csv';document.body.appendChild(a);a.click();document.body.removeChild(a);URL.revokeObjectURL(url);
-        Swal.fire({title:'¡Excel Generado!',icon:'success',confirmButtonColor:'#192A56',timer:1500});
+
+    window.descargarListaExcel = function () {
+        var g = document.getElementById('export-grupo-asistencia').value, s = document.getElementById('export-semana').value;
+        if (!g || !s) { Swal.fire({ title: 'Sin datos', icon: 'warning', confirmButtonColor: '#192A56' }); return; }
+        var filas = document.querySelectorAll('#tabla-asistencia-previa tbody tr'), csv = '\uFEFFNo.,Alumno,';
+        document.querySelectorAll('#dias-semana-header th').forEach(function (th) { csv += '"' + ((th.querySelector('.dia-header') || {}).textContent || '') + ' ' + ((th.querySelector('.fecha-dia') || {}).textContent || '') + '",'; });
+        csv += 'Asistencias,Faltas\n';
+        filas.forEach(function (f) { var celdas = f.querySelectorAll('td'); celdas.forEach(function (c, i) { var v = c.textContent.trim(); if (c.classList.contains('asistio')) v = 'Asistió'; if (c.classList.contains('falta')) v = 'Falta'; if (c.classList.contains('justificada')) v = 'Justificada'; csv += '"' + v + '"'; if (i < celdas.length - 1) csv += ','; }); csv += '\n'; });
+        var blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' }), url = URL.createObjectURL(blob), a = document.createElement('a');
+        a.href = url; a.download = 'Lista_' + g + '_' + s + '.csv'; document.body.appendChild(a); a.click(); document.body.removeChild(a); URL.revokeObjectURL(url);
+        Swal.fire({ title: '¡Excel Generado!', icon: 'success', confirmButtonColor: '#192A56', timer: 1500 });
     };
 
     function initHistorialLogic() {
-        var sh=document.getElementById('searchHistorial'),fe=document.getElementById('filtro-estado-historial'),th=document.getElementById('tabla-historial');
-        if(!th||th.getAttribute('data-init')==='1')return;th.setAttribute('data-init','1');
-        function filtrar(){var st=sh?sh.value.toLowerCase():'',ef=fe?fe.value:'todos';th.querySelectorAll('.historial-row').forEach(function(f){var n=(f.getAttribute('data-nombre')||'').toLowerCase(),e=f.getAttribute('data-estado')||'';f.style.display=(!st||n.includes(st))&&(ef==='todos'||e===ef)?'':'none';});}
-        if(sh)sh.addEventListener('input',filtrar);if(fe)fe.addEventListener('change',filtrar);
+        var sh = document.getElementById('searchHistorial'), fe = document.getElementById('filtro-estado-historial'), th = document.getElementById('tabla-historial');
+        if (!th || th.getAttribute('data-init') === '1') return; th.setAttribute('data-init', '1');
+        function filtrar() { var st = sh ? sh.value.toLowerCase() : '', ef = fe ? fe.value : 'todos'; th.querySelectorAll('.historial-row').forEach(function (f) { var n = (f.getAttribute('data-nombre') || '').toLowerCase(), e = f.getAttribute('data-estado') || ''; f.style.display = (!st || n.includes(st)) && (ef === 'todos' || e === ef) ? '' : 'none'; }); }
+        if (sh) sh.addEventListener('input', filtrar); if (fe) fe.addEventListener('change', filtrar);
     }
 }
 
@@ -647,7 +678,7 @@ function initControlLogic() {
 // ==========================================
 function initPersonalLogic() {
     console.log('✔ Catálogo de Personal inicializado');
-    
+
     var tabButtons = document.querySelectorAll('.tab-btn');
     var filterLinks = document.querySelectorAll('.filter-link');
     var searchInput = document.getElementById('searchPersona');
@@ -657,46 +688,82 @@ function initPersonalLogic() {
     // === CARGAR PERSONAL DESDE LA BD ===
     async function cargarPersonal() {
         try {
-            const data = await apiPrefectura('listar_personal');
+            // 1. Pedimos los datos UNO POR UNO (secuencial) para evitar bloqueos de sesión en PHP
+            const dataAlumnos = await apiPrefectura('listar_personal', { query: { rol: 'alumno' } });
+            const dataDocentes = await apiPrefectura('listar_personal', { query: { rol: 'docente' } });
+
             const tbodyAlumnos = document.querySelector('#tabla-alumnos tbody');
             const tbodyDocentes = document.querySelector('#tabla-docentes tbody');
-            
+
             if (!tbodyAlumnos || !tbodyDocentes) return;
-            
+
             tbodyAlumnos.innerHTML = '';
             tbodyDocentes.innerHTML = '';
 
-            data.personal.forEach(p => {
-                const nombreCompleto = `${p.nombre} ${p.apellido}`;
-                const badgeEstado = p.estado == 1 
-                    ? '<span class="badge success"><i class="fa-solid fa-check"></i> Activo</span>' 
-                    : '<span class="badge warning">Inactivo</span>';
+            // 2. DIBUJAR ALUMNOS
+            if (dataAlumnos && dataAlumnos.personal && dataAlumnos.personal.length > 0) {
+                dataAlumnos.personal.forEach(p => {
+                    const nombreCompleto = `${p.nombre} ${p.apellido}`;
+                    const badgeEstado = p.estado == 1
+                        ? '<span class="badge success"><i class="fa-solid fa-check"></i> Regular</span>'
+                        : '<span class="badge warning">Inactivo</span>';
 
-                const filaHTML = `
-                    <tr data-tipo="${p.rol}" data-nombre="${nombreCompleto}" data-matricula="${p.matricula_escolar}">
-                        <td>
-                            <div class="alumno-cell">
-                                <img src="https://ui-avatars.com/api/?name=${encodeURIComponent(nombreCompleto)}&background=${p.rol === 'docente' ? '192A56' : 'D6A848'}&color=fff&size=36">
-                                <div><span class="alumno-name">${nombreCompleto}</span></div>
-                            </div>
-                        </td>
-                        <td>${p.matricula_escolar || p.id_usuario}</td>
-                        <td><span class="badge info">${p.rol.toUpperCase()}</span></td>
-                        <td>${p.telefono || 'N/A'}</td>
-                        <td>${badgeEstado}</td>
-                        <td>
-                            <button class="btn-expediente btn-ver-expediente"><i class="fa-solid fa-folder-open"></i> Perfil</button>
-                        </td>
-                    </tr>
-                `;
-
-                if (p.rol === 'alumno') {
+                    const filaHTML = `
+                        <tr data-tipo="alumno" data-nombre="${nombreCompleto}" data-matricula="${p.matricula_escolar}" data-grupo="${p.grupo}">
+                            <td>
+                                <div class="alumno-cell">
+                                    <img src="https://ui-avatars.com/api/?name=${encodeURIComponent(nombreCompleto)}&background=D6A848&color=192A56&size=36">
+                                    <div><span class="alumno-name">${nombreCompleto}</span></div>
+                                </div>
+                            </td>
+                            <td>${p.matricula_escolar || 'N/A'}</td>
+                            <td>${p.grupo || 'Sin asignar'}</td>
+                            <td><span class="badge info">Matutino</span></td>
+                            <td>${badgeEstado}</td>
+                            <td>
+                                <button class="btn-expediente btn-ver-expediente"><i class="fa-solid fa-folder-open"></i> Expediente</button>
+                            </td>
+                        </tr>
+                    `;
                     tbodyAlumnos.insertAdjacentHTML('beforeend', filaHTML);
-                } else if (p.rol === 'docente') {
+                });
+            } else {
+                tbodyAlumnos.innerHTML = '<tr><td colspan="6" style="text-align:center; padding: 20px; color: #64748B;">No hay alumnos registrados.</td></tr>';
+            }
+
+            // 3. DIBUJAR DOCENTES
+            if (dataDocentes && dataDocentes.personal && dataDocentes.personal.length > 0) {
+                dataDocentes.personal.forEach(p => {
+                    const nombreCompleto = `${p.nombre} ${p.apellido}`;
+                    const badgeEstado = p.estado == 1
+                        ? '<span class="badge success"><i class="fa-solid fa-check"></i> Activo</span>'
+                        : '<span class="badge warning">Inactivo</span>';
+
+                    const filaHTML = `
+                        <tr data-tipo="docente" data-nombre="${nombreCompleto}" data-id="${p.clave_docente || p.id_usuario}">
+                            <td>
+                                <div class="alumno-cell">
+                                    <img src="https://ui-avatars.com/api/?name=${encodeURIComponent(nombreCompleto)}&background=192A56&color=fff&size=36">
+                                    <div><span class="alumno-name">${nombreCompleto}</span></div>
+                                </div>
+                            </td>
+                            <td>${p.clave_docente || p.id_usuario}</td>
+                            <td>Varias asignaturas</td>
+                            <td><span class="badge info">Matutino</span></td>
+                            <td>${badgeEstado}</td>
+                            <td>
+                                <button class="btn-horario btn-ver-horario"><i class="fa-solid fa-calendar-days"></i> Horario</button>
+                            </td>
+                        </tr>
+                    `;
                     tbodyDocentes.insertAdjacentHTML('beforeend', filaHTML);
-                }
-            });
-            
+                });
+            } else {
+                // Si la BD no trae docentes, mostramos este mensaje en lugar de una tabla vacía
+                tbodyDocentes.innerHTML = '<tr><td colspan="6" style="text-align:center; padding: 20px; color: #64748B;"><i class="fa-solid fa-circle-exclamation"></i> No hay docentes registrados en la base de datos.</td></tr>';
+            }
+
+            // Aplicar el filtro después de que todo se haya cargado
             filterTable();
         } catch (error) {
             console.error("Error al cargar personal:", error);
@@ -704,9 +771,9 @@ function initPersonalLogic() {
     }
 
     cargarPersonal();
-    
+
     // === NUEVO REGISTRO DE PERSONAL ===
-    window.nuevoRegistro = function() {
+    window.nuevoRegistro = function () {
         Swal.fire({
             title: 'Nuevo Registro de Personal',
             html: `
@@ -782,7 +849,7 @@ function initPersonalLogic() {
                         method: 'POST',
                         body: result.value
                     });
-                    
+
                     Swal.fire('¡Registrado!', 'El usuario se ha guardado correctamente.', 'success');
                     cargarPersonal(); // Refrescar la tabla
                 } catch (error) {
@@ -809,39 +876,43 @@ function initPersonalLogic() {
         }
 
         var filas = activeRole === 'alumno' ? tablaAlumnos.querySelectorAll('tbody tr') : tablaDocentes.querySelectorAll('tbody tr');
-        filas.forEach(function(fila) {
+        filas.forEach(function (fila) {
             var nombre = (fila.getAttribute('data-nombre') || '').toLowerCase();
             var matricula = (fila.getAttribute('data-matricula') || fila.getAttribute('data-id') || '').toLowerCase();
-            var grupo = (fila.getAttribute('data-grupo') || '').toLowerCase();
+
+            // NORMALIZACIÓN DE GRUPOS
+            var grupo = (fila.getAttribute('data-grupo') || '').toLowerCase().replace(/\s/g, '').replace('º', '°');
+            var activeGroupNormalizado = activeGroup.toLowerCase().replace(/\s/g, '').replace('º', '°');
+
             var textoFila = fila.innerText.toLowerCase();
-            
+
             var matchesSearch = !searchTerm || nombre.includes(searchTerm) || matricula.includes(searchTerm) || textoFila.includes(searchTerm);
-            var matchesGroup = (activeRole === 'docente') || (activeGroup === 'all') || (grupo === activeGroup.toLowerCase());
-            
+            var matchesGroup = (activeRole === 'docente') || (activeGroup === 'all') || (grupo === activeGroupNormalizado);
+
             if (matchesSearch && matchesGroup) { fila.style.display = ''; } else { fila.style.display = 'none'; }
         });
     }
 
-    tabButtons.forEach(function(btn) {
-        btn.addEventListener('click', function() {
-            tabButtons.forEach(function(b) { b.classList.remove('active'); });
+    tabButtons.forEach(function (btn) {
+        btn.addEventListener('click', function () {
+            tabButtons.forEach(function (b) { b.classList.remove('active'); });
             btn.classList.add('active');
             if (searchInput) searchInput.value = '';
             filterTable();
         });
     });
 
-    filterLinks.forEach(function(link) {
-        link.addEventListener('click', function(e) {
+    filterLinks.forEach(function (link) {
+        link.addEventListener('click', function (e) {
             e.preventDefault();
-            filterLinks.forEach(function(l) { l.classList.remove('active'); });
+            filterLinks.forEach(function (l) { l.classList.remove('active'); });
             link.classList.add('active');
             filterTable();
         });
     });
 
     if (searchInput) searchInput.addEventListener('input', filterTable);
-    
+
     function clickEnTabla(e) {
         var btnExp = e.target.closest('.btn-expediente') || e.target.closest('.btn-ver-expediente');
         if (btnExp) {
@@ -860,11 +931,11 @@ function initPersonalLogic() {
 // ==========================================
 function initSistemaLogic() {
     console.log('✔ Configuración del Sistema inicializada');
-    
-    window.guardarConfiguracionSistema = function() {
+
+    window.guardarConfiguracionSistema = function () {
         var limiteDias = document.getElementById('limite-dias') ? document.getElementById('limite-dias').value : '3';
         var cicloActivo = document.getElementById('ciclo-activo') ? document.getElementById('ciclo-activo').value : '2025-2026';
-        
+
         Swal.fire({
             title: '¡Configuración Guardada!',
             html: '<div style="text-align:left;font-size:0.85rem;line-height:1.6;">' +

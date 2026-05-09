@@ -2,7 +2,7 @@
 header('Content-Type: application/json; charset=utf-8');
 session_start();
 
-require_once '../modelo/prefectura.php';
+require_once __DIR__ . '/../modelo/prefecturaM.php';
 
 $accion = $_GET['accion'] ?? '';
 $metodo = $_SERVER['REQUEST_METHOD'];
@@ -13,7 +13,7 @@ $respuesta = [
 ];
 
 try {
-    $id_admin = $_SESSION['id_usuario'] ?? 1;
+    $id_admin = $_SESSION['usuario']['id_usuario'] ?? 1;
 
     if ($accion === 'actualizar_solicitud' && $metodo === 'POST') {
         $input = json_decode(file_get_contents('php://input'), true);
@@ -37,10 +37,16 @@ try {
         }
     }
     elseif ($accion === 'listar_solicitudes' && $metodo === 'GET') {
-        $respuesta = ['ok' => true, 'solicitudes' => ModeloPrefectura::mdlListarSolicitudes()];
+        $grupo = $_GET['grupo'] ?? 'todos';
+        $respuesta = ['ok' => true, 'solicitudes' => ModeloPrefectura::mdlListarSolicitudes($grupo)];
     }
     elseif ($accion === 'listar_personal' && $metodo === 'GET') {
-        $respuesta = ['ok' => true, 'personal' => ModeloPrefectura::mdlListarPersonal()];
+        $rol = $_GET['rol'] ?? 'alumno';
+        $grupo = $_GET['grupo'] ?? 'todos';
+        $respuesta = ['ok' => true, 'personal' => ModeloPrefectura::mdlListarPersonal($rol, $grupo)];
+    }
+    elseif ($accion === 'listar_grupos' && $metodo === 'GET') {
+        $respuesta = ['ok' => true, 'grupos' => ModeloPrefectura::mdlListarGrupos()];
     }
     elseif ($accion === 'crear_usuario' && $metodo === 'POST') {
         $input = json_decode(file_get_contents('php://input'), true);
@@ -61,13 +67,19 @@ try {
         if (empty($input['nombre']) || empty($input['correo'])) {
             throw new Exception('El nombre y el correo son obligatorios.');
         }
-        // Pasamos nombre y apellido al modelo
         if (ModeloPrefectura::mdlActualizarPrefecto($id_admin, $input['nombre'], $input['apellido'], $input['correo']) === "ok") {
             $respuesta = ['ok' => true, 'mensaje' => "Datos del prefecto actualizados."];
         } else {
             throw new Exception('Error al actualizar en la base de datos.');
         }
-    } else {
+    }
+    // AQUÍ ESTÁ LA NUEVA ACCIÓN DE CERRAR SESIÓN
+    elseif ($accion === 'logout' && $metodo === 'POST') {
+        session_unset();
+        session_destroy();
+        $respuesta = ['ok' => true, 'mensaje' => "Sesión cerrada correctamente."];
+    } 
+    else {
         throw new Exception('Endpoint no encontrado.');
     }
 } catch (Exception $e) {

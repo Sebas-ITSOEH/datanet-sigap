@@ -5,13 +5,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>WolfTrack - Panel de Control Prefectura</title>
     
-    <!-- Fuentes -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Nunito:wght@600;700;800&display=swap" rel="stylesheet">
     
-    <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
-    <!-- Estilos Prefectura -->
     <link rel="stylesheet" href="css/prefectura/stylePrefectura.css">
     <link rel="stylesheet" href="css/prefectura/control.css">
     <link rel="stylesheet" href="css/prefectura/bienvenida.css">
@@ -20,13 +17,9 @@
 </head>
 <body>
 
-    <!-- ============================================ -->
-    <!-- HEADER INSTITUCIONAL (ESTILO DOCENTE) -->
-    <!-- ============================================ -->
     <header class="main-header">
         <div class="header-container">
             
-            <!-- IZQUIERDA: Logo + Títulos + Botón Cerrar Sesión -->
             <div class="header-left">
                 <div style="display: flex; align-items: center; cursor: pointer;" onclick="window.location.href='indexPrefectura.html'">
                     <div class="logo-box">
@@ -37,12 +30,11 @@
                         <span>Prefectura • Benito Juárez</span>
                     </div>
                 </div>
-                <button class="btn-icon" title="Cerrar Sesión" style="margin-left: 15px;">
+                <button id="btn-logout" class="btn-icon" title="Cerrar Sesión" style="margin-left: 15px;">
                     <i class="fa-solid fa-power-off"></i>
                 </button>
             </div>
 
-            <!-- CENTRO: Navegación Principal -->
             <nav class="header-nav">
                 <button class="nav-item active" data-section="control">
                     <i class="fa-solid fa-sliders"></i> <span>Control</span>
@@ -55,15 +47,12 @@
                 </button>
             </nav>
 
-            <!-- DERECHA: Notificaciones + Perfil -->
             <div class="header-right">
-                <!-- Campana de Notificaciones -->
                 <div class="btn-icon notification-box" title="Notificaciones">
                     <i class="fa-solid fa-bell"></i>
                     <span class="badge-red">5</span>
                 </div>
 
-                <!-- Perfil de Usuario -->
                 <div class="user-profile">
                     <div class="user-info">
                         <span class="user-name">Admin. Prefectura</span>
@@ -78,16 +67,9 @@
         </div>
     </header>
 
-    <!-- ============================================ -->
-    <!-- CONTENEDOR PRINCIPAL DE VISTAS -->
-    <!-- ============================================ -->
     <main id="view-container">
-        <!-- Aquí se cargarán dinámicamente las vistas -->
-    </main>
+        </main>
 
-    <!-- ============================================ -->
-    <!-- FOOTER INSTITUCIONAL -->
-    <!-- ============================================ -->
     <footer class="creative-footer">
         <div class="footer-wave">
             <svg viewBox="0 0 1200 120" preserveAspectRatio="none">
@@ -110,8 +92,7 @@
         </div>
     </footer>
 
-    <!-- Scripts -->
-    <script src="js/mainPrefectura.js?v=2"></script>
+    <script src="js/mainPrefectura.js?v=3"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 </body>

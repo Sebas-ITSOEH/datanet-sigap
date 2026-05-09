@@ -1195,15 +1195,13 @@ function abrirModalAgregarAlumno() {
                         </div>
                     </div>
                     <div id="resultado-busqueda-alumno" style="margin-top: 15px;">
-                        <!-- Aquí se muestra el resultado de la búsqueda -->
-                    </div>
+                        </div>
                     <div id="lista-alumnos-disponibles" style="margin-top: 20px;">
                         <h4 style="color: var(--color-azul-marino); margin-bottom: 10px;">
                             <i class="fa-solid fa-list"></i> Alumnos disponibles en el sistema
                         </h4>
                         <div id="alumnos-disponibles-lista" style="max-height: 300px; overflow-y: auto;">
-                            <!-- Se llena dinámicamente -->
-                        </div>
+                            </div>
                     </div>
                     <div class="form-actions" style="margin-top: 20px;">
                         <button type="button" class="btn-cancel" onclick="toggleModal('modal-agregar-alumno')">Cancelar</button>
@@ -1993,12 +1991,41 @@ async function inicializarSesionDocente() {
 
 document.addEventListener('DOMContentLoaded', () => {
     inicializarSesionDocente();
-    document.querySelectorAll('.btn-logout-docente').forEach(btn => {
-        btn.addEventListener('click', async () => {
-            await fetch(`${SESION_API}?accion=logout`);
-            window.location.href = '../index.html';
+    
+    // === FUNCIÓN A PRUEBA DE BALAS PARA CERRAR SESIÓN ===
+    const btnLogout = document.getElementById('btn-logout');
+    if (btnLogout) {
+        btnLogout.addEventListener('click', function(e) {
+            e.preventDefault(); // Evitamos que salte directo
+            Swal.fire({
+                icon: 'warning',
+                title: '<div style="text-align: left; color: #192A56; font-size: 1.5rem; font-weight: 700;">¿Cerrar Sesión?</div>',
+                html: `
+                    <hr style="border: none; border-top: 2px solid #D6A848; margin: 10px 0 15px 0;">
+                    <div style="text-align: left; color: #1E293B; font-size: 1rem; margin-bottom: 25px;">
+                        Vas a salir del Portal Docente.
+                    </div>
+                    <hr style="border: none; border-top: 1px solid #E2E8F0; width: 80%; margin: 0 auto;">
+                `,
+                showCancelButton: true,
+                confirmButtonColor: '#192A56', 
+                cancelButtonColor: '#64748B',  
+                confirmButtonText: '<i class="fa-solid fa-right-from-bracket"></i> Sí, salir',
+                cancelButtonText: 'Cancelar',
+                customClass: { popup: 'swal-solicitud-popup' }
+            }).then(async (result) => {
+                if (result.isConfirmed) {
+                    try {
+                        await apiDocente('logout', { method: 'POST' });
+                        window.location.href = '../index.html'; 
+                    } catch (error) {
+                        console.error('Error al cerrar sesión:', error);
+                        window.location.href = '../index.html';
+                    }
+                }
+            });
         });
-    });
+    }
 });
 
 async function inicializarMisClases() {

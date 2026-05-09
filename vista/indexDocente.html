@@ -26,25 +26,19 @@
                         <span>Sec. Gral. Benito Juárez</span>
                     </div>
                 </div>
-                <button class="btn-icon btn-logout-docente" title="Cerrar Sesión" style="margin-left: 15px;">
+                <button id="btn-logout" class="btn-icon" title="Cerrar Sesión" style="margin-left: 15px;">
                     <i class="fa-solid fa-power-off"></i>
                 </button>
             </div>
 
             <nav class="header-nav">
-             <!--   <button class="nav-item active" onclick="window.location.href='indexDocente.html'">
-                    <i class="fa-solid fa-house"></i> <span>Inicio</span>
-                </button>--> 
-                <button class="nav-item" onclick="loadSection('misClases')">
+             <button class="nav-item" onclick="loadSection('misClases')">
                     <i class="fa-solid fa-users-rectangle"></i> <span>Mis Clases</span>
                 </button>
                 <button class="nav-item" onclick="loadSection('lista')">
                     <i class="fa-solid fa-list-check"></i> <span>Pase de Lista</span>
                 </button>
-               <!--<button class="nav-item" onclick="loadSection('revision')">
-                    <i class="fa-solid fa-file-circle-check"></i> <span>PENDIENTE</span>
-                </button>--> 
-            </nav>
+               </nav>
 
             <div class="header-right">
                 <div class="btn-icon notification-box" title="Notificaciones">
@@ -121,15 +115,7 @@
                     <p>Registre la asistencia, retardos y faltas de sus alumnos de forma diaria y eficiente.</p>
                 </div>
 
-           <!--    <div class="feature-card" onclick="loadSection('revision')">
-                    <div class="feature-icon icon-yellow">
-                        <i class="fa-solid fa-file-circle-check"></i>
-                    </div>
-                    <h4>Ver Justificantes</h4>
-                    <p>Revise y valide los justificantes médicos o permisos especiales de inasistencia.</p>
-                </div>--> 
-
-                <div class="feature-card" onclick="descargarReporteTrimestral()">
+           <div class="feature-card" onclick="descargarReporteTrimestral()">
                     <div class="feature-icon icon-red">
                         <i class="fa-solid fa-file-csv"></i>
                     </div>
@@ -163,6 +149,7 @@
         </div>
     </footer>
 
-    <script src="js/mainDocentes.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="js/mainDocentes.js?v=8"></script>
 </body>
 </html>

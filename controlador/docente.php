@@ -3,7 +3,7 @@
 session_start();
 header('Content-Type: application/json; charset=utf-8');
 
-require_once __DIR__ . '/../modelo/docente.php';
+require_once __DIR__ . '/../modelo/docenteM.php';
 
 if (empty($_SESSION['usuario']) || ($_SESSION['usuario']['rol'] ?? '') !== 'docente') {
     http_response_code(401);
@@ -131,6 +131,16 @@ try {
                     $input['decision']
                 ),
             ]);
+            break;
+
+        // ===========================================
+        // BLOQUE DE CERRAR SESIÓN (ADAPTADO)
+        // ===========================================
+        case 'logout':
+            requerirPost();
+            session_unset();
+            session_destroy();
+            responder(['mensaje' => "Sesión cerrada correctamente."]);
             break;
 
         default:
