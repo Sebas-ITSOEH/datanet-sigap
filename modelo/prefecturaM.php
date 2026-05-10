@@ -1,585 +1,182 @@
 <?php
-
 require_once __DIR__ . '/conexion.php';
 
-class Docente
-{
-    private $db;
+class ModeloPrefectura {
 
-    public function __construct()
-    {
-        $this->db = Conexion::conectar();
-        $this->asegurarTablasAuxiliares();
+    public static function mdlActualizarJustificante($id_solicitud, $estado) {
+        $pdo = Conexion::conectar();
+        $stmt = $pdo->prepare("UPDATE justificantes SET estado = :estado WHERE id_justificante = :id");
+        $stmt->bindParam(":estado", $estado, PDO::PARAM_STR);
+        $stmt->bindParam(":id", $id_solicitud, PDO::PARAM_INT);
+        return $stmt->execute() ? "ok" : "error";
     }
 
-    public function obtenerPerfil($idDocente)
-    {
-        $stmt = $this->db->prepare(
-            'SELECT id_usuario, nombre, apellido, correo, rol
-             FROM usuarios
-             WHERE id_usuario = :id AND rol = "docente" AND estado = TRUE
-             LIMIT 1'
-        );
-        $stmt->execute([':id' => $idDocente]);
-
-        return $stmt->fetch();
+    public static function mdlRegistrarValidacion($id_solicitud, $id_admin, $decision, $comentario) {
+        $pdo = Conexion::conectar();
+        $stmt = $pdo->prepare("INSERT INTO validaciones_justificantes (id_justificante, id_admin, decision, comentario) VALUES (:id_justificante, :id_admin, :decision, :comentario)");
+        $stmt->bindParam(":id_justificante", $id_solicitud, PDO::PARAM_INT);
+        $stmt->bindParam(":id_admin", $id_admin, PDO::PARAM_INT);
+        $stmt->bindParam(":decision", $decision, PDO::PARAM_STR);
+        $stmt->bindParam(":comentario", $comentario, PDO::PARAM_STR);
+        return $stmt->execute() ? "ok" : "error";
     }
 
-    public function listarCursos($idDocente)
-    {
-        $stmt = $this->db->prepare(
-            'SELECT
-                c.id_curso AS id,
-                c.codigo_clase AS codigo,
-                c.periodo,
-                a.nombre AS nombre,
-                g.nombre AS grupo_nombre,
-                COUNT(DISTINCT i.id_alumno) AS total_alumnos
-             FROM cursos c
-             INNER JOIN asignaturas a ON c.id_asignatura = a.id_asignatura
-             INNER JOIN grupos g ON c.id_grupo = g.id_grupo
-             LEFT JOIN inscripciones i ON c.id_curso = i.id_curso
-             WHERE c.id_docente = :id_docente
-             GROUP BY c.id_curso, c.codigo_clase, c.periodo, a.nombre, g.nombre
-             ORDER BY a.nombre, g.nombre'
-        );
-        $stmt->execute([':id_docente' => $idDocente]);
-
-        $cursos = $stmt->fetchAll();
-        foreach ($cursos as &$curso) {
-            $partesGrupo = $this->separarGradoGrupo($curso['grupo_nombre']);
-            $curso['grado'] = $partesGrupo['grado'];
-            $curso['grupo'] = $partesGrupo['grupo'];
-            $curso['desc'] = 'Curso activo del periodo ' . ($curso['periodo'] ?: 'actual') . '.';
-            $curso['icono'] = $this->iconoAsignatura($curso['nombre']);
-            $curso['horarios'] = $this->obtenerHorariosCurso($curso['id']);
-            $curso['alumnos'] = $this->listarAlumnosCurso($idDocente, $curso['id']);
+    // ============================================================
+    // LISTAR SOLICITUDES CON CRUCE DE MATERIAS AFECTADAS
+    // ============================================================
+    public static function mdlListarSolicitudes($grupo = 'todos') {
+        $pdo = Conexion::conectar();
+        
+        $sql = "
+            SELECT 
+                j.id_justificante, j.id_usuario, j.fecha_inicio, j.fecha_fin, j.asunto, j.descripcion, 
+                j.archivo_url, j.estado, j.fecha_solicitud,
+                u.nombre AS alumno_nombre, u.apellido AS alumno_apellido, u.matricula_escolar,
+                u.telefono AS telefono_tutor,
+                COALESCE(g.nombre, 'Sin grupo') AS grupo
+            FROM justificantes j
+            INNER JOIN usuarios u ON j.id_usuario = u.id_usuario
+            LEFT JOIN inscripciones i ON u.id_usuario = i.id_alumno
+            LEFT JOIN cursos c ON i.id_curso = c.id_curso
+            LEFT JOIN grupos g ON c.id_grupo = g.id_grupo
+            WHERE 1=1
+        ";
+        
+        if ($grupo !== 'todos' && $grupo !== '') {
+            $sql .= " AND g.nombre = :grupo";
         }
-
-        return $cursos;
-    }
-
-    public function crearCurso($idDocente, array $datos)
-    {
-        $this->db->beginTransaction();
-
-        try {
-            $idAsignatura = $this->obtenerOCrearAsignatura($datos['nombre']);
-            $idGrupo = $this->obtenerOCrearGrupo($datos['grado'], $datos['grupo']);
-
-            $stmt = $this->db->prepare(
-                'INSERT INTO cursos (id_asignatura, id_docente, id_grupo, codigo_clase, periodo)
-                 VALUES (:id_asignatura, :id_docente, :id_grupo, :codigo, :periodo)'
-            );
-            $stmt->execute([
-                ':id_asignatura' => $idAsignatura,
-                ':id_docente' => $idDocente,
-                ':id_grupo' => $idGrupo,
-                ':codigo' => $datos['codigo'],
-                ':periodo' => $datos['periodo'] ?? $this->periodoActual(),
-            ]);
-
-            $idCurso = (int) $this->db->lastInsertId();
-            $this->guardarHorarios($idCurso, $datos['horarios'] ?? []);
-
-            $this->db->commit();
-
-            return $this->obtenerCurso($idDocente, $idCurso);
-        } catch (Throwable $e) {
-            $this->db->rollBack();
-            throw $e;
+        
+        $sql .= " GROUP BY j.id_justificante, j.id_usuario, j.fecha_inicio, j.fecha_fin, j.asunto, j.descripcion, j.archivo_url, j.estado, j.fecha_solicitud, u.nombre, u.apellido, u.matricula_escolar, u.telefono, g.nombre ORDER BY j.fecha_solicitud DESC";
+        
+        $stmt = $pdo->prepare($sql);
+        if ($grupo !== 'todos' && $grupo !== '') {
+            $stmt->bindParam(":grupo", $grupo, PDO::PARAM_STR);
         }
-    }
+        $stmt->execute();
+        $solicitudes = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-    public function obtenerCurso($idDocente, $idCurso)
-    {
-        $cursos = $this->listarCursos($idDocente);
-        foreach ($cursos as $curso) {
-            if ((int) $curso['id'] === (int) $idCurso) {
-                return $curso;
+        // Preparamos la consulta para obtener el horario del alumno
+        $sqlMaterias = "
+            SELECT 
+                a.nombre AS materia,
+                CONCAT(doc.nombre, ' ', doc.apellido) AS docente,
+                DATE_FORMAT(hc.hora_inicio, '%H:%i') AS hora_inicio_fmt,
+                DATE_FORMAT(hc.hora_fin, '%H:%i') AS hora_fin_fmt,
+                hc.dia_semana
+            FROM inscripciones i
+            INNER JOIN cursos c ON i.id_curso = c.id_curso
+            INNER JOIN asignaturas a ON c.id_asignatura = a.id_asignatura
+            INNER JOIN usuarios doc ON c.id_docente = doc.id_usuario
+            INNER JOIN horarios_cursos hc ON c.id_curso = hc.id_curso
+            WHERE i.id_alumno = :id_alumno
+            ORDER BY FIELD(hc.dia_semana, 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo'), hc.hora_inicio
+        ";
+        $stmtMat = $pdo->prepare($sqlMaterias);
+
+        $diasSemanaEspanol = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
+
+        // Cruzamos los días del justificante con el horario
+        foreach ($solicitudes as &$sol) {
+            $id_alumno = $sol['id_usuario'];
+            $fecha_inicio = strtotime($sol['fecha_inicio']);
+            $fecha_fin = strtotime($sol['fecha_fin']);
+            
+            $diasAfectados = [];
+            for ($current = $fecha_inicio; $current <= $fecha_fin; $current = strtotime('+1 day', $current)) {
+                $numDia = date('w', $current);
+                if (!in_array($diasSemanaEspanol[$numDia], $diasAfectados)) {
+                    $diasAfectados[] = $diasSemanaEspanol[$numDia];
+                }
             }
-        }
-        return null;
-    }
 
-    // ============================================================
-    // CORREGIDO: SIN u.direccion, SIN LEFT JOIN tutor
-    // ============================================================
-    public function listarAlumnosCurso($idDocente, $idCurso)
-    {
-        $this->validarCursoDocente($idDocente, $idCurso);
+            $stmtMat->bindParam(":id_alumno", $id_alumno, PDO::PARAM_INT);
+            $stmtMat->execute();
+            $horarios = $stmtMat->fetchAll(PDO::FETCH_ASSOC);
 
-        $stmt = $this->db->prepare(
-            'SELECT
-                u.id_usuario AS id,
-                CONCAT(u.nombre, " ", u.apellido) AS nombre,
-                u.matricula_escolar AS matricula,
-                u.correo,
-                u.telefono,
-                u.curp
-             FROM inscripciones i
-             INNER JOIN usuarios u ON i.id_alumno = u.id_usuario
-             WHERE i.id_curso = :id_curso AND u.rol = "alumno" AND u.estado = TRUE
-             ORDER BY u.apellido, u.nombre'
-        );
-        $stmt->execute([':id_curso' => $idCurso]);
-
-        return $stmt->fetchAll();
-    }
-
-    // ============================================================
-    // CORREGIDO: SIN LEFT JOIN tutor
-    // ============================================================
-    public function listarAlumnosDisponibles($idDocente, $idCurso)
-    {
-        $this->validarCursoDocente($idDocente, $idCurso);
-
-        $stmt = $this->db->prepare(
-            'SELECT
-                u.id_usuario AS id,
-                CONCAT(u.nombre, " ", u.apellido) AS nombre,
-                u.matricula_escolar AS matricula,
-                u.correo,
-                u.telefono
-             FROM usuarios u
-             WHERE u.rol = "alumno"
-             AND u.estado = TRUE
-             AND NOT EXISTS (
-                SELECT 1 FROM inscripciones i
-                WHERE i.id_curso = :id_curso AND i.id_alumno = u.id_usuario
-             )
-             ORDER BY u.apellido, u.nombre'
-        );
-        $stmt->execute([':id_curso' => $idCurso]);
-
-        return $stmt->fetchAll();
-    }
-
-    // ============================================================
-    // CORREGIDO: SIN LEFT JOIN tutor
-    // ============================================================
-    public function buscarAlumnoPorMatricula($idDocente, $idCurso, $matricula)
-    {
-        $this->validarCursoDocente($idDocente, $idCurso);
-
-        $stmt = $this->db->prepare(
-            'SELECT
-                u.id_usuario AS id,
-                CONCAT(u.nombre, " ", u.apellido) AS nombre,
-                u.matricula_escolar AS matricula,
-                u.correo,
-                u.telefono,
-                EXISTS (
-                    SELECT 1 FROM inscripciones i
-                    WHERE i.id_curso = :id_curso AND i.id_alumno = u.id_usuario
-                ) AS inscrito
-             FROM usuarios u
-             WHERE u.rol = "alumno" AND u.estado = TRUE AND u.matricula_escolar = :matricula
-             LIMIT 1'
-        );
-        $stmt->execute([
-            ':id_curso' => $idCurso,
-            ':matricula' => $matricula,
-        ]);
-
-        return $stmt->fetch();
-    }
-
-    public function agregarAlumno($idDocente, $idCurso, $idAlumno)
-    {
-        $this->validarCursoDocente($idDocente, $idCurso);
-
-        $stmt = $this->db->prepare(
-            'INSERT IGNORE INTO inscripciones (id_curso, id_alumno)
-             SELECT :id_curso, id_usuario
-             FROM usuarios
-             WHERE id_usuario = :id_alumno AND rol = "alumno" AND estado = TRUE'
-        );
-        $stmt->execute([
-            ':id_curso' => $idCurso,
-            ':id_alumno' => $idAlumno,
-        ]);
-
-        return $this->listarAlumnosCurso($idDocente, $idCurso);
-    }
-
-    public function eliminarAlumno($idDocente, $idCurso, $idAlumno)
-    {
-        $this->validarCursoDocente($idDocente, $idCurso);
-
-        $stmt = $this->db->prepare(
-            'DELETE FROM inscripciones WHERE id_curso = :id_curso AND id_alumno = :id_alumno'
-        );
-        $stmt->execute([
-            ':id_curso' => $idCurso,
-            ':id_alumno' => $idAlumno,
-        ]);
-
-        return $this->listarAlumnosCurso($idDocente, $idCurso);
-    }
-
-    public function listarCursosParaLista($idDocente)
-    {
-        $cursos = $this->listarCursos($idDocente);
-
-        return array_map(function ($curso) {
-            return [
-                'id' => $curso['id'],
-                'label' => $curso['nombre'] . ' - ' . $curso['grado'] . '°' . $curso['grupo'],
-            ];
-        }, $cursos);
-    }
-
-    public function obtenerListaAsistencia($idDocente, $idCurso, $fecha)
-    {
-        $this->validarCursoDocente($idDocente, $idCurso);
-        $idSesion = $this->obtenerOCrearSesion($idCurso, $fecha);
-
-        $stmt = $this->db->prepare(
-            'SELECT
-                u.id_usuario AS id,
-                CONCAT(u.apellido, ", ", u.nombre) AS nombre,
-                u.matricula_escolar AS matricula,
-                COALESCE(a.estado_final, "pendiente") AS estado,
-                CASE WHEN j.id_justificante IS NULL THEN 0 ELSE 1 END AS justificado,
-                j.asunto AS motivo_justificante
-             FROM inscripciones i
-             INNER JOIN usuarios u ON i.id_alumno = u.id_usuario
-             LEFT JOIN asistencias a ON a.id_sesion = :id_sesion AND a.id_usuario = u.id_usuario
-             LEFT JOIN justificantes j ON j.id_usuario = u.id_usuario
-                AND j.estado = "aprobado"
-                AND :fecha BETWEEN j.fecha_inicio AND j.fecha_fin
-             WHERE i.id_curso = :id_curso AND u.estado = TRUE
-             ORDER BY u.apellido, u.nombre'
-        );
-        $stmt->execute([
-            ':id_sesion' => $idSesion,
-            ':fecha' => $fecha,
-            ':id_curso' => $idCurso,
-        ]);
-
-        return [
-            'id_sesion' => $idSesion,
-            'alumnos' => $stmt->fetchAll(),
-        ];
-    }
-
-    public function guardarAsistencia($idDocente, $idCurso, $fecha, array $registros)
-    {
-        $this->validarCursoDocente($idDocente, $idCurso);
-        $idSesion = $this->obtenerOCrearSesion($idCurso, $fecha);
-
-        $stmt = $this->db->prepare(
-            'INSERT INTO asistencias
-                (id_sesion, id_usuario, qr_valido, bluetooth_valido, validado_docente, estado_final)
-             VALUES
-                (:id_sesion, :id_usuario, FALSE, FALSE, TRUE, :estado)
-             ON DUPLICATE KEY UPDATE
-                validado_docente = TRUE,
-                estado_final = VALUES(estado_final),
-                fecha_hora_registro = CURRENT_TIMESTAMP'
-        );
-
-        foreach ($registros as $registro) {
-            $estado = $this->mapearEstadoAsistencia($registro['estado'] ?? 'falta');
-            $stmt->execute([
-                ':id_sesion' => $idSesion,
-                ':id_usuario' => (int) $registro['id_alumno'],
-                ':estado' => $estado,
-            ]);
-        }
-
-        return $this->obtenerListaAsistencia($idDocente, $idCurso, $fecha);
-    }
-
-    public function generarReporteSemanal($idDocente, $idCurso, $fechaInicio)
-    {
-        $curso = $this->obtenerCurso($idDocente, $idCurso);
-        if (!$curso) {
-            throw new RuntimeException('Clase no encontrada.');
-        }
-
-        $inicio = new DateTime($fechaInicio);
-        $dias = [];
-        for ($i = 0; $i < 5; $i++) {
-            $dia = clone $inicio;
-            $dia->modify("+{$i} day");
-            $dias[] = $dia->format('Y-m-d');
-        }
-
-        $alumnos = $this->listarAlumnosCurso($idDocente, $idCurso);
-        $stmt = $this->db->prepare(
-            'SELECT s.fecha, a.id_usuario, a.estado_final
-             FROM asistencias a
-             INNER JOIN sesiones s ON a.id_sesion = s.id_sesion
-             WHERE s.id_curso = :id_curso
-             AND s.fecha BETWEEN :inicio AND :fin'
-        );
-        $stmt->execute([
-            ':id_curso' => $idCurso,
-            ':inicio' => $dias[0],
-            ':fin' => $dias[4],
-        ]);
-
-        $porAlumnoFecha = [];
-        foreach ($stmt->fetchAll() as $row) {
-            $porAlumnoFecha[$row['id_usuario']][$row['fecha']] = $row['estado_final'];
-        }
-
-        foreach ($alumnos as &$alumno) {
-            $alumno['asistencias'] = [];
-            foreach ($dias as $fecha) {
-                $alumno['asistencias'][] = $porAlumnoFecha[$alumno['id']][$fecha] ?? 'sin_registro';
+            $materiasAfectadas = [];
+            foreach ($horarios as $hor) {
+                if (in_array($hor['dia_semana'], $diasAfectados)) {
+                    $diaCorto = mb_substr($hor['dia_semana'], 0, 3, 'UTF-8');
+                    $materiasAfectadas[] = [
+                        'materia' => $hor['materia'],
+                        'docente' => $hor['docente'],
+                        'hora' => $diaCorto . ' ' . $hor['hora_inicio_fmt'] . ' - ' . $hor['hora_fin_fmt']
+                    ];
+                }
             }
+            
+            $sol['materias_afectadas_json'] = json_encode($materiasAfectadas, JSON_UNESCAPED_UNICODE);
         }
+        unset($sol); 
 
-        return [
-            'clase' => $curso,
-            'dias' => $dias,
-            'alumnos' => $alumnos,
-        ];
+        return $solicitudes;
     }
 
-    public function listarSolicitudes($idDocente)
-    {
-        $stmt = $this->db->prepare(
-            'SELECT
-                s.id_solicitud AS id,
-                s.id_curso,
-                u.id_usuario AS id_alumno,
-                CONCAT(u.nombre, " ", u.apellido) AS alumno,
-                u.matricula_escolar AS matricula,
-                a.nombre AS clase,
-                g.nombre AS grupo,
-                s.fecha_solicitud
-             FROM solicitudes_inscripcion s
-             INNER JOIN cursos c ON s.id_curso = c.id_curso
-             INNER JOIN asignaturas a ON c.id_asignatura = a.id_asignatura
-             INNER JOIN grupos g ON c.id_grupo = g.id_grupo
-             INNER JOIN usuarios u ON s.id_alumno = u.id_usuario
-             WHERE c.id_docente = :id_docente AND s.estado = "pendiente"
-             ORDER BY s.fecha_solicitud ASC'
-        );
-        $stmt->execute([':id_docente' => $idDocente]);
-
-        return $stmt->fetchAll();
-    }
-
-    public function responderSolicitud($idDocente, $idSolicitud, $decision)
-    {
-        $stmt = $this->db->prepare(
-            'SELECT s.id_curso, s.id_alumno
-             FROM solicitudes_inscripcion s
-             INNER JOIN cursos c ON s.id_curso = c.id_curso
-             WHERE s.id_solicitud = :id_solicitud AND c.id_docente = :id_docente
-             LIMIT 1'
-        );
-        $stmt->execute([
-            ':id_solicitud' => $idSolicitud,
-            ':id_docente' => $idDocente,
-        ]);
-        $solicitud = $stmt->fetch();
-
-        if (!$solicitud) {
-            throw new RuntimeException('Solicitud no encontrada.');
+    public static function mdlListarPersonal($rol = 'alumno', $grupo = 'todos') {
+        if ($rol === 'alumno') {
+            $sql = "
+                SELECT 
+                    u.id_usuario, u.nombre, u.apellido, u.correo, u.rol, 
+                    u.matricula_escolar, u.telefono, u.curp, u.estado,
+                    COALESCE(g.nombre, 'Sin grupo') AS grupo
+                FROM usuarios u
+                LEFT JOIN inscripciones i ON u.id_usuario = i.id_alumno
+                LEFT JOIN cursos c ON i.id_curso = c.id_curso
+                LEFT JOIN grupos g ON c.id_grupo = g.id_grupo
+                WHERE u.rol = 'alumno'
+            ";
+            
+            if ($grupo !== 'todos' && $grupo !== '') {
+                $sql .= " AND g.nombre = :grupo";
+            }
+            
+            $sql .= " GROUP BY u.id_usuario, u.nombre, u.apellido, u.correo, u.rol, u.matricula_escolar, u.telefono, u.curp, u.estado, g.nombre ORDER BY g.nombre, u.apellido ASC";
+            
+            $stmt = Conexion::conectar()->prepare($sql);
+            if ($grupo !== 'todos' && $grupo !== '') {
+                $stmt->bindParam(":grupo", $grupo, PDO::PARAM_STR);
+            }
+        } else {
+            $sql = "SELECT id_usuario, nombre, apellido, correo, rol, clave_docente, telefono, curp, estado FROM usuarios WHERE rol = 'docente' ORDER BY apellido ASC";
+            $stmt = Conexion::conectar()->prepare($sql);
         }
-
-        $estado = $decision === 'aceptar' ? 'aceptada' : 'rechazada';
-        $update = $this->db->prepare(
-            'UPDATE solicitudes_inscripcion SET estado = :estado WHERE id_solicitud = :id_solicitud'
-        );
-        $update->execute([
-            ':estado' => $estado,
-            ':id_solicitud' => $idSolicitud,
-        ]);
-
-        if ($estado === 'aceptada') {
-            $this->agregarAlumno($idDocente, $solicitud['id_curso'], $solicitud['id_alumno']);
-        }
-
-        return $this->listarSolicitudes($idDocente);
+        $stmt->execute();
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
-    private function asegurarTablasAuxiliares()
-    {
-        $this->db->exec(
-            'CREATE TABLE IF NOT EXISTS horarios_cursos (
-                id_horario INT AUTO_INCREMENT PRIMARY KEY,
-                id_curso INT NOT NULL,
-                dia_semana VARCHAR(20) NOT NULL,
-                hora_inicio TIME NOT NULL,
-                hora_fin TIME NOT NULL,
-                FOREIGN KEY (id_curso) REFERENCES cursos(id_curso) ON DELETE CASCADE,
-                UNIQUE KEY uq_horario_curso (id_curso, dia_semana, hora_inicio, hora_fin)
-            )'
-        );
-
-        $this->db->exec(
-            'CREATE TABLE IF NOT EXISTS solicitudes_inscripcion (
-                id_solicitud INT AUTO_INCREMENT PRIMARY KEY,
-                id_curso INT NOT NULL,
-                id_alumno INT NOT NULL,
-                estado ENUM("pendiente","aceptada","rechazada") DEFAULT "pendiente",
-                fecha_solicitud TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                FOREIGN KEY (id_curso) REFERENCES cursos(id_curso) ON DELETE CASCADE,
-                FOREIGN KEY (id_alumno) REFERENCES usuarios(id_usuario) ON DELETE CASCADE,
-                UNIQUE KEY uq_solicitud_curso_alumno (id_curso, id_alumno, estado)
-            )'
-        );
+    public static function mdlListarGrupos() {
+        $stmt = Conexion::conectar()->prepare("SELECT DISTINCT g.id_grupo, g.nombre FROM grupos g INNER JOIN cursos c ON g.id_grupo = c.id_grupo INNER JOIN inscripciones i ON c.id_curso = i.id_curso ORDER BY g.nombre");
+        $stmt->execute();
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
-    private function obtenerHorariosCurso($idCurso)
-    {
-        $stmt = $this->db->prepare(
-            'SELECT dia_semana, TIME_FORMAT(hora_inicio, "%H:%i") AS inicio, TIME_FORMAT(hora_fin, "%H:%i") AS fin
-             FROM horarios_cursos
-             WHERE id_curso = :id_curso
-             ORDER BY FIELD(dia_semana, "Lunes", "Martes", "Miercoles", "Miércoles", "Jueves", "Viernes"), hora_inicio'
-        );
-        $stmt->execute([':id_curso' => $idCurso]);
-        $horarios = $stmt->fetchAll();
-
-        if ($horarios) {
-            return array_map(function ($h) {
-                return $h['dia_semana'] . ' ' . $h['inicio'] . '-' . $h['fin'];
-            }, $horarios);
-        }
-
-        $stmtSesiones = $this->db->prepare(
-            'SELECT DISTINCT TIME_FORMAT(hora_inicio, "%H:%i") AS inicio, TIME_FORMAT(hora_fin, "%H:%i") AS fin
-             FROM sesiones
-             WHERE id_curso = :id_curso
-             ORDER BY hora_inicio'
-        );
-        $stmtSesiones->execute([':id_curso' => $idCurso]);
-
-        return array_map(function ($h) {
-            return $h['inicio'] . '-' . $h['fin'];
-        }, $stmtSesiones->fetchAll());
+    public static function mdlCrearUsuario($datos) {
+        $pdo = Conexion::conectar();
+        $stmt = $pdo->prepare("INSERT INTO usuarios (nombre, apellido, correo, password, rol, matricula_escolar, telefono) VALUES (:nombre, :apellido, :correo, SHA2(:password, 256), :rol, :matricula, :telefono)");
+        $stmt->bindParam(":nombre", $datos["nombre"], PDO::PARAM_STR);
+        $stmt->bindParam(":apellido", $datos["apellido"], PDO::PARAM_STR);
+        $stmt->bindParam(":correo", $datos["correo"], PDO::PARAM_STR);
+        $stmt->bindParam(":password", $datos["password"], PDO::PARAM_STR);
+        $stmt->bindParam(":rol", $datos["rol"], PDO::PARAM_STR);
+        $stmt->bindParam(":matricula", $datos["matricula"], PDO::PARAM_STR);
+        $stmt->bindParam(":telefono", $datos["telefono"], PDO::PARAM_STR);
+        return $stmt->execute() ? "ok" : "error";
     }
 
-    private function guardarHorarios($idCurso, array $horarios)
-    {
-        $stmt = $this->db->prepare(
-            'INSERT IGNORE INTO horarios_cursos (id_curso, dia_semana, hora_inicio, hora_fin)
-             VALUES (:id_curso, :dia, :inicio, :fin)'
-        );
-
-        foreach ($horarios as $horario) {
-            if (empty($horario['dia']) || empty($horario['inicio']) || empty($horario['fin'])) continue;
-
-            $stmt->execute([
-                ':id_curso' => $idCurso,
-                ':dia' => $horario['dia'],
-                ':inicio' => $this->normalizarHora($horario['inicio']),
-                ':fin' => $this->normalizarHora($horario['fin']),
-            ]);
-        }
+    public static function mdlObtenerPrefecto($id_admin) {
+        $stmt = Conexion::conectar()->prepare("SELECT nombre, apellido, correo FROM usuarios WHERE id_usuario = :id");
+        $stmt->bindParam(":id", $id_admin, PDO::PARAM_INT);
+        $stmt->execute();
+        return $stmt->fetch(PDO::FETCH_ASSOC);
     }
 
-    private function obtenerOCrearAsignatura($nombre)
-    {
-        $stmt = $this->db->prepare('SELECT id_asignatura FROM asignaturas WHERE nombre = :nombre LIMIT 1');
-        $stmt->execute([':nombre' => $nombre]);
-        $id = $stmt->fetchColumn();
-        if ($id) return (int) $id;
-
-        $insert = $this->db->prepare('INSERT INTO asignaturas (nombre) VALUES (:nombre)');
-        $insert->execute([':nombre' => $nombre]);
-        return (int) $this->db->lastInsertId();
-    }
-
-    private function obtenerOCrearGrupo($grado, $grupo)
-    {
-        $nombre = trim($grado . '° ' . strtoupper($grupo));
-        $stmt = $this->db->prepare('SELECT id_grupo FROM grupos WHERE nombre = :nombre LIMIT 1');
-        $stmt->execute([':nombre' => $nombre]);
-        $id = $stmt->fetchColumn();
-        if ($id) return (int) $id;
-
-        $insert = $this->db->prepare('INSERT INTO grupos (nombre) VALUES (:nombre)');
-        $insert->execute([':nombre' => $nombre]);
-        return (int) $this->db->lastInsertId();
-    }
-
-    private function validarCursoDocente($idDocente, $idCurso)
-    {
-        $stmt = $this->db->prepare(
-            'SELECT COUNT(*) FROM cursos WHERE id_curso = :id_curso AND id_docente = :id_docente'
-        );
-        $stmt->execute([':id_curso' => $idCurso, ':id_docente' => $idDocente]);
-        if ((int) $stmt->fetchColumn() === 0) {
-            throw new RuntimeException('La clase no pertenece al docente autenticado.');
-        }
-    }
-
-    private function obtenerOCrearSesion($idCurso, $fecha)
-    {
-        $stmt = $this->db->prepare('SELECT id_sesion FROM sesiones WHERE id_curso = :id_curso AND fecha = :fecha LIMIT 1');
-        $stmt->execute([':id_curso' => $idCurso, ':fecha' => $fecha]);
-        $idSesion = $stmt->fetchColumn();
-        if ($idSesion) return (int) $idSesion;
-
-        $horario = $this->primerHorario($idCurso);
-        $insert = $this->db->prepare(
-            'INSERT INTO sesiones (id_curso, fecha, hora_inicio, hora_fin, codigo_actual)
-             VALUES (:id_curso, :fecha, :inicio, :fin, :codigo)'
-        );
-        $insert->execute([
-            ':id_curso' => $idCurso, ':fecha' => $fecha,
-            ':inicio' => $horario['inicio'], ':fin' => $horario['fin'],
-            ':codigo' => 'SES-' . $idCurso . '-' . str_replace('-', '', $fecha),
-        ]);
-        return (int) $this->db->lastInsertId();
-    }
-
-    private function primerHorario($idCurso)
-    {
-        $stmt = $this->db->prepare(
-            'SELECT hora_inicio AS inicio, hora_fin AS fin FROM horarios_cursos
-             WHERE id_curso = :id_curso ORDER BY id_horario LIMIT 1'
-        );
-        $stmt->execute([':id_curso' => $idCurso]);
-        $horario = $stmt->fetch();
-        return $horario ?: ['inicio' => '08:00:00', 'fin' => '09:00:00'];
-    }
-
-    private function mapearEstadoAsistencia($estado)
-    {
-        $mapa = ['asistencia' => 'presente', 'presente' => 'presente', 'retardo' => 'retardo',
-                 'falta' => 'falta', 'dudoso' => 'dudoso', 'pendiente' => 'falta'];
-        return $mapa[$estado] ?? 'falta';
-    }
-
-    private function separarGradoGrupo($grupoNombre)
-    {
-        if (preg_match('/([0-9]+).*?([A-ZÁÉÍÓÚÑ])$/u', $grupoNombre, $m)) {
-            return ['grado' => $m[1], 'grupo' => $m[2]];
-        }
-        return ['grado' => '', 'grupo' => $grupoNombre];
-    }
-
-    private function iconoAsignatura($nombre)
-    {
-        $nombre = strtolower($nombre);
-        if (str_contains($nombre, 'mat')) return 'fa-calculator';
-        if (str_contains($nombre, 'hist')) return 'fa-book-open';
-        if (str_contains($nombre, 'ciencia') || str_contains($nombre, 'fis')) return 'fa-flask';
-        if (str_contains($nombre, 'espa')) return 'fa-book';
-        if (str_contains($nombre, 'arte')) return 'fa-palette';
-        if (str_contains($nombre, 'ingl')) return 'fa-language';
-        return 'fa-chalkboard';
-    }
-
-    private function normalizarHora($hora)
-    {
-        return strlen($hora) === 5 ? $hora . ':00' : $hora;
-    }
-
-    private function periodoActual()
-    {
-        $anio = (int) date('Y');
-        $mes = (int) date('n');
-        return $mes >= 8 ? $anio . '-' . ($anio + 1) : ($anio - 1) . '-' . $anio;
+    public static function mdlActualizarPrefecto($id_admin, $nombre, $apellido, $correo) {
+        $stmt = Conexion::conectar()->prepare("UPDATE usuarios SET nombre = :nombre, apellido = :apellido, correo = :correo WHERE id_usuario = :id");
+        $stmt->bindParam(":nombre", $nombre, PDO::PARAM_STR);
+        $stmt->bindParam(":apellido", $apellido, PDO::PARAM_STR);
+        $stmt->bindParam(":correo", $correo, PDO::PARAM_STR);
+        $stmt->bindParam(":id", $id_admin, PDO::PARAM_INT);
+        return $stmt->execute() ? "ok" : "error";
     }
 }
+?>

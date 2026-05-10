@@ -19,12 +19,6 @@ class Alumno
             return ['usuario' => $usuario, 'alumno' => $alumno, 'hijos' => [$alumno]];
         }
 
-        if ($usuario['rol'] === 'padre') {
-            $hijos = $this->listarHijos((int) $usuario['id_usuario']);
-            $alumno = $hijos[0] ?? null;
-            return ['usuario' => $usuario, 'alumno' => $alumno, 'hijos' => $hijos];
-        }
-
         throw new RuntimeException('Rol no autorizado para este portal.');
     }
 
@@ -303,53 +297,28 @@ class Alumno
         return $this->justificantes($usuario)['justificantes'];
     }
 
+    // ============================================================
+    // CORREGIDO: obtenerAlumno() SIN direccion, SIN tutor como usuario
+    // ============================================================
     private function obtenerAlumno($idAlumno)
     {
         $stmt = $this->db->prepare(
-            'SELECT
-                u.id_usuario AS id,
-                CONCAT(u.nombre, " ", u.apellido) AS nombre,
-                u.nombre AS nombre_simple,
-                u.apellido,
-                u.correo,
-                u.matricula_escolar AS matricula,
-                u.telefono,
-                u.direccion,
-                CONCAT(t.nombre, " ", t.apellido) AS tutor,
-                t.telefono AS telefonoTutor,
-                t.correo AS correoTutor,
-                g.nombre AS grupo
+            'SELECT u.id_usuario AS id, CONCAT(u.nombre, " ", u.apellido) AS nombre,
+                    u.nombre AS nombre_simple, u.apellido, u.correo, 
+                    u.matricula_escolar AS matricula, u.telefono, u.curp,
+                    g.nombre AS grupo
              FROM usuarios u
-             LEFT JOIN usuarios t ON u.id_tutor = t.id_usuario
              LEFT JOIN inscripciones i ON u.id_usuario = i.id_alumno
              LEFT JOIN cursos c ON i.id_curso = c.id_curso
              LEFT JOIN grupos g ON c.id_grupo = g.id_grupo
              WHERE u.id_usuario = :id AND u.rol = "alumno" AND u.estado = TRUE
-             GROUP BY u.id_usuario, u.nombre, u.apellido, u.correo, u.matricula_escolar, u.telefono,
-                      u.direccion, t.nombre, t.apellido, t.telefono, t.correo, g.nombre
+             GROUP BY u.id_usuario, u.nombre, u.apellido, u.correo, 
+                      u.matricula_escolar, u.telefono, u.curp, g.nombre
              LIMIT 1'
         );
         $stmt->execute([':id' => $idAlumno]);
 
         return $stmt->fetch();
-    }
-
-    private function listarHijos($idTutor)
-    {
-        $stmt = $this->db->prepare(
-            'SELECT id_usuario FROM usuarios
-             WHERE id_tutor = :id_tutor AND rol = "alumno" AND estado = TRUE
-             ORDER BY nombre'
-        );
-        $stmt->execute([':id_tutor' => $idTutor]);
-
-        $hijos = [];
-        foreach ($stmt->fetchAll() as $row) {
-            $hijo = $this->obtenerAlumno($row['id_usuario']);
-            if ($hijo) $hijos[] = $hijo;
-        }
-
-        return $hijos;
     }
 
     private function solicitudesAlumno($idAlumno)
@@ -419,12 +388,12 @@ class Alumno
     private function iconoAsignatura($nombre)
     {
         $nombre = strtolower($nombre);
-        if (strpos($nombre, 'mat') !== false) return 'fa-calculator';
-        if (strpos($nombre, 'hist') !== false) return 'fa-book-open';
-        if (strpos($nombre, 'ciencia') !== false || strpos($nombre, 'fis') !== false) return 'fa-flask';
-        if (strpos($nombre, 'espa') !== false) return 'fa-book';
-        if (strpos($nombre, 'arte') !== false) return 'fa-palette';
-        if (strpos($nombre, 'ingl') !== false) return 'fa-language';
+        if (str_contains($nombre, 'mat')) return 'fa-calculator';
+        if (str_contains($nombre, 'hist')) return 'fa-book-open';
+        if (str_contains($nombre, 'ciencia') || str_contains($nombre, 'fis')) return 'fa-flask';
+        if (str_contains($nombre, 'espa')) return 'fa-book';
+        if (str_contains($nombre, 'arte')) return 'fa-palette';
+        if (str_contains($nombre, 'ingl')) return 'fa-language';
         return 'fa-book-bookmark';
     }
 
@@ -435,7 +404,6 @@ class Alumno
             'personal' => 'Asuntos Familiares / Personales',
             'viaje' => 'Viaje Escolar / Congreso',
         ];
-
         return $mapa[$motivo] ?? 'Justificante';
     }
 

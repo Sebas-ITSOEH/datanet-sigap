@@ -21,10 +21,7 @@ class Usuario
              WHERE correo = :correo AND rol = :rol AND estado = TRUE
              LIMIT 1'
         );
-        $stmt->execute([
-            ':correo' => $correo,
-            ':rol' => $rol,
-        ]);
+        $stmt->execute([':correo' => $correo, ':rol' => $rol]);
 
         $usuario = $stmt->fetch();
         if (!$usuario || !$this->passwordValido($password, $usuario['password'])) {
@@ -39,60 +36,25 @@ class Usuario
     {
         $this->validarCorreoDisponible($datos['correo']);
 
-        $this->db->beginTransaction();
-
-        try {
-            $idTutor = null;
-            if ($datos['rol'] === 'alumno') {
-                $idTutor = $this->crearTutor($datos['tutor']);
-            }
-
-            $stmt = $this->db->prepare(
-                'INSERT INTO usuarios
-                    (nombre, apellido, correo, password, rol, direccion, matricula_escolar, telefono, id_tutor, estado)
-                 VALUES
-                    (:nombre, :apellido, :correo, :password, :rol, :direccion, :matricula, :telefono, :id_tutor, TRUE)'
-            );
-
-            $stmt->execute([
-                ':nombre' => $datos['nombre'],
-                ':apellido' => $datos['apellido'],
-                ':correo' => $datos['correo'],
-                ':password' => password_hash($datos['password'], PASSWORD_DEFAULT),
-                ':rol' => $datos['rol'],
-                ':direccion' => $datos['direccion'] ?? null,
-                ':matricula' => $datos['rol'] === 'alumno' ? ($datos['matricula_escolar'] ?? null) : null,
-                ':telefono' => $datos['telefono'] ?? null,
-                ':id_tutor' => $idTutor,
-            ]);
-
-            $idUsuario = (int) $this->db->lastInsertId();
-            $this->db->commit();
-
-            return $idUsuario;
-        } catch (Throwable $e) {
-            $this->db->rollBack();
-            throw $e;
-        }
-    }
-
-    private function crearTutor(array $tutor)
-    {
-        $this->validarCorreoDisponible($tutor['correo']);
-
         $stmt = $this->db->prepare(
             'INSERT INTO usuarios
-                (nombre, apellido, correo, password, rol, telefono, estado)
+                (nombre, apellido, correo, password, rol, curp, matricula_escolar, telefono, clave_docente, nss, rfc, estado)
              VALUES
-                (:nombre, :apellido, :correo, :password, "padre", :telefono, TRUE)'
+                (:nombre, :apellido, :correo, :password, :rol, :curp, :matricula, :telefono, :clave_docente, :nss, :rfc, TRUE)'
         );
 
         $stmt->execute([
-            ':nombre' => $tutor['nombre'],
-            ':apellido' => $tutor['apellido'],
-            ':correo' => $tutor['correo'],
-            ':password' => password_hash($tutor['password'], PASSWORD_DEFAULT),
-            ':telefono' => $tutor['telefono'] ?? null,
+            ':nombre'    => $datos['nombre'],
+            ':apellido'  => $datos['apellido'],
+            ':correo'    => $datos['correo'],
+            ':password'  => password_hash($datos['password'], PASSWORD_DEFAULT),
+            ':rol'       => $datos['rol'],
+            ':curp'      => $datos['curp'] ?? null,
+            ':matricula' => $datos['rol'] === 'alumno' ? ($datos['matricula_escolar'] ?? null) : null,
+            ':telefono'  => $datos['rol'] === 'alumno' ? ($datos['telefono'] ?? null) : null,
+            ':clave_docente' => $datos['rol'] === 'docente' ? ($datos['clave_docente'] ?? null) : null,
+            ':nss'       => $datos['rol'] === 'docente' ? ($datos['nss'] ?? null) : null,
+            ':rfc'       => $datos['rol'] === 'docente' ? ($datos['rfc'] ?? null) : null,
         ]);
 
         return (int) $this->db->lastInsertId();
@@ -102,30 +64,20 @@ class Usuario
     {
         $stmt = $this->db->prepare('SELECT COUNT(*) FROM usuarios WHERE correo = :correo');
         $stmt->execute([':correo' => $correo]);
-
         if ((int) $stmt->fetchColumn() > 0) {
-            throw new RuntimeException('El correo ya esta registrado.');
+            throw new RuntimeException('El correo ya está registrado.');
         }
     }
 
     private function passwordValido($passwordIngresado, $passwordBd)
     {
-        if (password_verify($passwordIngresado, $passwordBd)) {
-            return true;
-        }
-
-        return hash_equals($passwordBd, md5($passwordIngresado));
+        if (password_verify($passwordIngresado, $passwordBd)) return true;
+        return hash_equals($passwordBd, hash('sha256', $passwordIngresado));
     }
 
     private function mapearRol($rolFrontend)
     {
-        $roles = [
-            'Profesor' => 'docente',
-            'Padre de familia' => 'padre',
-            'Prefectura' => 'admin',
-            'Alumno' => 'alumno',
-        ];
-
+        $roles = ['Profesor' => 'docente', 'Prefectura' => 'admin', 'Alumno' => 'alumno'];
         return $roles[$rolFrontend] ?? strtolower($rolFrontend);
     }
 }

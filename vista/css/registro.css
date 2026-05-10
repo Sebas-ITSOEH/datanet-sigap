@@ -89,6 +89,7 @@
     z-index: 1;
 }
 
+/* STEPPER */
 .stepper { 
     display: flex; 
     align-items: center; 
@@ -121,8 +122,14 @@
     transform: scale(1.1);
 }
 
+.step.completed {
+    background: #2d6a4f;
+    border-color: #2d6a4f;
+    color: #ffffff;
+}
+
 .line { 
-    width: 40px; 
+    width: 30px; 
     height: 3px; 
     background: rgba(255,255,255,0.3);
     border-radius: 2px;
@@ -156,7 +163,7 @@
 .form-container { 
     flex: 1.5; 
     padding: 35px 40px; 
-    max-height: 550px; 
+    max-height: 600px; 
     overflow-y: auto;
     background: #ffffff;
 }
@@ -196,6 +203,123 @@
     background: #C7A03D;
     border-radius: 2px;
 }
+
+/* =========================================
+   SELECTOR DE ROL
+========================================= */
+
+.rol-selector {
+    display: flex;
+    gap: 15px;
+    margin-bottom: 25px;
+}
+
+.rol-card {
+    flex: 1;
+    border: 2px solid #e8ecf1;
+    border-radius: 16px;
+    padding: 25px 20px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    background: #fafbfc;
+    position: relative;
+    outline: none;
+}
+
+.rol-card:hover {
+    border-color: #C7A03D;
+    transform: translateY(-3px);
+    box-shadow: 0 8px 25px rgba(199, 160, 61, 0.15);
+}
+
+.rol-card:focus-visible {
+    border-color: #C7A03D;
+    box-shadow: 0 0 0 4px rgba(199, 160, 61, 0.2);
+}
+
+.rol-card.selected {
+    border-color: #192A56;
+    background: linear-gradient(135deg, #f0f4ff 0%, #e8ecf8 100%);
+    box-shadow: 0 8px 25px rgba(10, 31, 68, 0.2);
+    transform: translateY(-3px);
+}
+
+.rol-card.selected::after {
+    content: '✓';
+    position: absolute;
+    top: 12px;
+    right: 15px;
+    width: 28px;
+    height: 28px;
+    background: #192A56;
+    color: #C7A03D;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 0.9rem;
+}
+
+.rol-icon {
+    font-size: 3rem;
+    margin-bottom: 10px;
+}
+
+.rol-card h3 {
+    color: #192A56;
+    font-size: 1.1rem;
+    margin-bottom: 5px;
+    font-family: 'Outfit', sans-serif;
+}
+
+.rol-card p {
+    color: #777;
+    font-size: 0.8rem;
+    margin-bottom: 12px;
+}
+
+.rol-card ul {
+    list-style: none;
+    padding: 0;
+    text-align: left;
+    font-size: 0.75rem;
+    color: #555;
+}
+
+.rol-card ul li {
+    padding: 4px 0;
+    padding-left: 20px;
+    position: relative;
+}
+
+.rol-card ul li::before {
+    content: '•';
+    position: absolute;
+    left: 5px;
+    color: #C7A03D;
+    font-weight: 700;
+}
+
+/* Estados del botón */
+.btn-primary:disabled {
+    background: #c0c5cc;
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
+}
+
+.btn-primary:disabled:hover {
+    background: #c0c5cc;
+    color: #ffffff;
+    transform: none;
+    box-shadow: none;
+}
+
+/* =========================================
+   INPUTS Y FORMULARIOS
+========================================= */
 
 .input-group { 
     margin-bottom: 18px; 
@@ -326,11 +450,17 @@
         padding: 25px 20px; 
         max-height: none;
     }
+    .rol-selector {
+        flex-direction: column;
+    }
     .btn-row {
         flex-direction: column;
     }
     .grad-cap {
         font-size: 2.5rem;
+    }
+    .line {
+        width: 20px;
     }
 }
 

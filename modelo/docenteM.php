@@ -99,10 +99,12 @@ class Docente
                 return $curso;
             }
         }
-
         return null;
     }
 
+    // ============================================================
+    // CORREGIDO: SIN u.direccion, SIN LEFT JOIN tutor
+    // ============================================================
     public function listarAlumnosCurso($idDocente, $idCurso)
     {
         $this->validarCursoDocente($idDocente, $idCurso);
@@ -114,13 +116,9 @@ class Docente
                 u.matricula_escolar AS matricula,
                 u.correo,
                 u.telefono,
-                u.direccion,
-                CONCAT(t.nombre, " ", t.apellido) AS tutor,
-                t.telefono AS telefonoTutor,
-                t.correo AS correoTutor
+                u.curp
              FROM inscripciones i
              INNER JOIN usuarios u ON i.id_alumno = u.id_usuario
-             LEFT JOIN usuarios t ON u.id_tutor = t.id_usuario
              WHERE i.id_curso = :id_curso AND u.rol = "alumno" AND u.estado = TRUE
              ORDER BY u.apellido, u.nombre'
         );
@@ -129,6 +127,9 @@ class Docente
         return $stmt->fetchAll();
     }
 
+    // ============================================================
+    // CORREGIDO: SIN LEFT JOIN tutor
+    // ============================================================
     public function listarAlumnosDisponibles($idDocente, $idCurso)
     {
         $this->validarCursoDocente($idDocente, $idCurso);
@@ -139,10 +140,8 @@ class Docente
                 CONCAT(u.nombre, " ", u.apellido) AS nombre,
                 u.matricula_escolar AS matricula,
                 u.correo,
-                CONCAT(t.nombre, " ", t.apellido) AS tutor,
-                t.telefono AS telefonoTutor
+                u.telefono
              FROM usuarios u
-             LEFT JOIN usuarios t ON u.id_tutor = t.id_usuario
              WHERE u.rol = "alumno"
              AND u.estado = TRUE
              AND NOT EXISTS (
@@ -156,6 +155,9 @@ class Docente
         return $stmt->fetchAll();
     }
 
+    // ============================================================
+    // CORREGIDO: SIN LEFT JOIN tutor
+    // ============================================================
     public function buscarAlumnoPorMatricula($idDocente, $idCurso, $matricula)
     {
         $this->validarCursoDocente($idDocente, $idCurso);
@@ -166,14 +168,12 @@ class Docente
                 CONCAT(u.nombre, " ", u.apellido) AS nombre,
                 u.matricula_escolar AS matricula,
                 u.correo,
-                CONCAT(t.nombre, " ", t.apellido) AS tutor,
-                t.telefono AS telefonoTutor,
+                u.telefono,
                 EXISTS (
                     SELECT 1 FROM inscripciones i
                     WHERE i.id_curso = :id_curso AND i.id_alumno = u.id_usuario
                 ) AS inscrito
              FROM usuarios u
-             LEFT JOIN usuarios t ON u.id_tutor = t.id_usuario
              WHERE u.rol = "alumno" AND u.estado = TRUE AND u.matricula_escolar = :matricula
              LIMIT 1'
         );
@@ -466,9 +466,7 @@ class Docente
         );
 
         foreach ($horarios as $horario) {
-            if (empty($horario['dia']) || empty($horario['inicio']) || empty($horario['fin'])) {
-                continue;
-            }
+            if (empty($horario['dia']) || empty($horario['inicio']) || empty($horario['fin'])) continue;
 
             $stmt->execute([
                 ':id_curso' => $idCurso,
@@ -484,14 +482,10 @@ class Docente
         $stmt = $this->db->prepare('SELECT id_asignatura FROM asignaturas WHERE nombre = :nombre LIMIT 1');
         $stmt->execute([':nombre' => $nombre]);
         $id = $stmt->fetchColumn();
-
-        if ($id) {
-            return (int) $id;
-        }
+        if ($id) return (int) $id;
 
         $insert = $this->db->prepare('INSERT INTO asignaturas (nombre) VALUES (:nombre)');
         $insert->execute([':nombre' => $nombre]);
-
         return (int) $this->db->lastInsertId();
     }
 
@@ -501,14 +495,10 @@ class Docente
         $stmt = $this->db->prepare('SELECT id_grupo FROM grupos WHERE nombre = :nombre LIMIT 1');
         $stmt->execute([':nombre' => $nombre]);
         $id = $stmt->fetchColumn();
-
-        if ($id) {
-            return (int) $id;
-        }
+        if ($id) return (int) $id;
 
         $insert = $this->db->prepare('INSERT INTO grupos (nombre) VALUES (:nombre)');
         $insert->execute([':nombre' => $nombre]);
-
         return (int) $this->db->lastInsertId();
     }
 
@@ -517,11 +507,7 @@ class Docente
         $stmt = $this->db->prepare(
             'SELECT COUNT(*) FROM cursos WHERE id_curso = :id_curso AND id_docente = :id_docente'
         );
-        $stmt->execute([
-            ':id_curso' => $idCurso,
-            ':id_docente' => $idDocente,
-        ]);
-
+        $stmt->execute([':id_curso' => $idCurso, ':id_docente' => $idDocente]);
         if ((int) $stmt->fetchColumn() === 0) {
             throw new RuntimeException('La clase no pertenece al docente autenticado.');
         }
@@ -529,18 +515,10 @@ class Docente
 
     private function obtenerOCrearSesion($idCurso, $fecha)
     {
-        $stmt = $this->db->prepare(
-            'SELECT id_sesion FROM sesiones WHERE id_curso = :id_curso AND fecha = :fecha LIMIT 1'
-        );
-        $stmt->execute([
-            ':id_curso' => $idCurso,
-            ':fecha' => $fecha,
-        ]);
+        $stmt = $this->db->prepare('SELECT id_sesion FROM sesiones WHERE id_curso = :id_curso AND fecha = :fecha LIMIT 1');
+        $stmt->execute([':id_curso' => $idCurso, ':fecha' => $fecha]);
         $idSesion = $stmt->fetchColumn();
-
-        if ($idSesion) {
-            return (int) $idSesion;
-        }
+        if ($idSesion) return (int) $idSesion;
 
         $horario = $this->primerHorario($idCurso);
         $insert = $this->db->prepare(
@@ -548,42 +526,28 @@ class Docente
              VALUES (:id_curso, :fecha, :inicio, :fin, :codigo)'
         );
         $insert->execute([
-            ':id_curso' => $idCurso,
-            ':fecha' => $fecha,
-            ':inicio' => $horario['inicio'],
-            ':fin' => $horario['fin'],
+            ':id_curso' => $idCurso, ':fecha' => $fecha,
+            ':inicio' => $horario['inicio'], ':fin' => $horario['fin'],
             ':codigo' => 'SES-' . $idCurso . '-' . str_replace('-', '', $fecha),
         ]);
-
         return (int) $this->db->lastInsertId();
     }
 
     private function primerHorario($idCurso)
     {
         $stmt = $this->db->prepare(
-            'SELECT hora_inicio AS inicio, hora_fin AS fin
-             FROM horarios_cursos
-             WHERE id_curso = :id_curso
-             ORDER BY id_horario
-             LIMIT 1'
+            'SELECT hora_inicio AS inicio, hora_fin AS fin FROM horarios_cursos
+             WHERE id_curso = :id_curso ORDER BY id_horario LIMIT 1'
         );
         $stmt->execute([':id_curso' => $idCurso]);
         $horario = $stmt->fetch();
-
         return $horario ?: ['inicio' => '08:00:00', 'fin' => '09:00:00'];
     }
 
     private function mapearEstadoAsistencia($estado)
     {
-        $mapa = [
-            'asistencia' => 'presente',
-            'presente' => 'presente',
-            'retardo' => 'retardo',
-            'falta' => 'falta',
-            'dudoso' => 'dudoso',
-            'pendiente' => 'falta',
-        ];
-
+        $mapa = ['asistencia' => 'presente', 'presente' => 'presente', 'retardo' => 'retardo',
+                 'falta' => 'falta', 'dudoso' => 'dudoso', 'pendiente' => 'falta'];
         return $mapa[$estado] ?? 'falta';
     }
 
@@ -592,7 +556,6 @@ class Docente
         if (preg_match('/([0-9]+).*?([A-ZÁÉÍÓÚÑ])$/u', $grupoNombre, $m)) {
             return ['grado' => $m[1], 'grupo' => $m[2]];
         }
-
         return ['grado' => '', 'grupo' => $grupoNombre];
     }
 
@@ -605,7 +568,6 @@ class Docente
         if (str_contains($nombre, 'espa')) return 'fa-book';
         if (str_contains($nombre, 'arte')) return 'fa-palette';
         if (str_contains($nombre, 'ingl')) return 'fa-language';
-
         return 'fa-chalkboard';
     }
 
@@ -618,7 +580,6 @@ class Docente
     {
         $anio = (int) date('Y');
         $mes = (int) date('n');
-
         return $mes >= 8 ? $anio . '-' . ($anio + 1) : ($anio - 1) . '-' . $anio;
     }
 }
