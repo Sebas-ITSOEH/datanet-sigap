@@ -5,78 +5,61 @@
  */
 
 const ValidadorRegistro = {
-  // Patrones regex (deben coincidir con los del backend)
+  // Patrones regex (deben coincidir con los del backend registro.php)
   patrones: {
-    nombreCompleto: /^([A-ZÁÉÍÓÚÑ][a-záéíóúñ]+)(\s[A-ZÁÉÍÓÚÑ][a-záéíóúñ]+)*$/u,
-
+    nombreCompleto: /^[A-ZÁÉÍÓÚÑ][a-záéíóúñ]+(\s[A-ZÁÉÍÓÚÑ][a-záéíóúñ]+)*$/u,
     correoAlumno: /^\d{8}@secgralbj\.edu\.mx$/,
-
     correoDocente: /^[a-záéíóúñ]+\.[a-záéíóúñ]+@secgralbj\.edu\.mx$/u,
-
     telefono: /^\d{10}$/,
-
     matricula: /^\d{8}$/,
-
-    password: /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9]).{8,}$/,
-
+    password: /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9]).{8,12}$/,
     correoGeneral: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
+    curp: /^[A-Z]{4}\d{6}[HM][A-Z]{5}[A-Z0-9]\d$/,
+    nss: /^\d{11}$/,
+    rfc: /^[A-Z]{4}\d{6}[A-Z0-9]{3}$/,
   },
 
   // Validar nombre
   validarNombre(valor) {
     const nombre = (valor || "").trim();
-
     if (nombre === "") {
-      return {
-        valido: false,
-        mensaje: "El nombre es obligatorio.",
-      };
+      return { valido: false, mensaje: "El nombre es obligatorio." };
     }
-
     if (!this.patrones.nombreCompleto.test(nombre)) {
       return {
         valido: false,
-        mensaje:
-          "Cada palabra debe iniciar con mayúscula y contener solo letras.",
+        mensaje: "Cada palabra debe iniciar con mayúscula y contener solo letras.",
       };
     }
-
-    return {
-      valido: true,
-      mensaje: "",
-    };
+    return { valido: true, mensaje: "" };
   },
 
   // Validar apellido
   validarApellido(valor) {
     const apellido = (valor || "").trim();
-
     if (apellido === "") {
-      return {
-        valido: false,
-        mensaje: "El apellido es obligatorio.",
-      };
+      return { valido: false, mensaje: "El apellido es obligatorio." };
     }
-
     if (!this.patrones.nombreCompleto.test(apellido)) {
       return {
         valido: false,
-        mensaje:
-          "Cada apellido debe iniciar con mayúscula y contener solo letras.",
+        mensaje: "Cada apellido debe iniciar con mayúscula y contener solo letras.",
       };
     }
-
-    return {
-      valido: true,
-      mensaje: "",
-    };
+    return { valido: true, mensaje: "" };
   },
 
-  // Validar dirección
-  validarDireccion(valor) {
-    const direccion = (valor || "").trim();
-    if (direccion === "") {
-      return { valido: false, mensaje: "La dirección es obligatoria." };
+  // Validar CURP
+  validarCURP(valor) {
+    const curp = (valor || "").trim().toUpperCase();
+    if (curp === "") {
+      return { valido: false, mensaje: "La CURP es obligatoria." };
+    }
+    if (curp.length !== 18) {
+      return { valido: false, mensaje: "La CURP debe tener 18 caracteres." };
+    }
+    if (!this.patrones.curp.test(curp)) {
+      return { valido: false, mensaje: "La CURP no tiene un formato válido." };
     }
     return { valido: true, mensaje: "" };
   },
@@ -84,65 +67,21 @@ const ValidadorRegistro = {
   // Validar correo según rol detectado
   validarCorreo(valor) {
     const correo = (valor || "").trim().toLowerCase();
-
     if (correo === "") {
-      return {
-        valido: false,
-        mensaje: "El correo es obligatorio.",
-      };
+      return { valido: false, mensaje: "El correo es obligatorio." };
     }
-
     if (!this.patrones.correoGeneral.test(correo)) {
-      return {
-        valido: false,
-        mensaje: "El formato del correo no es válido.",
-      };
+      return { valido: false, mensaje: "El formato del correo no es válido." };
     }
-
     const esAlumno = this.patrones.correoAlumno.test(correo);
-
     const esDocente = this.patrones.correoDocente.test(correo);
-
     if (!esAlumno && !esDocente) {
       return {
         valido: false,
-        mensaje: "Debe ser un correo institucional válido de alumno o docente.",
+        mensaje: "Debe ser un correo institucional válido (alumno o docente).",
       };
     }
-
-    return {
-      valido: true,
-      mensaje: "",
-    };
-  },
-
-  // Validar correo de tutor
-  validarCorreoTutor(valor) {
-    const correo = (valor || "").trim().toLowerCase();
-
-    if (correo === "") {
-      return {
-        valido: false,
-        mensaje: "El correo del tutor es obligatorio.",
-      };
-    }
-
-    if (!this.patrones.correoGeneral.test(correo)) {
-      return {
-        valido: false,
-        mensaje: "Ingresa un correo válido.",
-      };
-    }
-
-    return {
-      valido: true,
-      mensaje: "",
-    };
-  },
-
-  // Validación básica de email (usando regex simple)
-  esCorreoValido(correo) {
-    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(correo);
+    return { valido: true, mensaje: "" };
   },
 
   // Validar teléfono
@@ -157,14 +96,29 @@ const ValidadorRegistro = {
     return { valido: true, mensaje: "" };
   },
 
-  // Validar matrícula escolar
-  validarMatricula(valor) {
-    const matricula = (valor || "").trim();
-    if (matricula === "") {
-      return { valido: false, mensaje: "La matrícula escolar es obligatoria." };
+  // Validar NSS
+  validarNSS(valor) {
+    const nss = (valor || "").trim();
+    if (nss === "") {
+      return { valido: false, mensaje: "El NSS es obligatorio." };
     }
-    if (!this.patrones.matricula.test(matricula)) {
-      return { valido: false, mensaje: "La matrícula debe tener 8 dígitos." };
+    if (!this.patrones.nss.test(nss)) {
+      return { valido: false, mensaje: "El NSS debe tener 11 dígitos." };
+    }
+    return { valido: true, mensaje: "" };
+  },
+
+  // Validar RFC
+  validarRFC(valor) {
+    const rfc = (valor || "").trim().toUpperCase();
+    if (rfc === "") {
+      return { valido: false, mensaje: "El RFC es obligatorio." };
+    }
+    if (rfc.length !== 13) {
+      return { valido: false, mensaje: "El RFC debe tener 13 caracteres." };
+    }
+    if (!this.patrones.rfc.test(rfc)) {
+      return { valido: false, mensaje: "El RFC no tiene un formato válido." };
     }
     return { valido: true, mensaje: "" };
   },
@@ -172,15 +126,13 @@ const ValidadorRegistro = {
   // Validar contraseña (con verificación de requisitos individuales)
   validarPassword(valor) {
     const password = valor || "";
-
     const requisitos = {
-      longitud: password.length >= 8,
+      longitud: password.length >= 8 && password.length <= 12,
       mayuscula: /[A-Z]/.test(password),
       minuscula: /[a-z]/.test(password),
       numero: /\d/.test(password),
       especial: /[^A-Za-z0-9]/.test(password),
     };
-
     const todosValidos = Object.values(requisitos).every((r) => r);
 
     if (password === "") {
@@ -190,7 +142,6 @@ const ValidadorRegistro = {
         requisitos,
       };
     }
-
     if (!todosValidos) {
       return {
         valido: false,
@@ -198,27 +149,19 @@ const ValidadorRegistro = {
         requisitos,
       };
     }
-
-    return {
-      valido: true,
-      mensaje: "",
-      requisitos,
-    };
+    return { valido: true, mensaje: "", requisitos };
   },
 
   // Validar coincidencia de contraseñas
   validarConfirmPassword(password, confirmPassword) {
     const pass = password || "";
     const confirmPass = confirmPassword || "";
-
     if (confirmPass === "") {
       return { valido: false, mensaje: "Debes confirmar la contraseña." };
     }
-
     if (pass !== confirmPass) {
       return { valido: false, mensaje: "Las contraseñas no coinciden." };
     }
-
     return { valido: true, mensaje: "" };
   },
 };
@@ -228,6 +171,8 @@ const ValidadorRegistro = {
  * Maneja los eventos y la visualización de errores
  */
 const GestorValidacion = {
+  rolSeleccionado: null,
+
   campos: {
     nombre: {
       validador: (v) => ValidadorRegistro.validarNombre(v),
@@ -237,13 +182,9 @@ const GestorValidacion = {
       validador: (v) => ValidadorRegistro.validarApellido(v),
       feedback: "apellidos-feedback",
     },
-    tutorMaterno: {
-      validador: (v) => ValidadorRegistro.validarApellido(v),
-      feedback: "tutorMaterno-feedback",
-    },
-    direccion: {
-      validador: (v) => ValidadorRegistro.validarDireccion(v),
-      feedback: "direccion-feedback",
+    curp: {
+      validador: (v) => ValidadorRegistro.validarCURP(v),
+      feedback: "curp-feedback",
     },
     email: {
       validador: (v) => ValidadorRegistro.validarCorreo(v),
@@ -254,28 +195,24 @@ const GestorValidacion = {
       feedback: "pass-feedback",
     },
     confirmPass: {
-      validador: (v, deps) =>
+      validador: (v) =>
         ValidadorRegistro.validarConfirmPassword(
           document.getElementById("pass")?.value || "",
-          v,
+          v
         ),
       feedback: "confirmPass-feedback",
-    },
-    tutorPaterno: {
-      validador: (v) => ValidadorRegistro.validarApellido(v),
-      feedback: "tutorPaterno-feedback",
-    },
-    tutorNombres: {
-      validador: (v) => ValidadorRegistro.validarNombre(v),
-      feedback: "tutorNombres-feedback",
-    },
-    tutorCorreo: {
-      validador: (v) => ValidadorRegistro.validarCorreoTutor(v),
-      feedback: "tutorCorreo-feedback",
     },
     telTutor: {
       validador: (v) => ValidadorRegistro.validarTelefono(v),
       feedback: "telTutor-feedback",
+    },
+    nss: {
+      validador: (v) => ValidadorRegistro.validarNSS(v),
+      feedback: "nss-feedback",
+    },
+    rfc: {
+      validador: (v) => ValidadorRegistro.validarRFC(v),
+      feedback: "rfc-feedback",
     },
   },
 
@@ -295,7 +232,6 @@ const GestorValidacion = {
     if (passInput) {
       passInput.addEventListener("input", () => {
         this.validarCampo("pass");
-        // Revalidar confirmPass si ya tiene valor
         const confirmPassInput = document.getElementById("confirmPass");
         if (confirmPassInput && confirmPassInput.value) {
           this.validarCampo("confirmPass");
@@ -303,11 +239,10 @@ const GestorValidacion = {
       });
     }
 
-    // Validar confirmPass cuando cambie
     const confirmPassInput = document.getElementById("confirmPass");
     if (confirmPassInput) {
       confirmPassInput.addEventListener("input", () =>
-        this.validarCampo("confirmPass"),
+        this.validarCampo("confirmPass")
       );
     }
   },
@@ -321,13 +256,9 @@ const GestorValidacion = {
 
     const resultado = campoConfig.validador(elemento.value);
 
-    // Actualizar feedback visual
     this.mostrarFeedback(idCampo, resultado);
-
-    // Actualizar estado del input
     this.actualizarEstadoInput(elemento, resultado.valido);
 
-    // Actualizar requisitos si es password
     if (idCampo === "pass" && resultado.requisitos) {
       this.actualizarRequisitosPassword(resultado.requisitos);
     }
@@ -336,9 +267,10 @@ const GestorValidacion = {
   },
 
   mostrarFeedback(idCampo, resultado) {
-    const feedbackElementId = this.campos[idCampo].feedback;
-    const feedbackElement = document.getElementById(feedbackElementId);
+    const feedbackElementId = this.campos[idCampo]?.feedback;
+    if (!feedbackElementId) return;
 
+    const feedbackElement = document.getElementById(feedbackElementId);
     if (!feedbackElement) return;
 
     if (resultado.valido) {
@@ -368,7 +300,6 @@ const GestorValidacion = {
       "req-number",
       "req-special",
     ];
-
     const valoresRequisitos = [
       requisitos.longitud,
       requisitos.mayuscula,
@@ -391,78 +322,54 @@ const GestorValidacion = {
     });
   },
 
-  validarFormularioCompleto(step = 1) {
-    const camposValidar =
-      step === 1
-        ? ["nombre", "apellidos", "direccion", "email"]
-        : ["pass", "confirmPass"];
+  validarPaso2() {
+    const camposValidar = ["nombre", "apellidos", "curp", "email"];
+    const todosValidos = camposValidar.every((idCampo) => {
+      const resultado = this.validarCampo(idCampo);
+      return resultado.valido;
+    });
+    return todosValidos;
+  },
+
+  validarPaso3() {
+    const rol = this.rolSeleccionado;
+    let camposValidar = ["pass", "confirmPass"];
+
+    if (rol === "alumno") {
+      camposValidar.push("telTutor");
+    } else if (rol === "docente") {
+      camposValidar.push("nss", "rfc");
+    }
 
     const todosValidos = camposValidar.every((idCampo) => {
       const resultado = this.validarCampo(idCampo);
       return resultado.valido;
     });
-
     return todosValidos;
   },
 
   esEmailAlumno(email) {
     return ValidadorRegistro.patrones.correoAlumno.test(
-      email.trim().toLowerCase(),
+      email.trim().toLowerCase()
     );
   },
 
-  validarMatriculaEscolar() {
-    const elemento = document.getElementById("id-valor");
-    if (!elemento) return true;
+  agregarListenersParaTipoRol() {
+    const telTutor = document.getElementById("telTutor");
+    const nss = document.getElementById("nss");
+    const rfc = document.getElementById("rfc");
 
-    const esAlumno = this.esEmailAlumno(
-      document.getElementById("email")?.value || "",
-    );
-    if (!esAlumno) return true; // Solo para alumnos
-
-    const resultado = ValidadorRegistro.validarMatricula(elemento.value);
-
-    // Mostrar feedback para matrícula
-    const feedbackElement = document.getElementById("id-valor-feedback");
-    if (feedbackElement) {
-      if (resultado.valido) {
-        feedbackElement.textContent = "";
-        feedbackElement.className = "validation-feedback";
-      } else {
-        feedbackElement.textContent = "✗ " + resultado.mensaje;
-        feedbackElement.className = "validation-feedback error";
-      }
+    if (telTutor) {
+      telTutor.addEventListener("input", () => this.validarCampo("telTutor"));
+      telTutor.addEventListener("blur", () => this.validarCampo("telTutor"));
     }
-
-    this.actualizarEstadoInput(elemento, resultado.valido);
-    return resultado.valido;
-  },
-
-  agregarListenerMatricula() {
-    const elemento = document.getElementById("id-valor");
-    if (elemento) {
-      elemento.addEventListener("input", () => this.validarMatriculaEscolar());
-      elemento.addEventListener("blur", () => this.validarMatriculaEscolar());
+    if (nss) {
+      nss.addEventListener("input", () => this.validarCampo("nss"));
+      nss.addEventListener("blur", () => this.validarCampo("nss"));
     }
-  },
-
-  validarTutorCompleto() {
-    const esAlumno = this.esEmailAlumno(
-      document.getElementById("email")?.value || "",
-    );
-    if (!esAlumno) return true;
-
-    const campos = ["tutorPaterno", "tutorNombres", "tutorCorreo", "telTutor"];
-    const incompleto = campos.some((id) => {
-      const elemento = document.getElementById(id);
-      return !elemento || !elemento.value.trim();
-    });
-
-    const todoValido = campos.every((id) => {
-      const resultado = this.validarCampo(id);
-      return resultado.valido;
-    });
-
-    return !incompleto && todoValido;
+    if (rfc) {
+      rfc.addEventListener("input", () => this.validarCampo("rfc"));
+      rfc.addEventListener("blur", () => this.validarCampo("rfc"));
+    }
   },
 };
