@@ -1,23 +1,28 @@
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>SIGAP - Portal Docente</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Nunito:wght@600;700;800&display=swap" rel="stylesheet">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Nunito:wght@600;700;800&display=swap"
+        rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    
+
     <link rel="stylesheet" href="css/docente/styleDocente.css">
     <link rel="stylesheet" href="css/docente/misClases.css">
     <link rel="stylesheet" href="css/docente/lista.css">
 </head>
+
 <body>
 
     <header class="main-header">
         <div class="header-container">
-            
+
             <div class="header-left">
-                <div style="display: flex; align-items: center; cursor: pointer;" onclick="window.location.href='indexDocente.html'">
+                <div style="display: flex; align-items: center; gap: 16px; cursor: pointer;"
+                    onclick="window.location.href='indexDocente.html'">
                     <div class="logo-box">
                         <i class="fa-solid fa-school"></i>
                     </div>
@@ -26,26 +31,18 @@
                         <span>Sec. Gral. Benito Juárez</span>
                     </div>
                 </div>
-                <button id="btn-logout" class="btn-icon" title="Cerrar Sesión" style="margin-left: 15px;">
-                    <i class="fa-solid fa-power-off"></i>
-                </button>
             </div>
 
             <nav class="header-nav">
-             <button class="nav-item" onclick="loadSection('misClases')">
+                <button class="nav-item" onclick="loadSection('misClases')">
                     <i class="fa-solid fa-users-rectangle"></i> <span>Mis Clases</span>
                 </button>
                 <button class="nav-item" onclick="loadSection('lista')">
                     <i class="fa-solid fa-list-check"></i> <span>Pase de Lista</span>
                 </button>
-               </nav>
+            </nav>
 
             <div class="header-right">
-                <div class="btn-icon notification-box" title="Notificaciones">
-                    <i class="fa-solid fa-bell"></i>
-                    <span class="badge-red">3</span>
-                </div>
-
                 <div class="user-profile">
                     <div class="user-info">
                         <span class="user-name" id="docente-nombre-header">Docente</span>
@@ -55,36 +52,43 @@
                         <span id="docente-iniciales-header">DC</span>
                     </div>
                 </div>
+                <button id="btn-logout" class="btn-icon" title="Cerrar Sesión" style="margin-left: 15px;">
+                    <i class="fa-solid fa-power-off"></i>
+                </button>
             </div>
-            
+
         </div>
     </header>
 
     <main id="view-container">
         <div class="dashboard-container fade-in" style="padding: 2rem;">
-            
-        <div class="welcome-banner">
+
+            <div class="welcome-banner">
                 <div class="glow-circle circle-1"></div>
                 <div class="glow-circle circle-2"></div>
-                
+
                 <div class="welcome-text">
                     <div class="date-badge fade-in-up" style="animation-delay: 0.1s;">
                         <i class="fa-regular fa-sun"></i> ¡Excelente día para enseñar!
                     </div>
-                    
+
                     <h2 class="fade-in-up" style="animation-delay: 0.2s;">
-                        ¡Hola, Prof. <span class="name-highlight" id="docente-nombre-bienvenida">Docente</span>! <span class="wave-emoji"></span>
+                        ¡Hola, Prof. <span class="name-highlight" id="docente-nombre-bienvenida">Docente</span>! <span
+                            class="wave-emoji"></span>
                     </h2>
-                    
+
                     <p class="fade-in-up" style="animation-delay: 0.3s;">
-                        Bienvenido a su espacio. Todo está listo para que <strong>gestione sus grupos</strong>, pase <strong>lista</strong> y revise las <strong>justificaciones</strong> sin estrés y en tiempo récord.
+                        Bienvenido a su espacio. Todo está listo para que <strong>gestione sus grupos</strong>, pase
+                        <strong>lista</strong> y revise las <strong>justificaciones</strong> sin estrés y en tiempo
+                        récord.
                     </p>
-                    
-                    <button class="btn-action-banner fade-in-up" style="animation-delay: 0.4s;" onclick="loadSection('misClases')">
+
+                    <button class="btn-action-banner fade-in-up" style="animation-delay: 0.4s;"
+                        onclick="loadSection('misClases')">
                         Ir a mis clases <i class="fa-solid fa-arrow-right"></i>
                     </button>
                 </div>
-                
+
                 <div class="welcome-image-container fade-in-up" style="animation-delay: 0.3s;">
                     <div class="icon-glass-circle">
                         <i class="fa-solid fa-chalkboard-user"></i>
@@ -96,9 +100,9 @@
             </div>
 
             <h3 class="section-title">¿Qué desea hacer hoy?</h3>
-            
+
             <div class="features-grid">
-                
+
                 <div class="feature-card" onclick="loadSection('misClases')">
                     <div class="feature-icon icon-blue">
                         <i class="fa-solid fa-users-rectangle"></i>
@@ -115,7 +119,7 @@
                     <p>Registre la asistencia, retardos y faltas de sus alumnos de forma diaria y eficiente.</p>
                 </div>
 
-           <div class="feature-card" onclick="descargarReporteTrimestral()">
+                <div class="feature-card" onclick="descargarReporteTrimestral()">
                     <div class="feature-icon icon-red">
                         <i class="fa-solid fa-file-csv"></i>
                     </div>
@@ -130,7 +134,9 @@
     <footer class="creative-footer">
         <div class="footer-wave">
             <svg viewBox="0 0 1200 120" preserveAspectRatio="none">
-                <path d="M321.39,56.44c58-10.79,114.16-30.13,172-41.86,82.39-16.72,168.19-17.73,250.45-.39C823.78,31,906.67,72,985.66,92.83c70.05,18.48,146.53,26.09,214.34,3V0H0V46.35C50.7,56.33,115.05,62,176,63.26,242.4,64.62,283.08,60.61,321.39,56.44Z" class="shape-fill"></path>
+                <path
+                    d="M321.39,56.44c58-10.79,114.16-30.13,172-41.86,82.39-16.72,168.19-17.73,250.45-.39C823.78,31,906.67,72,985.66,92.83c70.05,18.48,146.53,26.09,214.34,3V0H0V46.35C50.7,56.33,115.05,62,176,63.26,242.4,64.62,283.08,60.61,321.39,56.44Z"
+                    class="shape-fill"></path>
             </svg>
         </div>
         <div class="footer-content">
@@ -150,6 +156,9 @@
     </footer>
 
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-    <script src="js/mainDocentes.js?v=8"></script>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.3.0/exceljs.min.js"></script>
+
+    <script src="js/mainDocentes.js?v=9"></script>
 </body>
 </html>

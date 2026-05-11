@@ -73,6 +73,36 @@ try {
             throw new Exception('Error al actualizar en la base de datos.');
         }
     }
+    elseif ($accion === 'obtener_estadisticas' && $metodo === 'GET') {
+        $trimestre = isset($_GET['trimestre']) ? (int)$_GET['trimestre'] : 2;
+        $anio = isset($_GET['anio']) ? (int)$_GET['anio'] : 2025; // Tu base de datos de prueba está en 2025
+        $respuesta = [
+            'ok' => true, 
+            'estadisticas' => ModeloPrefectura::mdlObtenerEstadisticasGrupos($trimestre, $anio)
+        ];
+    }
+    elseif ($accion === 'obtener_asistencia_exportar' && $metodo === 'GET') {
+        $grupo = $_GET['grupo'] ?? '';
+        $materia = $_GET['materia'] ?? '';
+        $f_inicio = $_GET['fecha_inicio'] ?? '';
+        $f_fin = $_GET['fecha_fin'] ?? '';
+
+        if (!$grupo || !$materia || !$f_inicio || !$f_fin) {
+            throw new Exception('Faltan parámetros para la búsqueda.');
+        }
+
+        $asistencia = ModeloPrefectura::mdlObtenerAsistenciaSemanal($grupo, $materia, $f_inicio, $f_fin);
+        $respuesta = ['ok' => true, 'datos' => $asistencia];
+    }
+    elseif ($accion === 'obtener_filtros_exportar' && $metodo === 'GET') {
+        $grupos = ModeloPrefectura::mdlListarGrupos();
+        $asignaturas = ModeloPrefectura::mdlListarAsignaturas();
+        $respuesta = [
+            'ok' => true, 
+            'grupos' => $grupos, 
+            'asignaturas' => $asignaturas
+        ];
+    }
     // AQUÍ ESTÁ LA NUEVA ACCIÓN DE CERRAR SESIÓN
     elseif ($accion === 'logout' && $metodo === 'POST') {
         session_unset();

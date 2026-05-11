@@ -10,7 +10,7 @@
                 <span class="brand-subtitle">Prefectura Escolar</span>
             </div>
         </div>
-        
+
         <nav class="sidebar-nav">
             <div class="nav-section">
                 <span class="nav-section-title">SOLICITUDES</span>
@@ -37,7 +37,7 @@
                     <span class="nav-label">Exportar Datos</span>
                 </button>
             </div>
-            
+
             <div class="nav-section">
                 <span class="nav-section-title">HERRAMIENTAS</span>
                 <button class="sub-nav-item" data-target="section-configuracion">
@@ -46,10 +46,11 @@
                 </button>
             </div>
         </nav>
-        
+
         <div class="sidebar-footer">
             <div class="footer-user">
-                <img src="https://ui-avatars.com/api/?name=Prefecto+Juan&background=192A56&color=fff&size=32" alt="Prefecto">
+                <img src="https://ui-avatars.com/api/?name=Prefecto+Juan&background=192A56&color=fff&size=32"
+                    alt="Prefecto">
                 <div>
                     <span class="footer-name">Prefecto Juan</span>
                     <span class="footer-role">Administrador</span>
@@ -60,7 +61,7 @@
 
     <!-- CONTENIDO PRINCIPAL -->
     <main class="control-main-container">
-        
+
         <!-- SECCIÓN BANDEJA DE SOLICITUDES -->
         <section id="section-bandeja" class="control-view">
             <div class="control-header">
@@ -68,13 +69,13 @@
                     <h2><i class="fa-solid fa-clipboard-list"></i> Solicitudes de Justificantes</h2>
                     <p>Gestiona y administra las solicitudes pendientes de los alumnos</p>
                 </div>
-                
+
                 <div class="header-controls">
                     <div class="search-box">
                         <i class="fa-solid fa-magnifying-glass"></i>
                         <input type="text" id="searchAlumno" placeholder="Buscar por nombre o matrícula...">
                     </div>
-                    
+
                     <div class="filter-box">
                         <i class="fa-solid fa-filter"></i>
                         <select id="filtro-grupo" class="select-moderno">
@@ -87,7 +88,7 @@
                             <option value="3B">3° B</option>
                         </select>
                     </div>
-                    
+
                     <div class="filter-box">
                         <i class="fa-solid fa-tag"></i>
                         <select id="filtro-motivo" class="select-moderno">
@@ -145,7 +146,15 @@
             <div class="table-wrapper">
                 <table id="tabla-historial" class="solicitudes-table">
                     <thead>
-                        <tr><th>Información del Alumno</th><th>Grupo</th><th>Motivo</th><th>Fecha</th><th>Estado</th><th>Resuelto por</th><th>Permiso</th></tr>
+                        <tr>
+                            <th>Información del Alumno</th>
+                            <th>Grupo</th>
+                            <th>Motivo</th>
+                            <th>Fecha</th>
+                            <th>Estado</th>
+                            <th>Resuelto por</th>
+                            <th>Permiso</th>
+                        </tr>
                     </thead>
                     <tbody>
                         <!-- El historial se cargará dinámicamente con JS -->
@@ -154,27 +163,49 @@
             </div>
         </section>
 
-        <!-- SECCIÓN ESTADÍSTICAS -->
         <section id="section-estadisticas" class="control-view hidden">
             <div class="control-header">
                 <div class="header-title">
                     <h2><i class="fa-solid fa-chart-simple"></i> Reporte de Asistencia</h2>
-                    <p>Monitorea asistencias e inasistencias del ciclo escolar 2026</p>
+                    <p>Monitorea asistencias e inasistencias por periodo escolar</p>
                 </div>
                 <div class="header-controls">
-                    <button class="btn-exportar" onclick="descargarReporteGeneral()"><i class="fa-solid fa-download"></i> Descargar Reporte PDF</button>
+                    <div class="filter-box">
+                        <i class="fa-regular fa-calendar-days"></i>
+                        <select id="filtro-trimestre" class="select-moderno">
+                            <option value="1">1° Trimestre (Ene-Mar)</option>
+                            <option value="2" selected>2° Trimestre (Abr-Jun)</option>
+                            <option value="3">3° Trimestre (Jul-Sep)</option>
+                            <option value="4">4° Trimestre (Oct-Dic)</option>
+                        </select>
+                    </div>
+                    <div class="filter-box">
+                        <i class="fa-solid fa-calendar-check"></i>
+                        <select id="filtro-anio" class="select-moderno">
+                            <option value="2024">2024</option>
+                            <option value="2025" selected>2025</option>
+                            <option value="2026">2026</option>
+                        </select>
+                    </div>
+                    <button class="btn-exportar" onclick="descargarReporteGeneral()"><i
+                            class="fa-solid fa-download"></i> PDF</button>
                 </div>
             </div>
             <div class="table-wrapper">
                 <h3 class="table-title"><i class="fa-solid fa-users-line"></i> Desglose por Grupos</h3>
-                <table class="stats-table">
-                    <thead><tr><th>Grupo</th><th>Alumnos</th><th>Asistencias</th><th>Inasistencias</th><th>Justificadas</th><th>% Asistencia</th><th>Acción</th></tr></thead>
-                    <tbody>
-                        <tr><td><strong>1° A</strong></td><td>35</td><td class="text-success">420</td><td class="text-danger">15</td><td>12</td><td><span class="porcentaje high">96%</span></td><td><button class="btn-link" onclick="verDetalleEstadisticas('1A','1° A')">Ver detalle</button></td></tr>
-                        <tr><td><strong>1° B</strong></td><td>34</td><td class="text-success">400</td><td class="text-danger">20</td><td>18</td><td><span class="porcentaje high">95%</span></td><td><button class="btn-link" onclick="verDetalleEstadisticas('1B','1° B')">Ver detalle</button></td></tr>
-                        <tr><td><strong>2° A</strong></td><td>36</td><td class="text-success">430</td><td class="text-danger">10</td><td>8</td><td><span class="porcentaje high">97%</span></td><td><button class="btn-link" onclick="verDetalleEstadisticas('2A','2° A')">Ver detalle</button></td></tr>
-                        <tr><td><strong>2° B</strong></td><td>32</td><td class="text-success">380</td><td class="text-danger">42</td><td>15</td><td><span class="porcentaje medium">89%</span></td><td><button class="btn-link" onclick="verDetalleEstadisticas('2B','2° B')">Ver detalle</button></td></tr>
-                    </tbody>
+                <table class="stats-table" id="tabla-estadisticas-grupos">
+                    <thead>
+                        <tr>
+                            <th>Grupo</th>
+                            <th>Registros Totales</th>
+                            <th>Asistencias</th>
+                            <th>Inasistencias</th>
+                            <th>Justificadas</th>
+                            <th>% Asistencia</th>
+                            <th>Acción</th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
                 </table>
             </div>
         </section>
@@ -182,59 +213,115 @@
         <!-- SECCIÓN EXPORTAR DATOS -->
         <section id="section-exportar" class="control-view hidden">
             <div class="control-header">
-                <div class="header-title"><h2><i class="fa-solid fa-file-export"></i> Exportar Listas de Asistencia</h2><p>Descarga listas detalladas por grupo, materia y semana</p></div>
+                <div class="header-title">
+                    <h2><i class="fa-solid fa-file-export"></i> Exportar Listas de Asistencia</h2>
+                    <p>Descarga listas detalladas por grupo, materia y semana</p>
+                </div>
             </div>
             <div class="export-selector-card">
                 <h3><i class="fa-solid fa-sliders"></i> Seleccionar Parámetros</h3>
-                <div class="export-selector-form">
-                    <div class="filter-box"><i class="fa-solid fa-users"></i><select id="export-grupo-asistencia" class="select-moderno"><option value="">Grupo...</option><option value="1A">1° A</option><option value="1B">1° B</option><option value="2A">2° A</option><option value="2B">2° B</option><option value="3A">3° A</option></select></div>
-                    <div class="filter-box"><i class="fa-solid fa-book"></i><select id="export-materia-asistencia" class="select-moderno"><option value="">Materia...</option><option value="matematicas">Matemáticas</option><option value="historia">Historia</option><option value="ciencias">Ciencias</option><option value="espanol">Español</option><option value="ingles">Inglés</option></select></div>
-                    <div class="filter-box"><i class="fa-solid fa-calendar-week"></i><select id="export-semana" class="select-moderno"><option value="">Semana...</option><option value="semana1">Semana 1: 01-04 Abr</option><option value="semana2">Semana 2: 07-11 Abr</option><option value="semana3">Semana 3: 14-18 Abr</option><option value="semana4">Semana 4: 21-25 Abr</option></select></div>
-                    <button class="btn-ver-vista-previa" onclick="mostrarVistaPreviaAsistencia()"><i class="fa-solid fa-magnifying-glass"></i> Ver Vista Previa</button>
+
+                <div class="export-modern-layout">
+
+                    <div class="list-selector-container">
+                        <label><i class="fa-solid fa-users"></i> Selecciona un Grupo</label>
+                        <div id="lista-grupos-exportar" class="dynamic-list">
+                        </div>
+                        <input type="hidden" id="export-grupo-asistencia" value="">
+                    </div>
+
+                    <div class="list-selector-container">
+                        <label><i class="fa-solid fa-book"></i> Selecciona una Materia</label>
+                        <div id="lista-materias-exportar" class="dynamic-list">
+                        </div>
+                        <input type="hidden" id="export-materia-asistencia" value="">
+                    </div>
+
+                    <div class="bottom-controls">
+                        <div class="list-selector-container date-container">
+                            <label><i class="fa-solid fa-calendar-week"></i> Semana de Asistencia</label>
+                            <input type="week" id="export-semana" class="input-moderno-fecha"
+                                title="Selecciona una semana">
+                        </div>
+
+                        <button class="btn-ver-vista-previa" onclick="mostrarVistaPreviaAsistencia()">
+                            <i class="fa-solid fa-magnifying-glass"></i> Ver Vista Previa
+                        </button>
+                    </div>
+
                 </div>
             </div>
             <div id="vista-previa-asistencia" class="table-wrapper hidden">
                 <div class="vista-previa-header">
                     <h3 id="titulo-vista-previa"><i class="fa-solid fa-list-check"></i> Lista de Asistencia</h3>
                     <div class="vista-previa-acciones">
-                        <button class="btn-descargar-formato" onclick="descargarListaPDF()"><i class="fa-solid fa-file-pdf"></i> PDF</button>
-                        <button class="btn-descargar-formato excel" onclick="descargarListaExcel()"><i class="fa-solid fa-file-excel"></i> Excel</button>
+                        <button class="btn-descargar-formato" onclick="descargarListaPDF()"><i
+                                class="fa-solid fa-file-pdf"></i> PDF</button>
+                        <button class="btn-descargar-formato excel" onclick="descargarListaExcel()"><i
+                                class="fa-solid fa-file-excel"></i> Excel</button>
                     </div>
                 </div>
                 <div class="table-scroll">
                     <table id="tabla-asistencia-previa" class="asistencia-table">
-                        <thead><tr><th rowspan="2">No.</th><th rowspan="2">Alumno</th><th colspan="5">Días de la Semana</th><th rowspan="2">Asist.</th><th rowspan="2">Faltas</th></tr><tr id="dias-semana-header"></tr></thead>
+                        <thead>
+                            <tr>
+                                <th rowspan="2">No.</th>
+                                <th rowspan="2">Alumno</th>
+                                <th colspan="5">Días de la Semana</th>
+                                <th rowspan="2">Asist.</th>
+                                <th rowspan="2">Faltas</th>
+                            </tr>
+                            <tr id="dias-semana-header"></tr>
+                        </thead>
                         <tbody id="cuerpo-tabla-asistencia"></tbody>
                     </table>
                 </div>
-                <div class="vista-previa-footer"><div class="resumen-asistencia" id="resumen-asistencia"></div></div>
+                <div class="vista-previa-footer">
+                    <div class="resumen-asistencia" id="resumen-asistencia"></div>
+                </div>
             </div>
         </section>
 
         <!-- SECCIÓN CONFIGURACIÓN -->
         <section id="section-configuracion" class="control-view hidden">
             <div class="control-header">
-                <div class="header-title"><h2><i class="fa-solid fa-gear"></i> Configuración del Sistema</h2><p>Personaliza los parámetros de la prefectura escolar</p></div>
+                <div class="header-title">
+                    <h2><i class="fa-solid fa-gear"></i> Configuración del Sistema</h2>
+                    <p>Personaliza los parámetros de la prefectura escolar</p>
+                </div>
             </div>
             <div class="config-grid">
                 <div class="config-card">
-                    <div class="config-card-header"><i class="fa-solid fa-school"></i><h3>Datos de la Escuela</h3></div>
+                    <div class="config-card-header"><i class="fa-solid fa-school"></i>
+                        <h3>Datos de la Escuela</h3>
+                    </div>
                     <div class="config-card-body">
-                        <div class="config-field"><label>Nombre de la Institución</label><input type="text" id="config-nombre-escuela" value='Esc.Sec.Gral. Lic. "Benito Juarez"' class="config-input"></div>
-                        <div class="config-field"><label>Dirección</label><input type="text" id="config-direccion" value="Miguel Hidalgo 14, Educación, 42952 Tlaxcoapan, Hgo." class="config-input"></div>
-                        <div class="config-field"><label>Teléfono</label><input type="text" id="config-telefono" value="778 737 0111" class="config-input"></div>
-                        <button class="btn-guardar-config" onclick="guardarConfiguracion()"><i class="fa-solid fa-floppy-disk"></i> Guardar Cambios</button>
+                        <div class="config-field"><label>Nombre de la Institución</label><input type="text"
+                                id="config-nombre-escuela" value='Esc.Sec.Gral. Lic. "Benito Juarez"'
+                                class="config-input"></div>
+                        <div class="config-field"><label>Dirección</label><input type="text" id="config-direccion"
+                                value="Miguel Hidalgo 14, Educación, 42952 Tlaxcoapan, Hgo." class="config-input"></div>
+                        <div class="config-field"><label>Teléfono</label><input type="text" id="config-telefono"
+                                value="778 737 0111" class="config-input"></div>
+                        <button class="btn-guardar-config" onclick="guardarConfiguracion()"><i
+                                class="fa-solid fa-floppy-disk"></i> Guardar Cambios</button>
                     </div>
                 </div>
-                
+
                 <!-- AQUÍ ESTÁ LA MAGIA DE LOS IDs SEPARADOS -->
                 <div class="config-card">
-                    <div class="config-card-header"><i class="fa-solid fa-user-tie"></i><h3>Datos del Prefecto</h3></div>
+                    <div class="config-card-header"><i class="fa-solid fa-user-tie"></i>
+                        <h3>Datos del Prefecto</h3>
+                    </div>
                     <div class="config-card-body">
-                        <div class="config-field"><label>Nombre</label><input type="text" id="config-nombre-prefecto" class="config-input"></div>
-                        <div class="config-field"><label>Apellido(s)</label><input type="text" id="config-apellido-prefecto" class="config-input"></div>
-                        <div class="config-field"><label>Correo Electrónico</label><input type="email" id="config-email" class="config-input"></div>
-                        <button class="btn-guardar-config" onclick="guardarConfiguracion()"><i class="fa-solid fa-floppy-disk"></i> Guardar Cambios</button>
+                        <div class="config-field"><label>Nombre</label><input type="text" id="config-nombre-prefecto"
+                                class="config-input"></div>
+                        <div class="config-field"><label>Apellido(s)</label><input type="text"
+                                id="config-apellido-prefecto" class="config-input"></div>
+                        <div class="config-field"><label>Correo Electrónico</label><input type="email" id="config-email"
+                                class="config-input"></div>
+                        <button class="btn-guardar-config" onclick="guardarConfiguracion()"><i
+                                class="fa-solid fa-floppy-disk"></i> Guardar Cambios</button>
                     </div>
                 </div>
             </div>

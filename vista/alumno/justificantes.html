@@ -162,10 +162,7 @@
                         <label><i class="fa-solid fa-users text-primary"></i> Grupo</label>
                         <input type="text" id="dato-grupo" class="input-modern" readonly>
                     </div>
-                    <div class="form-group">
-                        <label><i class="fa-solid fa-user-tie text-primary"></i> Tutor</label>
-                        <input type="text" id="dato-tutor" class="input-modern" readonly>
-                    </div>
+                  
                     <div class="form-group">
                         <label><i class="fa-solid fa-phone text-primary"></i> Teléfono del Tutor</label>
                         <input type="text" id="dato-telefono-tutor" class="input-modern" readonly>
@@ -216,6 +213,12 @@
                     </div>
                 </div>
 
+                 <!-- FECHA ÚNICA -->
+              <div id="contenedor-fecha-unica" class="form-group mt-20">
+    <label><i class="fa-regular fa-calendar text-primary"></i> Fecha de Inasistencia</label>
+    <input type="date" id="fecha-inasistencia" class="input-modern" onchange="cargarMateriasPorDia()">
+</div>
+
                 <!-- SELECTOR DE MATERIAS -->
                 <div id="contenedor-materias" class="hidden mt-20">
                     <div class="form-group">
@@ -224,12 +227,7 @@
                     </div>
                 </div>
 
-                <!-- FECHA ÚNICA -->
-                <div id="contenedor-fecha-unica" class="form-group mt-20">
-                    <label><i class="fa-regular fa-calendar text-primary"></i> Fecha de Inasistencia</label>
-                    <input type="date" id="fecha-inasistencia" class="input-modern">
-                </div>
-
+               
                 <div class="form-grid mt-20">
                     <div class="form-group">
                         <label><i class="fa-solid fa-clipboard-question text-primary"></i> Motivo de la falta</label>

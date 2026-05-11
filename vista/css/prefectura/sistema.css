@@ -9,7 +9,7 @@
     --color-gris-claro: #EAEAEA;
     --white: #FFFFFF;
     --bg: #F8FAFC;
-    
+
     --primary: #3B82F6;
     --primary-dark: #1E40AF;
     --success: #10B981;
@@ -17,23 +17,25 @@
     --danger: #EF4444;
     --text-main: #1E293B;
     --text-muted: #64748B;
-    
+
     --bg-card: #FFFFFF;
     --bg-hover: #F1F5F9;
     --border: #E2E8F0;
     --border-light: #F1F5F9;
-    
-    --shadow-xs: 0 1px 2px rgba(0,0,0,0.04);
-    --shadow-sm: 0 2px 8px rgba(0,0,0,0.06);
-    --shadow-md: 0 4px 16px rgba(0,0,0,0.08);
-    
+
+    --shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.04);
+    --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.06);
+    --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.08);
+
     --radius-sm: 6px;
     --radius-md: 10px;
     --radius-lg: 14px;
     --radius-xl: 18px;
 }
 
-* { box-sizing: border-box; }
+* {
+    box-sizing: border-box;
+}
 
 /* ==========================================
    LAYOUT PRINCIPAL
@@ -46,10 +48,20 @@
     background: #F8FAFC;
 }
 
-.fade-in { animation: fadeSlideIn 0.3s ease-out; }
+.fade-in {
+    animation: fadeSlideIn 0.3s ease-out;
+}
+
 @keyframes fadeSlideIn {
-    from { opacity: 0; transform: translateY(8px); }
-    to { opacity: 1; transform: translateY(0); }
+    from {
+        opacity: 0;
+        transform: translateY(8px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
 }
 
 /* ==========================================
@@ -62,6 +74,7 @@
     box-shadow: var(--shadow-xs);
     border: 1px solid #E2E8F0;
 }
+
 .control-header h2 {
     margin: 0;
     font-size: 1.1rem;
@@ -71,13 +84,15 @@
     gap: 8px;
     font-weight: 700;
 }
-.control-header h2 i { 
+
+.control-header h2 i {
     color: #192A56;
 }
-.control-header p { 
-    margin: 4px 0 0; 
-    font-size: 0.8rem; 
-    color: #64748B; 
+
+.control-header p {
+    margin: 4px 0 0;
+    font-size: 0.8rem;
+    color: #64748B;
 }
 
 /* ==========================================
@@ -112,12 +127,14 @@
     align-items: center;
     gap: 10px;
 }
+
 .config-section-header i {
     color: #192A56;
     font-size: 1.1rem;
     width: 22px;
     text-align: center;
 }
+
 .config-section-header h3 {
     margin: 0;
     font-size: 0.95rem;
@@ -140,7 +157,10 @@
     margin-bottom: 16px;
     flex-wrap: wrap;
 }
-.config-row:last-child { margin-bottom: 0; }
+
+.config-row:last-child {
+    margin-bottom: 0;
+}
 
 .config-label {
     min-width: 180px;
@@ -171,11 +191,13 @@
     transition: all 0.2s;
     min-width: 200px;
 }
+
 .config-input:focus {
     border-color: #192A56;
     background: #FFFFFF;
     box-shadow: 0 0 0 3px rgba(25, 42, 86, 0.08);
 }
+
 .config-input option {
     background: #FFFFFF;
     color: #1E293B;
@@ -212,8 +234,9 @@
     gap: 8px;
     margin-top: 8px;
 }
-.config-alerta i { 
-    font-size: 0.85rem; 
+
+.config-alerta i {
+    font-size: 0.85rem;
     color: #EF4444;
 }
 
@@ -268,6 +291,7 @@
     transition: all 0.2s;
     font-family: inherit;
 }
+
 .btn-guardar-sistema:hover {
     background: #D6A848;
     color: #192A56;
@@ -284,13 +308,16 @@
         align-items: flex-start;
         gap: 8px;
     }
+
     .config-label {
         min-width: auto;
     }
+
     .trimestre-item {
         flex-direction: column;
         align-items: flex-start;
     }
+
     .config-input {
         width: 100%;
     }

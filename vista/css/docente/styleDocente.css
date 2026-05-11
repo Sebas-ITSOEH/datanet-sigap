@@ -58,33 +58,35 @@ body {
 
 .logo-box {
     color: var(--color-dorado);
-    font-size: 1.8rem;
+    font-size: 2.2rem; /* Lo hacemos un pelín más grande para que haga juego */
     display: flex;
     align-items: center;
     justify-content: center;
+    margin-right: 15px; /* <--- ESTO SEPARA EL ICONO DEL TEXTO */
 }
 
 .header-titles {
     display: flex;
     flex-direction: column;
-    margin-right: 10px;
+    justify-content: center;
+    gap: 6px; /* <--- MAGIA: Esto empuja el texto de abajo a la fuerza */
 }
 
 .header-titles h1 {
     font-family: 'Nunito', sans-serif;
-    font-size: 1.3rem;
-    margin: 0;
-    font-weight: 800;
+    font-size: 1.4rem; 
+    margin: 0; 
+    font-weight: 900; 
     color: var(--white);
-    line-height: 1.1;
-    letter-spacing: 0.5px;
+    line-height: 0.9; /* <--- Reduce el espacio extra invisible de la fuente */
+    letter-spacing: 2px; /* <--- Letras un poco más separadas */
 }
 
 .header-titles span { 
-    font-size: 0.7rem; 
+    font-size: 0.75rem; 
     color: var(--color-dorado); 
     text-transform: uppercase; 
-    letter-spacing: 0.5px; 
+    letter-spacing: 0.8px; 
     font-weight: 700;
 }
 

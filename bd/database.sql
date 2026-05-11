@@ -1,8 +1,7 @@
 DROP DATABASE IF EXISTS datanet;
-
 CREATE DATABASE IF NOT EXISTS datanet;
-
 USE datanet;
+
 -- =========================================
 -- 👤 USUARIOS (SOLO 3 ROLES)
 -- =========================================
@@ -121,7 +120,7 @@ CREATE TABLE justificantes (
     fecha_fin DATE NOT NULL,
     asunto VARCHAR(100),
     descripcion TEXT,
-    archivo_url VARCHAR(255),
+    archivo_url TEXT,
     estado ENUM('pendiente','aprobado','rechazado') DEFAULT 'pendiente',
     fecha_limite DATE,
     fecha_solicitud TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -617,21 +616,50 @@ LEFT JOIN cursos c ON i.id_curso = c.id_curso
 LEFT JOIN grupos g ON c.id_grupo = g.id_grupo
 WHERE u.rol = 'alumno';
 
+-- ===========================================================
 
--- REGISTROS DE PRUEBA PARA SOLICITUD
--- 1. Justificante de 3 días (Lunes a Miércoles) para el alumno ID 7 (Juan Carlos)
--- Esto afectará sus clases de Lunes (Matemáticas, Español), Martes (Historia) y Miércoles (Matemáticas, Español)
-INSERT INTO justificantes (id_usuario, fecha_inicio, fecha_fin, asunto, descripcion, estado, fecha_limite) 
-VALUES (7, '2024-10-14', '2024-10-16', 'Motivos de Salud', 'Infección estomacal severa, se receta reposo absoluto por 3 días.', 'pendiente', '2024-10-20');
+-- Actualizar el ENUM para que acepte nuestra nueva etiqueta (sin romper nada)
+ALTER TABLE asistencias MODIFY COLUMN estado_final ENUM('presente','falta','retardo','dudoso','falta_retardo') DEFAULT 'falta';
 
--- 2. Justificante de 1 día (Martes) para el alumno ID 8 (Luis Ángel)
--- Esto afectará solo sus clases del Martes (Historia)
-INSERT INTO justificantes (id_usuario, fecha_inicio, fecha_fin, asunto, descripcion, estado, fecha_limite) 
-VALUES (8, '2024-10-15', '2024-10-15', 'Asunto Familiar', 'Cita para trámite de pasaporte y visa fuera de la ciudad.', 'pendiente', '2024-10-20');
+-- 1. Creamos las 5 sesiones de la semana para Educación Física (id_curso = 9)
+INSERT IGNORE INTO sesiones (id_curso, fecha, hora_inicio, hora_fin, codigo_actual) VALUES 
+(9, '2026-05-04', '14:00:00', '15:00:00', 'EDF-20260504'),
+(9, '2026-05-05', '14:00:00', '15:00:00', 'EDF-20260505'),
+(9, '2026-05-06', '14:00:00', '15:00:00', 'EDF-20260506'),
+(9, '2026-05-07', '14:00:00', '15:00:00', 'EDF-20260507'),
+(9, '2026-05-08', '14:00:00', '15:00:00', 'EDF-20260508');
 
--- 3. Justificante de 2 días (Jueves y Viernes) para el alumno ID 12 (Sofía)
--- Esto afectará sus clases del Jueves y Viernes
-INSERT INTO justificantes (id_usuario, fecha_inicio, fecha_fin, asunto, descripcion, estado, fecha_limite) 
-VALUES (12, '2024-10-17', '2024-10-18', 'Competencia Deportiva', 'Torneo estatal de atletismo representando a la institución.', 'aprobado', '2024-10-25');
+-- 2. Asignamos los IDs de las sesiones a variables
+SET @sesion_4 = (SELECT id_sesion FROM sesiones WHERE codigo_actual = 'EDF-20260504');
+SET @sesion_5 = (SELECT id_sesion FROM sesiones WHERE codigo_actual = 'EDF-20260505');
+SET @sesion_6 = (SELECT id_sesion FROM sesiones WHERE codigo_actual = 'EDF-20260506');
+SET @sesion_7 = (SELECT id_sesion FROM sesiones WHERE codigo_actual = 'EDF-20260507');
+SET @sesion_8 = (SELECT id_sesion FROM sesiones WHERE codigo_actual = 'EDF-20260508');
+
+-- 3. Registramos la actividad de toda la semana para Juan Carlos (id_usuario = 7)
+INSERT INTO asistencias (id_sesion, id_usuario, estado_final, validado_docente) VALUES 
+(@sesion_4, 7, 'retardo', TRUE),       -- Lunes: Retardo 1
+(@sesion_5, 7, 'presente', TRUE),      -- Martes: Asistencia normal
+(@sesion_6, 7, 'retardo', TRUE),       -- Miércoles: Retardo 2
+(@sesion_7, 7, 'falta', TRUE),         -- Jueves: Falta normal
+(@sesion_8, 7, 'falta_retardo', TRUE)  -- Viernes: Falta por acumulación (3er Retardo)
+ON DUPLICATE KEY UPDATE 
+    estado_final = VALUES(estado_final),
+    validado_docente = TRUE;
+
+-- Borrar las asistencias ligadas a esas 5 sesiones de prueba
+DELETE FROM asistencias 
+WHERE id_sesion IN (
+    SELECT id_sesion FROM sesiones 
+    WHERE codigo_actual IN ('EDF-20260504', 'EDF-20260505', 'EDF-20260506', 'EDF-20260507', 'EDF-20260508')
+);
+
+-- Borrar las sesiones del 4, 5, 6, 7 y 8 de mayo de Educación Física
+DELETE FROM sesiones 
+WHERE codigo_actual IN ('EDF-20260504', 'EDF-20260505', 'EDF-20260506', 'EDF-20260507', 'EDF-20260508');
+
+-- ===========================================================
 
 select * from usuarios;
+
+USE datanet;

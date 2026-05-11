@@ -151,18 +151,6 @@ body {
     border-color: var(--color-rojo-oscuro); 
 }
 
-.notif-badge {
-    position: absolute;
-    top: -5px;
-    right: -5px;
-    background: var(--color-rojo-oscuro);
-    color: white;
-    font-size: 0.65rem;
-    padding: 2px 5px;
-    border-radius: 50%;
-    border: 2px solid var(--color-azul-marino);
-}
-
 .perfil-header {
     display: flex;
     align-items: center;
@@ -291,3 +279,56 @@ main {
     font-size: 0.8rem; 
     color: var(--color-gris-claro);
 }
+
+/* =========================================
+   MODAL CERRAR SESIÓN
+========================================= */
+.modal-logout-overlay {
+    position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+    background: rgba(0,0,0,0.6); backdrop-filter: blur(4px);
+    z-index: 9999; display: flex; justify-content: center; align-items: center;
+}
+.modal-logout-overlay.hidden { display: none !important; }
+
+.modal-logout-content {
+    background: white; border-radius: 12px; width: 90%; max-width: 420px;
+    padding: 30px; text-align: left; box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+}
+
+.logout-icon-container {
+    width: 80px; height: 80px; border-radius: 50%;
+    border: 4px solid #FDBA74; /* Naranja clarito de tu diseño */
+    color: #FDBA74; display: flex; justify-content: center; align-items: center;
+    font-size: 3rem; margin: 0 auto 20px; /* Centrado */
+}
+
+.modal-logout-content h3 {
+    color: var(--color-azul-marino); font-size: 1.6rem; font-weight: 800; margin: 0 0 10px 0;
+}
+
+.logout-divider {
+    border: none; border-top: 2px solid var(--color-dorado);
+    margin: 10px 0 15px 0;
+}
+
+.modal-logout-content p {
+    color: #475569; font-size: 1.05rem; margin-bottom: 30px;
+}
+
+.logout-actions {
+    display: flex; justify-content: center; gap: 15px;
+}
+
+.btn-logout-confirm {
+    background: var(--color-azul-marino); color: white; border: none;
+    padding: 10px 24px; border-radius: 6px; font-size: 1rem; font-weight: 600; 
+    cursor: pointer; display: flex; align-items: center; gap: 8px; transition: 0.2s;
+}
+.btn-logout-confirm:hover { background: #111D3E; transform: translateY(-2px); }
+
+.btn-logout-cancel {
+    background: #64748B; color: white; border: none;
+    padding: 10px 24px; border-radius: 6px; font-size: 1rem; font-weight: 600; 
+    cursor: pointer; transition: 0.2s;
+}
+.btn-logout-cancel:hover { background: #475569; transform: translateY(-2px); }

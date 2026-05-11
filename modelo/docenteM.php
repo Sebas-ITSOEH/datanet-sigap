@@ -105,85 +105,133 @@ class Docente
     // ============================================================
     // CORREGIDO: SIN u.direccion, SIN LEFT JOIN tutor
     // ============================================================
-    public function listarAlumnosCurso($idDocente, $idCurso)
-    {
-        $this->validarCursoDocente($idDocente, $idCurso);
+  public function listarAlumnosCurso($idDocente, $idCurso)
+{
+    $this->validarCursoDocente($idDocente, $idCurso);
 
-        $stmt = $this->db->prepare(
-            'SELECT
-                u.id_usuario AS id,
-                CONCAT(u.nombre, " ", u.apellido) AS nombre,
-                u.matricula_escolar AS matricula,
-                u.correo,
-                u.telefono,
-                u.curp
-             FROM inscripciones i
-             INNER JOIN usuarios u ON i.id_alumno = u.id_usuario
-             WHERE i.id_curso = :id_curso AND u.rol = "alumno" AND u.estado = TRUE
-             ORDER BY u.apellido, u.nombre'
-        );
-        $stmt->execute([':id_curso' => $idCurso]);
+    $stmt = $this->db->prepare(
+        'SELECT
+            u.id_usuario AS id,
+            CONCAT(u.nombre, " ", u.apellido) AS nombre,
+            u.nombre AS nombre_simple,
+            u.apellido,
+            u.matricula_escolar AS matricula,
+            u.correo,
+            u.telefono,
+            u.telefono AS telefonoTutor,
+            u.curp,
+            CONCAT(u.nombre, " ", u.apellido) AS tutor
+         FROM inscripciones i
+         INNER JOIN usuarios u ON i.id_alumno = u.id_usuario
+         WHERE i.id_curso = :id_curso AND u.rol = "alumno" AND u.estado = TRUE
+         ORDER BY u.apellido, u.nombre'
+    );
+    $stmt->execute([':id_curso' => $idCurso]);
 
-        return $stmt->fetchAll();
-    }
+    return $stmt->fetchAll();
+}
 
     // ============================================================
     // CORREGIDO: SIN LEFT JOIN tutor
     // ============================================================
     public function listarAlumnosDisponibles($idDocente, $idCurso)
-    {
-        $this->validarCursoDocente($idDocente, $idCurso);
+{
+    $this->validarCursoDocente($idDocente, $idCurso);
 
-        $stmt = $this->db->prepare(
-            'SELECT
-                u.id_usuario AS id,
-                CONCAT(u.nombre, " ", u.apellido) AS nombre,
-                u.matricula_escolar AS matricula,
-                u.correo,
-                u.telefono
-             FROM usuarios u
-             WHERE u.rol = "alumno"
-             AND u.estado = TRUE
-             AND NOT EXISTS (
-                SELECT 1 FROM inscripciones i
-                WHERE i.id_curso = :id_curso AND i.id_alumno = u.id_usuario
-             )
-             ORDER BY u.apellido, u.nombre'
-        );
-        $stmt->execute([':id_curso' => $idCurso]);
+    $stmt = $this->db->prepare(
+        'SELECT
+            u.id_usuario AS id,
+            CONCAT(u.nombre, " ", u.apellido) AS nombre,
+            u.nombre AS nombre_simple,
+            u.apellido,
+            u.matricula_escolar AS matricula,
+            u.correo,
+            u.telefono,
+            u.telefono AS telefonoTutor,
+            u.curp,
+            CONCAT(u.nombre, " ", u.apellido) AS tutor
+         FROM usuarios u
+         WHERE u.rol = "alumno"
+         AND u.estado = TRUE
+         AND NOT EXISTS (
+            SELECT 1 FROM inscripciones i
+            WHERE i.id_curso = :id_curso AND i.id_alumno = u.id_usuario
+         )
+         ORDER BY u.apellido, u.nombre'
+    );
+    $stmt->execute([':id_curso' => $idCurso]);
 
-        return $stmt->fetchAll();
-    }
+    return $stmt->fetchAll();
+}
 
     // ============================================================
     // CORREGIDO: SIN LEFT JOIN tutor
     // ============================================================
     public function buscarAlumnoPorMatricula($idDocente, $idCurso, $matricula)
-    {
-        $this->validarCursoDocente($idDocente, $idCurso);
+{
+    $this->validarCursoDocente($idDocente, $idCurso);
 
-        $stmt = $this->db->prepare(
+    $stmt = $this->db->prepare(
+        'SELECT
+            u.id_usuario AS id,
+            CONCAT(u.nombre, " ", u.apellido) AS nombre,
+            u.nombre AS nombre_simple,
+            u.apellido,
+            u.matricula_escolar AS matricula,
+            u.correo,
+            u.telefono,
+            u.telefono AS telefonoTutor,
+            u.curp,
+            CONCAT(u.nombre, " ", u.apellido) AS tutor,
+            EXISTS (
+                SELECT 1 FROM inscripciones i
+                WHERE i.id_curso = :id_curso AND i.id_alumno = u.id_usuario
+            ) AS inscrito
+         FROM usuarios u
+         WHERE u.rol = "alumno" AND u.estado = TRUE AND u.matricula_escolar = :matricula
+         LIMIT 1'
+    );
+    $stmt->execute([
+        ':id_curso' => $idCurso,
+        ':matricula' => $matricula,
+    ]);
+
+    $resultado = $stmt->fetch();
+    
+    // Si no se encuentra por matrícula exacta, buscar por coincidencia parcial
+    if (!$resultado) {
+        $stmt2 = $this->db->prepare(
             'SELECT
                 u.id_usuario AS id,
                 CONCAT(u.nombre, " ", u.apellido) AS nombre,
+                u.nombre AS nombre_simple,
+                u.apellido,
                 u.matricula_escolar AS matricula,
                 u.correo,
                 u.telefono,
+                u.telefono AS telefonoTutor,
+                u.curp,
+                CONCAT(u.nombre, " ", u.apellido) AS tutor,
                 EXISTS (
                     SELECT 1 FROM inscripciones i
                     WHERE i.id_curso = :id_curso AND i.id_alumno = u.id_usuario
                 ) AS inscrito
              FROM usuarios u
-             WHERE u.rol = "alumno" AND u.estado = TRUE AND u.matricula_escolar = :matricula
+             WHERE u.rol = "alumno" AND u.estado = TRUE 
+             AND (u.matricula_escolar LIKE :matricula_like 
+                  OR CONCAT(u.nombre, " ", u.apellido) LIKE :nombre_like)
              LIMIT 1'
         );
-        $stmt->execute([
+        $stmt2->execute([
             ':id_curso' => $idCurso,
-            ':matricula' => $matricula,
+            ':matricula_like' => '%' . $matricula . '%',
+            ':nombre_like' => '%' . $matricula . '%',
         ]);
-
-        return $stmt->fetch();
+        $resultado = $stmt2->fetch();
     }
+
+    return $resultado;
+}
 
     public function agregarAlumno($idDocente, $idCurso, $idAlumno)
     {
@@ -230,39 +278,41 @@ class Docente
         }, $cursos);
     }
 
-    public function obtenerListaAsistencia($idDocente, $idCurso, $fecha)
-    {
-        $this->validarCursoDocente($idDocente, $idCurso);
-        $idSesion = $this->obtenerOCrearSesion($idCurso, $fecha);
+   public function obtenerListaAsistencia($idDocente, $idCurso, $fecha)
+{
+    $this->validarCursoDocente($idDocente, $idCurso);
+    $idSesion = $this->obtenerOCrearSesion($idCurso, $fecha);
 
-        $stmt = $this->db->prepare(
-            'SELECT
-                u.id_usuario AS id,
-                CONCAT(u.apellido, ", ", u.nombre) AS nombre,
-                u.matricula_escolar AS matricula,
-                COALESCE(a.estado_final, "pendiente") AS estado,
-                CASE WHEN j.id_justificante IS NULL THEN 0 ELSE 1 END AS justificado,
-                j.asunto AS motivo_justificante
-             FROM inscripciones i
-             INNER JOIN usuarios u ON i.id_alumno = u.id_usuario
-             LEFT JOIN asistencias a ON a.id_sesion = :id_sesion AND a.id_usuario = u.id_usuario
-             LEFT JOIN justificantes j ON j.id_usuario = u.id_usuario
-                AND j.estado = "aprobado"
-                AND :fecha BETWEEN j.fecha_inicio AND j.fecha_fin
-             WHERE i.id_curso = :id_curso AND u.estado = TRUE
-             ORDER BY u.apellido, u.nombre'
-        );
-        $stmt->execute([
-            ':id_sesion' => $idSesion,
-            ':fecha' => $fecha,
-            ':id_curso' => $idCurso,
-        ]);
+    $stmt = $this->db->prepare(
+        'SELECT
+            u.id_usuario AS id,
+            CONCAT(u.apellido, ", ", u.nombre) AS nombre,
+            u.matricula_escolar AS matricula,
+            u.telefono AS telefonoTutor,
+            COALESCE(a.estado_final, "pendiente") AS estado,
+            CASE WHEN j.id_justificante IS NULL THEN 0 ELSE 1 END AS justificado,
+            j.asunto AS motivo_justificante,
+            j.archivo_url AS archivo_justificante
+         FROM inscripciones i
+         INNER JOIN usuarios u ON i.id_alumno = u.id_usuario
+         LEFT JOIN asistencias a ON a.id_sesion = :id_sesion AND a.id_usuario = u.id_usuario
+         LEFT JOIN justificantes j ON j.id_usuario = u.id_usuario
+            AND j.estado = "aprobado"
+            AND :fecha BETWEEN j.fecha_inicio AND j.fecha_fin
+         WHERE i.id_curso = :id_curso AND u.estado = TRUE
+         ORDER BY u.apellido, u.nombre'
+    );
+    $stmt->execute([
+        ':id_sesion' => $idSesion,
+        ':fecha' => $fecha,
+        ':id_curso' => $idCurso,
+    ]);
 
-        return [
-            'id_sesion' => $idSesion,
-            'alumnos' => $stmt->fetchAll(),
-        ];
-    }
+    return [
+        'id_sesion' => $idSesion,
+        'alumnos' => $stmt->fetchAll(),
+    ];
+}
 
     public function guardarAsistencia($idDocente, $idCurso, $fecha, array $registros)
     {
@@ -280,11 +330,40 @@ class Docente
                 fecha_hora_registro = CURRENT_TIMESTAMP'
         );
 
+        // NUEVO: Preparamos la consulta para contar los retardos previos del alumno en este curso.
+        // Excluimos la sesión actual (id_sesion_actual) por si el profe está actualizando una lista ya guardada.
+        $stmtRetardos = $this->db->prepare(
+            'SELECT COUNT(*) FROM asistencias a
+             INNER JOIN sesiones s ON a.id_sesion = s.id_sesion
+             WHERE a.id_usuario = :id_usuario 
+               AND s.id_curso = :id_curso 
+               AND a.estado_final = "retardo"
+               AND a.id_sesion != :id_sesion_actual'
+        );
+
         foreach ($registros as $registro) {
             $estado = $this->mapearEstadoAsistencia($registro['estado'] ?? 'falta');
+            $idAlumno = (int) $registro['id_alumno'];
+
+            // === MAGIA: 3 RETARDOS = 1 FALTA ===
+            if ($estado === 'retardo') {
+                $stmtRetardos->execute([
+                    ':id_usuario' => $idAlumno,
+                    ':id_curso' => $idCurso,
+                    ':id_sesion_actual' => $idSesion
+                ]);
+                $cantidadRetardos = (int) $stmtRetardos->fetchColumn();
+
+                // Usamos módulo (%) para que aplique cada 3 retardos (ej. el 3, el 6, el 9...)
+                if (($cantidadRetardos + 1) % 3 === 0) {
+                    $estado = 'falta_retardo'; // Sobre-escribimos el estado antes de insertarlo en la BD
+                }
+            }
+            // =====================================
+
             $stmt->execute([
                 ':id_sesion' => $idSesion,
-                ':id_usuario' => (int) $registro['id_alumno'],
+                ':id_usuario' => $idAlumno,
                 ':estado' => $estado,
             ]);
         }
@@ -547,7 +626,8 @@ class Docente
     private function mapearEstadoAsistencia($estado)
     {
         $mapa = ['asistencia' => 'presente', 'presente' => 'presente', 'retardo' => 'retardo',
-                 'falta' => 'falta', 'dudoso' => 'dudoso', 'pendiente' => 'falta'];
+                 'falta' => 'falta', 'dudoso' => 'dudoso', 'pendiente' => 'falta', 
+                 'falta_retardo' => 'falta_retardo']; // <--- NUEVO
         return $mapa[$estado] ?? 'falta';
     }
 

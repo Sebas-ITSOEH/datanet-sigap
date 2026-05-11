@@ -46,10 +46,6 @@
         </ul>
 
         <div class="acciones-usuario-portal">
-            <button class="btn-icon btn-notifications" title="Notificaciones">
-                <i class="fa-solid fa-bell"></i>
-                <span class="notif-badge">3</span>
-            </button>
 
             <div class="perfil-header user-profile" onclick="loadSection('perfil')">
                 <div class="user-text">
@@ -93,6 +89,25 @@
             </div>
         </div>
     </footer>
+
+    <div class="modal-logout-overlay hidden" id="modal-logout">
+        <div class="modal-logout-content fade-in">
+            <div class="logout-icon-container">
+                <i class="fa-solid fa-exclamation"></i>
+            </div>
+            <h3>¿Cerrar Sesión?</h3>
+            <hr class="logout-divider">
+            <p>Vas a salir del Portal Alumno.</p>
+            <div class="logout-actions">
+                <button class="btn-logout-confirm" onclick="ejecutarLogout()">
+                    <i class="fa-solid fa-arrow-right-from-bracket"></i> Sí, salir
+                </button>
+                <button class="btn-logout-cancel" onclick="cerrarModalLogout()">
+                    Cancelar
+                </button>
+            </div>
+        </div>
+    </div>
 
     <script src="js/mainAlumno.js"></script>
 </body>

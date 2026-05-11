@@ -21,96 +21,135 @@ class ModeloPrefectura {
         return $stmt->execute() ? "ok" : "error";
     }
 
+    private static function extraerMetadataJustificante($descripcion) {
+        if (preg_match('/<!--METADATA:(.*?):METADATA-->/s', $descripcion ?? '', $matches)) {
+            $metadata = json_decode($matches[1], true);
+            return is_array($metadata) ? $metadata : [];
+        }
+        return [];
+    }
+
+    private static function limpiarDescripcionJustificante($descripcion) {
+        return trim(preg_replace('/\s*<!--METADATA:.*?:METADATA-->/s', '', $descripcion ?? ''));
+    }
+
     // ============================================================
     // LISTAR SOLICITUDES CON CRUCE DE MATERIAS AFECTADAS
     // ============================================================
-    public static function mdlListarSolicitudes($grupo = 'todos') {
-        $pdo = Conexion::conectar();
-        
-        $sql = "
-            SELECT 
-                j.id_justificante, j.id_usuario, j.fecha_inicio, j.fecha_fin, j.asunto, j.descripcion, 
-                j.archivo_url, j.estado, j.fecha_solicitud,
-                u.nombre AS alumno_nombre, u.apellido AS alumno_apellido, u.matricula_escolar,
-                u.telefono AS telefono_tutor,
-                COALESCE(g.nombre, 'Sin grupo') AS grupo
-            FROM justificantes j
-            INNER JOIN usuarios u ON j.id_usuario = u.id_usuario
-            LEFT JOIN inscripciones i ON u.id_usuario = i.id_alumno
-            LEFT JOIN cursos c ON i.id_curso = c.id_curso
-            LEFT JOIN grupos g ON c.id_grupo = g.id_grupo
-            WHERE 1=1
-        ";
-        
-        if ($grupo !== 'todos' && $grupo !== '') {
-            $sql .= " AND g.nombre = :grupo";
-        }
-        
-        $sql .= " GROUP BY j.id_justificante, j.id_usuario, j.fecha_inicio, j.fecha_fin, j.asunto, j.descripcion, j.archivo_url, j.estado, j.fecha_solicitud, u.nombre, u.apellido, u.matricula_escolar, u.telefono, g.nombre ORDER BY j.fecha_solicitud DESC";
-        
-        $stmt = $pdo->prepare($sql);
-        if ($grupo !== 'todos' && $grupo !== '') {
-            $stmt->bindParam(":grupo", $grupo, PDO::PARAM_STR);
-        }
-        $stmt->execute();
-        $solicitudes = $stmt->fetchAll(PDO::FETCH_ASSOC);
-
-        // Preparamos la consulta para obtener el horario del alumno
-        $sqlMaterias = "
-            SELECT 
-                a.nombre AS materia,
-                CONCAT(doc.nombre, ' ', doc.apellido) AS docente,
-                DATE_FORMAT(hc.hora_inicio, '%H:%i') AS hora_inicio_fmt,
-                DATE_FORMAT(hc.hora_fin, '%H:%i') AS hora_fin_fmt,
-                hc.dia_semana
-            FROM inscripciones i
-            INNER JOIN cursos c ON i.id_curso = c.id_curso
-            INNER JOIN asignaturas a ON c.id_asignatura = a.id_asignatura
-            INNER JOIN usuarios doc ON c.id_docente = doc.id_usuario
-            INNER JOIN horarios_cursos hc ON c.id_curso = hc.id_curso
-            WHERE i.id_alumno = :id_alumno
-            ORDER BY FIELD(hc.dia_semana, 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo'), hc.hora_inicio
-        ";
-        $stmtMat = $pdo->prepare($sqlMaterias);
-
-        $diasSemanaEspanol = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
-
-        // Cruzamos los días del justificante con el horario
-        foreach ($solicitudes as &$sol) {
-            $id_alumno = $sol['id_usuario'];
-            $fecha_inicio = strtotime($sol['fecha_inicio']);
-            $fecha_fin = strtotime($sol['fecha_fin']);
-            
-            $diasAfectados = [];
-            for ($current = $fecha_inicio; $current <= $fecha_fin; $current = strtotime('+1 day', $current)) {
-                $numDia = date('w', $current);
-                if (!in_array($diasSemanaEspanol[$numDia], $diasAfectados)) {
-                    $diasAfectados[] = $diasSemanaEspanol[$numDia];
-                }
-            }
-
-            $stmtMat->bindParam(":id_alumno", $id_alumno, PDO::PARAM_INT);
-            $stmtMat->execute();
-            $horarios = $stmtMat->fetchAll(PDO::FETCH_ASSOC);
-
-            $materiasAfectadas = [];
-            foreach ($horarios as $hor) {
-                if (in_array($hor['dia_semana'], $diasAfectados)) {
-                    $diaCorto = mb_substr($hor['dia_semana'], 0, 3, 'UTF-8');
-                    $materiasAfectadas[] = [
-                        'materia' => $hor['materia'],
-                        'docente' => $hor['docente'],
-                        'hora' => $diaCorto . ' ' . $hor['hora_inicio_fmt'] . ' - ' . $hor['hora_fin_fmt']
-                    ];
-                }
-            }
-            
-            $sol['materias_afectadas_json'] = json_encode($materiasAfectadas, JSON_UNESCAPED_UNICODE);
-        }
-        unset($sol); 
-
-        return $solicitudes;
+   public static function mdlListarSolicitudes($grupo = 'todos') {
+    $pdo = Conexion::conectar();
+    
+    $sql = "
+        SELECT 
+            j.id_justificante, j.id_usuario, j.fecha_inicio, j.fecha_fin, j.asunto, j.descripcion, 
+            j.archivo_url, j.estado, j.fecha_solicitud,
+            u.nombre AS alumno_nombre, u.apellido AS alumno_apellido, u.matricula_escolar,
+            u.telefono AS telefono_tutor,
+            'No registrado' AS tutor_nombre,
+            '' AS tutor_apellido,
+            u.telefono AS tutor_telefono,
+            COALESCE(ga.grupo, 'Sin grupo') AS grupo
+        FROM justificantes j
+        INNER JOIN usuarios u ON j.id_usuario = u.id_usuario
+        LEFT JOIN (
+            SELECT x.id_alumno, SUBSTRING_INDEX(GROUP_CONCAT(x.nombre ORDER BY x.total DESC, x.nombre ASC SEPARATOR ','), ',', 1) AS grupo
+            FROM (
+                SELECT i.id_alumno, g.nombre, COUNT(*) AS total
+                FROM inscripciones i
+                INNER JOIN cursos c ON i.id_curso = c.id_curso
+                INNER JOIN grupos g ON c.id_grupo = g.id_grupo
+                GROUP BY i.id_alumno, g.nombre
+            ) x
+            GROUP BY x.id_alumno
+        ) ga ON ga.id_alumno = u.id_usuario
+        WHERE 1=1
+    ";
+    
+    if ($grupo !== 'todos' && $grupo !== '') {
+        $sql .= " AND ga.grupo = :grupo";
     }
+    
+    $sql .= " ORDER BY j.fecha_solicitud DESC";
+    
+    $stmt = $pdo->prepare($sql);
+    if ($grupo !== 'todos' && $grupo !== '') {
+        $stmt->bindParam(":grupo", $grupo, PDO::PARAM_STR);
+    }
+    $stmt->execute();
+    $solicitudes = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+    // Consulta para obtener el horario del alumno
+    $sqlMaterias = "
+        SELECT 
+            a.nombre AS materia,
+            CONCAT(doc.nombre, ' ', doc.apellido) AS docente,
+            DATE_FORMAT(hc.hora_inicio, '%H:%i') AS hora_inicio_fmt,
+            DATE_FORMAT(hc.hora_fin, '%H:%i') AS hora_fin_fmt,
+            hc.dia_semana,
+            CASE
+                WHEN LOWER(hc.dia_semana) LIKE 'lunes%' THEN 1
+                WHEN LOWER(hc.dia_semana) LIKE 'martes%' THEN 2
+                WHEN LOWER(hc.dia_semana) LIKE 'mi%' THEN 3
+                WHEN LOWER(hc.dia_semana) LIKE 'jueves%' THEN 4
+                WHEN LOWER(hc.dia_semana) LIKE 'viernes%' THEN 5
+                WHEN LOWER(hc.dia_semana) LIKE 's%' THEN 6
+                WHEN LOWER(hc.dia_semana) LIKE 'domingo%' THEN 0
+                ELSE NULL
+            END AS num_dia
+        FROM inscripciones i
+        INNER JOIN cursos c ON i.id_curso = c.id_curso
+        INNER JOIN asignaturas a ON c.id_asignatura = a.id_asignatura
+        INNER JOIN usuarios doc ON c.id_docente = doc.id_usuario
+        INNER JOIN horarios_cursos hc ON c.id_curso = hc.id_curso
+        WHERE i.id_alumno = :id_alumno
+        ORDER BY num_dia, hc.hora_inicio
+    ";
+    $stmtMat = $pdo->prepare($sqlMaterias);
+
+    // Cruzamos los días del justificante con el horario
+    foreach ($solicitudes as &$sol) {
+        $id_alumno = (int)$sol['id_usuario'];
+        $metadata = self::extraerMetadataJustificante($sol['descripcion'] ?? '');
+        $materiasSeleccionadas = $metadata['materias'] ?? [];
+        $tipoJustificacion = $metadata['tipo'] ?? '';
+
+        $sol['descripcion'] = self::limpiarDescripcionJustificante($sol['descripcion'] ?? '');
+        $sol['tipo_justificacion'] = $tipoJustificacion;
+
+        $fecha_inicio = strtotime($sol['fecha_inicio']);
+        $fecha_fin = strtotime($sol['fecha_fin']);
+        
+        $diasAfectados = [];
+        for ($current = $fecha_inicio; $current <= $fecha_fin; $current = strtotime('+1 day', $current)) {
+            $diasAfectados[] = (int)date('w', $current);
+        }
+        $diasAfectados = array_values(array_unique($diasAfectados));
+
+        $stmtMat->bindValue(":id_alumno", $id_alumno, PDO::PARAM_INT);
+        $stmtMat->execute();
+        $horarios = $stmtMat->fetchAll(PDO::FETCH_ASSOC);
+
+        $materiasAfectadas = [];
+        foreach ($horarios as $hor) {
+            if ($hor['num_dia'] !== null && in_array((int)$hor['num_dia'], $diasAfectados, true)) {
+                if ($tipoJustificacion === 'materias' && !empty($materiasSeleccionadas) && !in_array($hor['materia'], $materiasSeleccionadas, true)) {
+                    continue;
+                }
+                $diaCorto = mb_substr($hor['dia_semana'], 0, 3, 'UTF-8');
+                $materiasAfectadas[] = [
+                    'materia' => $hor['materia'],
+                    'docente' => $hor['docente'],
+                    'hora' => $diaCorto . ' ' . $hor['hora_inicio_fmt'] . ' - ' . $hor['hora_fin_fmt']
+                ];
+            }
+        }
+        
+        $sol['materias_afectadas_json'] = json_encode($materiasAfectadas, JSON_UNESCAPED_UNICODE);
+    }
+    unset($sol); 
+
+    return $solicitudes;
+}
 
     public static function mdlListarPersonal($rol = 'alumno', $grupo = 'todos') {
         if ($rol === 'alumno') {
@@ -177,6 +216,62 @@ class ModeloPrefectura {
         $stmt->bindParam(":correo", $correo, PDO::PARAM_STR);
         $stmt->bindParam(":id", $id_admin, PDO::PARAM_INT);
         return $stmt->execute() ? "ok" : "error";
+    }
+
+    // ============================================================
+    // OBTENER ESTADÍSTICAS DE ASISTENCIA POR GRUPO
+    // ============================================================
+    public static function mdlObtenerEstadisticasGrupos($trimestre, $anio) {
+        $pdo = Conexion::conectar();
+        $stmt = $pdo->prepare("CALL rpt_asistencia_por_grupo_trimestral(:trimestre, :anio)");
+        $stmt->bindParam(":trimestre", $trimestre, PDO::PARAM_INT);
+        $stmt->bindParam(":anio", $anio, PDO::PARAM_INT);
+        $stmt->execute();
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+    // ============================================================
+    // OBTENER ASISTENCIA DETALLADA PARA EXPORTACIÓN
+    // ============================================================
+    public static function mdlObtenerAsistenciaSemanal($id_grupo, $materia, $fecha_inicio, $fecha_fin) {
+        $pdo = Conexion::conectar();
+        
+        // 1. Obtener lista de alumnos y sus asistencias en el rango
+        $sql = "
+            SELECT 
+                u.id_usuario,
+                CONCAT(u.nombre, ' ', u.apellido) AS alumno,
+                s.fecha,
+                a.estado_final
+            FROM usuarios u
+            INNER JOIN inscripciones i ON u.id_usuario = i.id_alumno
+            INNER JOIN cursos c ON i.id_curso = c.id_curso
+            INNER JOIN asignaturas asig ON c.id_asignatura = asig.id_asignatura
+            INNER JOIN grupos g ON c.id_grupo = g.id_grupo
+            LEFT JOIN sesiones s ON c.id_curso = s.id_curso AND s.fecha BETWEEN :f_inicio AND :f_fin
+            LEFT JOIN asistencias a ON s.id_sesion = a.id_sesion AND u.id_usuario = a.id_usuario
+            WHERE g.nombre = :grupo 
+              AND asig.nombre = :materia
+            ORDER BY u.apellido ASC, s.fecha ASC
+        ";
+
+        $stmt = $pdo->prepare($sql);
+        $stmt->bindParam(":grupo", $id_grupo, PDO::PARAM_STR);
+        $stmt->bindParam(":materia", $materia, PDO::PARAM_STR);
+        $stmt->bindParam(":f_inicio", $fecha_inicio, PDO::PARAM_STR);
+        $stmt->bindParam(":f_fin", $fecha_fin, PDO::PARAM_STR);
+        $stmt->execute();
+        
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+    // ============================================================
+    // OBTENER ASIGNATURAS PARA LOS FILTROS
+    // ============================================================
+    public static function mdlListarAsignaturas() {
+        $stmt = Conexion::conectar()->prepare("SELECT id_asignatura, nombre FROM asignaturas ORDER BY nombre ASC");
+        $stmt->execute();
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 }
 ?>

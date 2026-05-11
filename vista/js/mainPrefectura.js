@@ -23,6 +23,25 @@ async function apiPrefectura(accion, opciones = {}) {
     }
     return data;
 }
+
+function prefecturaEscapeHTML(valor) {
+    return String(valor ?? '')
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+}
+
+function prefecturaEscapeAttr(valor) {
+    return prefecturaEscapeHTML(valor).replace(/`/g, '&#96;');
+}
+
+function prefecturaUrlArchivo(url) {
+    if (!url) return '#';
+    if (/^https?:\/\//i.test(url) || url.startsWith('../')) return url;
+    return `../${String(url).replace(/^\/+/, '')}`;
+}
 // ===================================
 
 document.addEventListener('DOMContentLoaded', function () {
@@ -65,7 +84,7 @@ document.addEventListener('DOMContentLoaded', function () {
     // === FUNCIÓN PARA CERRAR SESIÓN ===
     const btnLogout = document.getElementById('btn-logout');
     if (btnLogout) {
-        btnLogout.addEventListener('click', function() {
+        btnLogout.addEventListener('click', function () {
             Swal.fire({
                 title: '¿Cerrar Sesión?',
                 text: 'Vas a salir del Panel de Control.',
@@ -80,7 +99,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 if (result.isConfirmed) {
                     try {
                         await apiPrefectura('logout', { method: 'POST' });
-                        window.location.href = '../index.html'; 
+                        window.location.href = '../index.html';
                     } catch (error) {
                         console.error('Error al cerrar sesión:', error);
                         window.location.href = '../index.html';
@@ -208,17 +227,25 @@ function initControlLogic() {
 
             data.solicitudes.forEach(sol => {
                 const nombreCompleto = `${sol.alumno_nombre} ${sol.alumno_apellido}`;
-                const tutorCompleto = sol.tutor_nombre ? `${sol.tutor_nombre} ${sol.tutor_apellido}` : 'Sin tutor asignado';
+                const tutorCompleto = sol.tutor_nombre ? `${sol.tutor_nombre} ${sol.tutor_apellido || ''}`.trim() : 'Sin tutor asignado';
                 const claseMotivo = (sol.asunto || '').toLowerCase().includes('salud') ? 'salud' : ((sol.asunto || '').toLowerCase().includes('viaje') ? 'viaje' : 'familiar');
 
                 let docJSON = '[]';
                 if (sol.archivo_url) {
-                    const tipo = sol.archivo_url.toLowerCase().endsWith('.pdf') ? 'pdf' : 'imagen';
-                    docJSON = JSON.stringify([{ nombre: sol.archivo_url, tipo: tipo }]).replace(/'/g, "&apos;");
+                    const documentos = String(sol.archivo_url)
+                        .split(',')
+                        .map(url => url.trim())
+                        .filter(Boolean)
+                        .map(url => ({
+                            nombre: url.split('/').pop(),
+                            url,
+                            tipo: url.toLowerCase().endsWith('.pdf') ? 'pdf' : 'imagen'
+                        }));
+                    docJSON = JSON.stringify(documentos);
                 }
 
                 // RECIBIENDO LAS MATERIAS EN FORMATO JSON
-                const materiasJSON = (sol.materias_afectadas_json || '[]').replace(/'/g, "&apos;");
+                const materiasJSON = sol.materias_afectadas_json || '[]';
 
                 const fInicio = new Date(sol.fecha_inicio);
                 const fFin = new Date(sol.fecha_fin);
@@ -226,26 +253,39 @@ function initControlLogic() {
                 const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1;
                 const textoDias = diffDays === 1 ? '1 día' : `${diffDays} días`;
 
-                const atributosFila = `
-                    data-id="${sol.id_justificante}"
-                    data-nombre="${nombreCompleto}" 
-                    data-matricula="${sol.matricula_escolar || 'N/A'}"
-                    data-grupo="${sol.grupo || 'N/A'}"
-                    data-tutor="${tutorCompleto}"
-                    data-telefono-tutor="${sol.tutor_telefono || 'N/A'}"
-                    data-motivo="${sol.asunto}" 
-                    data-descripcion="${sol.descripcion}"
-                    data-fecha="${sol.fecha_solicitud ? sol.fecha_solicitud.split(' ')[0] : sol.fecha_inicio}"
-                    data-hora-inicio="07:00"
-                    data-hora-fin="14:00"
-                    data-tipo-falta="${diffDays === 1 ? 'completa' : 'rango'}"
-                    data-dias="${textoDias} (${sol.fecha_inicio} al ${sol.fecha_fin})"
-                    data-documentos='${docJSON}'
-                    data-materias-afectadas='${materiasJSON}'
-                    data-estado="${sol.estado}"
-                `;
+                const fechaSolicitud = sol.fecha_solicitud ? sol.fecha_solicitud.split(' ')[0] : sol.fecha_inicio;
+                const fechaFin = sol.fecha_fin || sol.fecha_inicio;
+                const estadoSolicitud = sol.estado || '';
+                const matricula = sol.matricula_escolar || 'N/A';
+                const grupo = sol.grupo || 'N/A';
+                const telefonoTutor = sol.telefono_tutor || sol.tutor_telefono || 'N/A';
+                const motivo = sol.asunto || '';
+                const descripcion = sol.descripcion || '';
+                const tipoJustificacion = sol.tipo_justificacion || '';
+                const tipoFalta = tipoJustificacion === 'materias'
+                    ? 'materias'
+                    : (tipoJustificacion === 'rango' || diffDays > 1 ? 'rango' : 'completa');
 
-                if (sol.estado === 'pendiente') {
+                const atributosFila = [
+                    `data-id="${prefecturaEscapeAttr(sol.id_justificante)}"`,
+                    `data-nombre="${prefecturaEscapeAttr(nombreCompleto)}"`,
+                    `data-matricula="${prefecturaEscapeAttr(matricula)}"`,
+                    `data-grupo="${prefecturaEscapeAttr(grupo)}"`,
+                    `data-tutor="${prefecturaEscapeAttr(tutorCompleto)}"`,
+                    `data-telefono-tutor="${prefecturaEscapeAttr(telefonoTutor)}"`,
+                    `data-motivo="${prefecturaEscapeAttr(motivo)}"`,
+                    `data-descripcion="${prefecturaEscapeAttr(descripcion)}"`,
+                    `data-fecha="${prefecturaEscapeAttr(fechaSolicitud)}"`,
+                    'data-hora-inicio="07:00"',
+                    'data-hora-fin="14:00"',
+                    `data-tipo-falta="${tipoFalta}"`,
+                    `data-dias="${prefecturaEscapeAttr(`${textoDias} (${sol.fecha_inicio} al ${fechaFin})`)}"`,
+                    `data-documentos="${prefecturaEscapeAttr(docJSON)}"`,
+                    `data-materias-afectadas="${prefecturaEscapeAttr(materiasJSON)}"`,
+                    `data-estado="${prefecturaEscapeAttr(estadoSolicitud)}"`
+                ].join(' ');
+
+                if (estadoSolicitud === 'pendiente') {
                     countPendientes++;
 
                     const filaHTML = `
@@ -256,14 +296,14 @@ function initControlLogic() {
                                         <img src="https://ui-avatars.com/api/?name=${encodeURIComponent(nombreCompleto)}&background=D6A848&color=192A56&size=36">
                                     </div>
                                     <div class="alumno-details">
-                                        <span class="alumno-name">${nombreCompleto}</span>
-                                        <span class="alumno-matricula">Matrícula: ${sol.matricula_escolar || 'N/A'}</span>
+                                        <span class="alumno-name">${prefecturaEscapeHTML(nombreCompleto)}</span>
+                                        <span class="alumno-matricula">Matrícula: ${prefecturaEscapeHTML(matricula)}</span>
                                     </div>
                                 </div>
                             </td>
-                            <td><span class="grupo-tag">${sol.grupo || 'N/A'}</span></td>
-                            <td><span class="motivo-tag ${claseMotivo}">${sol.asunto}</span></td>
-                            <td><div class="fecha-cell"><span class="fecha">${sol.fecha_inicio}</span></div></td>
+                            <td><span class="grupo-tag">${prefecturaEscapeHTML(grupo)}</span></td>
+                            <td><span class="motivo-tag ${claseMotivo}">${prefecturaEscapeHTML(motivo)}</span></td>
+                            <td><div class="fecha-cell"><span class="fecha">${prefecturaEscapeHTML(sol.fecha_inicio)}</span></div></td>
                             <td><span class="estado-tag pendiente">Pendiente</span></td>
                             <td>
                                 <div class="acciones-cell">
@@ -278,7 +318,7 @@ function initControlLogic() {
                 } else {
                     countHistorial++;
 
-                    const bgAvatar = sol.estado === 'aprobado' ? '10B981' : 'EF4444';
+                    const bgAvatar = estadoSolicitud === 'aprobado' ? '10B981' : 'EF4444';
                     const filaHistorial = `
                         <tr class="solicitud-row historial-row" ${atributosFila}>
                             <td>
@@ -287,19 +327,19 @@ function initControlLogic() {
                                         <img src="https://ui-avatars.com/api/?name=${encodeURIComponent(nombreCompleto)}&background=${bgAvatar}&color=fff&size=36">
                                     </div>
                                     <div class="alumno-details">
-                                        <span class="alumno-name">${nombreCompleto}</span>
-                                        <span class="alumno-matricula">Matrícula: ${sol.matricula_escolar || 'N/A'}</span>
+                                        <span class="alumno-name">${prefecturaEscapeHTML(nombreCompleto)}</span>
+                                        <span class="alumno-matricula">Matrícula: ${prefecturaEscapeHTML(matricula)}</span>
                                     </div>
                                 </div>
                             </td>
-                            <td><span class="grupo-tag">${sol.grupo || 'N/A'}</span></td>
-                            <td><span class="motivo-tag ${claseMotivo}">${sol.asunto}</span></td>
-                            <td><div class="fecha-cell"><span class="fecha">${sol.fecha_inicio}</span></div></td>
-                            <td><span class="estado-tag ${sol.estado}">${sol.estado.charAt(0).toUpperCase() + sol.estado.slice(1)}</span></td>
+                            <td><span class="grupo-tag">${prefecturaEscapeHTML(grupo)}</span></td>
+                            <td><span class="motivo-tag ${claseMotivo}">${prefecturaEscapeHTML(motivo)}</span></td>
+                            <td><div class="fecha-cell"><span class="fecha">${prefecturaEscapeHTML(sol.fecha_inicio)}</span></div></td>
+                            <td><span class="estado-tag ${prefecturaEscapeAttr(estadoSolicitud)}">${prefecturaEscapeHTML(estadoSolicitud.charAt(0).toUpperCase() + estadoSolicitud.slice(1))}</span></td>
                             <td><span class="text-muted-small">Prefectura</span></td>
                             <td>
                                 <button class="btn-accion detalle" title="Ver Detalle" style="margin-right: 5px;"><i class="fa-solid fa-eye"></i></button>
-                                ${sol.estado === 'aprobado' ? `
+                                ${estadoSolicitud === 'aprobado' ? `
                                     <button class="btn-descargar-permiso" title="Descargar Permiso PDF" onclick="event.stopPropagation();descargarPermisoDesdeBoton(this);"><i class="fa-solid fa-file-pdf"></i> PDF</button>
                                 ` : '<span class="text-muted-small">N/A</span>'}
                             </td>
@@ -470,14 +510,17 @@ function initControlLogic() {
         var mat = [], doc = [];
         try { mat = JSON.parse(d.materiasAfectadas || '[]'); } catch (e) { mat = []; }
         try { doc = JSON.parse(d.documentos || '[]'); } catch (e) { doc = []; }
-        var tf = d.tipoFalta === 'completa' ? 'Día Completo' : `Parcial (${d.horaInicio} - ${d.horaFin})`;
+        var tf = d.tipoFalta === 'completa'
+            ? 'Día Completo'
+            : (d.tipoFalta === 'materias' ? 'Materias Específicas' : 'Rango de Fechas');
 
         var mh = mat.length ? mat.map(function (m) {
             return `<tr><td><div class="docente-info"><i class="fa-solid fa-user-tie"></i>${m.docente}</div></td><td><strong>${m.materia}</strong></td><td><span class="horario-badge"><i class="fa-regular fa-clock"></i> ${m.hora}</span></td></tr>`;
         }).join('') : '<tr><td colspan="3" class="vacio">Sin materias registradas</td></tr>';
 
         var dh = doc.length ? doc.map(function (dc) {
-            return `<div class="documento-item"><i class="fa-solid fa-file-${dc.tipo === 'pdf' ? 'pdf' : 'image'}"></i><div class="documento-info"><span class="documento-nombre">${dc.nombre}</span><a href="#" class="documento-ver" onclick="return false;">Ver documento</a></div></div>`;
+            const url = prefecturaUrlArchivo(dc.url || dc.nombre);
+            return `<div class="documento-item"><i class="fa-solid fa-file-${dc.tipo === 'pdf' ? 'pdf' : 'image'}"></i><div class="documento-info"><span class="documento-nombre">${prefecturaEscapeHTML(dc.nombre)}</span><a href="${prefecturaEscapeAttr(url)}" class="documento-ver" target="_blank" rel="noopener">Ver documento</a></div></div>`;
         }).join('') : '<p class="vacio">Sin documentos adjuntos</p>';
 
         return `
@@ -550,7 +593,9 @@ function initControlLogic() {
 
     function descargarPermiso(d) {
         var fh = new Date().toLocaleDateString('es-MX', { year: 'numeric', month: 'long', day: 'numeric' });
-        var tf = d.tipoFalta === 'completa' ? 'Día Completo' : `Parcial (${d.horaInicio} - ${d.horaFin} hrs)`;
+        var tf = d.tipoFalta === 'completa'
+            ? 'Día Completo'
+            : (d.tipoFalta === 'materias' ? 'Materias Específicas' : 'Rango de Fechas');
         var esc = {
             nombre: 'Esc.Sec.Gral. Lic. "Benito Juarez"',
             direccion: 'Miguel Hidalgo 14, Educación, 42952 Tlaxcoapan, Hgo.',
@@ -618,30 +663,123 @@ function initControlLogic() {
         Swal.fire({ title: '✔ Justificante Generado', icon: 'success', confirmButtonColor: '#192A56', timer: 2500 });
     }
 
-    function mostrarVistaPreviaAsistencia() {
-        var g = document.getElementById('export-grupo-asistencia').value;
-        var m = document.getElementById('export-materia-asistencia').value;
-        var s = document.getElementById('export-semana').value;
-        if (!g || !m || !s) { Swal.fire({ title: 'Selección Incompleta', icon: 'warning', confirmButtonColor: '#192A56' }); return; }
-        document.getElementById('vista-previa-asistencia').classList.remove('hidden');
-        var cfg = { semana1: { d: ['Lun 01', 'Mar 02', 'Mié 03', 'Jue 04', 'Vie 05'], mes: 'Abril' }, semana2: { d: ['Lun 07', 'Mar 08', 'Mié 09', 'Jue 10', 'Vie 11'], mes: 'Abril' }, semana3: { d: ['Lun 14', 'Mar 15', 'Mié 16', 'Jue 17', 'Vie 18'], mes: 'Abril' }, semana4: { d: ['Lun 21', 'Mar 22', 'Mié 23', 'Jue 24', 'Vie 25'], mes: 'Abril' } };
-        var sem = cfg[s];
-        var docs = { matematicas: 'Prof. Ricardo Mendoza', historia: 'Profa. Patricia Luna', ciencias: 'Prof. Carlos Vega', espanol: 'Profa. Ana Castillo', ingles: 'Prof. Miguel Ángel', fisica: 'Prof. Carlos Vega' };
-        var nm = document.getElementById('export-materia-asistencia').selectedOptions[0].text;
-        var doc = docs[m] || 'Prof. Asignado';
-        document.getElementById('titulo-vista-previa').innerHTML = '<i class="fa-solid fa-list-check"></i> Grupo ' + g + ' | ' + nm + ' | ' + doc + ' | ' + sem.d[0] + ' al ' + sem.d[sem.d.length - 1] + ' ' + sem.mes;
-        document.getElementById('dias-semana-header').innerHTML = sem.d.map(function (d) { return '<th><span class="dia-header">' + d.split(' ')[0] + '</span><span class="fecha-dia">' + d.split(' ')[1] + ' ' + sem.mes + '</span><span class="materia-header">' + nm + '</span></th>'; }).join('');
-        var al = [{ n: 1, nom: 'Ana López García' }, { n: 2, nom: 'Carlos Ruiz' }, { n: 3, nom: 'María Torres' }, { n: 4, nom: 'Luis Hernández' }, { n: 5, nom: 'Sofía Martínez' }, { n: 6, nom: 'Diego Sánchez' }, { n: 7, nom: 'Valentina Flores' }, { n: 8, nom: 'Emiliano García' }];
-        var ta = 0, tf = 0;
-        document.getElementById('cuerpo-tabla-asistencia').innerHTML = al.map(function (a) {
-            var as = [], ca = 0, cf = 0;
-            sem.d.forEach(function () { var r = Math.random(); if (r > 0.15) { as.push('<td class="asistio">✓</td>'); ca++; } else if (r > 0.08) { as.push('<td class="falta">✗</td>'); cf++; } else { as.push('<td class="justificada">J</td>'); cf++; } });
-            ta += ca; tf += cf;
-            return '<tr><td>' + a.n + '</td><td class="alumno-nombre">' + a.nom + '</td>' + as.join('') + '<td><strong>' + ca + '</strong></td><td><strong>' + cf + '</strong></td></tr>';
-        }).join('');
-        document.getElementById('resumen-asistencia').innerHTML = '<div class="resumen-item"><div class="resumen-icono green"><i class="fa-solid fa-check"></i></div><div><strong>' + ta + '</strong> Asistencias</div></div><div class="resumen-item"><div class="resumen-icono red"><i class="fa-solid fa-xmark"></i></div><div><strong>' + tf + '</strong> Faltas</div></div><div class="resumen-item"><div class="resumen-icono warning"><i class="fa-solid fa-chart-simple"></i></div><div><strong>' + Math.round((ta / (ta + tf)) * 100) + '%</strong></div></div>';
-        document.getElementById('vista-previa-asistencia').scrollIntoView({ behavior: 'smooth' });
-    }
+    window.mostrarVistaPreviaAsistencia = async function () {
+        const g = document.getElementById('export-grupo-asistencia').value;
+        const m = document.getElementById('export-materia-asistencia').value;
+        const semanaSeleccionada = document.getElementById('export-semana').value; // Formato YYYY-Www (Ej: 2026-W20)
+
+        if (!g || !m || !semanaSeleccionada) {
+            Swal.fire({ title: 'Selección Incompleta', icon: 'warning', text: 'Por favor, selecciona un grupo, una materia y una semana del calendario.', confirmButtonColor: '#192A56' });
+            return;
+        }
+
+        // --- NUEVO CÁLCULO PARA TRANSFORMAR 'YYYY-Www' AL LUNES DE ESA SEMANA ---
+        const [yearStr, weekStr] = semanaSeleccionada.split('-W');
+        const year = parseInt(yearStr, 10);
+        const week = parseInt(weekStr, 10);
+
+        // El 4 de enero siempre cae en la semana 1 según la norma ISO
+        const d = new Date(year, 0, 4);
+        const day = d.getDay() || 7; // Convertir domingo (0) a 7
+
+        // Calcular el Lunes exacto de la semana seleccionada
+        d.setDate(d.getDate() - day + 1 + (week - 1) * 7);
+        const lunes = d;
+        // ------------------------------------------------------------------------
+
+        const fechasSemana = [];
+        const labelsSemana = [];
+        const diasStr = ['Lun', 'Mar', 'Mié', 'Jue', 'Vie'];
+        const mesesStr = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];
+
+        for (let i = 0; i < 5; i++) {
+            let fechaDia = new Date(lunes);
+            fechaDia.setDate(lunes.getDate() + i);
+            fechasSemana.push(fechaDia.toISOString().split('T')[0]); // YYYY-MM-DD
+            labelsSemana.push(`${diasStr[i]} ${String(fechaDia.getDate()).padStart(2, '0')}`);
+        }
+
+        const fechaInicio = fechasSemana[0];
+        const fechaFin = fechasSemana[4];
+        const mesActual = mesesStr[lunes.getMonth()];
+
+        try {
+            const resp = await apiPrefectura('obtener_asistencia_exportar', {
+                query: { grupo: g, materia: m, fecha_inicio: fechaInicio, fecha_fin: fechaFin }
+            });
+
+            if (!resp.ok) throw new Error(resp.mensaje);
+
+            document.getElementById('vista-previa-asistencia').classList.remove('hidden');
+
+            // Configuración de cabeceras
+            document.getElementById('titulo-vista-previa').innerHTML = `<i class="fa-solid fa-list-check"></i> Grupo ${g} | ${m} | ${labelsSemana[0]} al ${labelsSemana[4]} ${mesActual}`;
+
+            document.getElementById('dias-semana-header').innerHTML = labelsSemana.map(label =>
+                `<th><span class="dia-header">${label.split(' ')[0]}</span><span class="fecha-dia">${label.split(' ')[1]}</span></th>`
+            ).join('') + '<th>Asist.</th><th>Faltas</th>';
+
+            // Procesar datos
+            const alumnosMap = {};
+            resp.datos.forEach(reg => {
+                if (!alumnosMap[reg.id_usuario]) {
+                    alumnosMap[reg.id_usuario] = { nombre: reg.alumno, dias: {} };
+                }
+                alumnosMap[reg.id_usuario].dias[reg.fecha] = reg.estado_final;
+            });
+
+            let htmlCuerpo = '';
+            let index = 1;
+            let totalAsistenciasGral = 0;
+            let totalFaltasGral = 0;
+
+            Object.values(alumnosMap).forEach(alu => {
+                let asistenciasAlu = 0;
+                let faltasAlu = 0;
+                let tdsDias = '';
+
+                for (let i = 0; i < 5; i++) {
+                    const estado = alu.dias[fechasSemana[i]] || 'falta'; // Cruza la fecha calculada con la de BD
+                    if (estado === 'presente') {
+                        tdsDias += '<td class="asistio">✓</td>';
+                        asistenciasAlu++;
+                    } else if (estado === 'retardo') {
+                        tdsDias += '<td class="justificada">R</td>';
+                        asistenciasAlu++;
+                    } else {
+                        tdsDias += '<td class="falta">✗</td>';
+                        faltasAlu++;
+                    }
+                }
+
+                totalAsistenciasGral += asistenciasAlu;
+                totalFaltasGral += faltasAlu;
+
+                htmlCuerpo += `<tr>
+                <td>${index++}</td>
+                <td class="alumno-nombre">${alu.nombre}</td>
+                ${tdsDias}
+                <td><strong>${asistenciasAlu}</strong></td>
+                <td><strong>${faltasAlu}</strong></td>
+            </tr>`;
+            });
+
+            document.getElementById('cuerpo-tabla-asistencia').innerHTML = htmlCuerpo;
+
+            const pct = Math.round((totalAsistenciasGral / (totalAsistenciasGral + totalFaltasGral)) * 100) || 0;
+            document.getElementById('resumen-asistencia').innerHTML = `
+            <div class="resumen-item"><div class="resumen-icono green">✓</div><div><strong>${totalAsistenciasGral}</strong> Asistencias</div></div>
+            <div class="resumen-item"><div class="resumen-icono red">✗</div><div><strong>${totalFaltasGral}</strong> Faltas</div></div>
+            <div class="resumen-item"><div class="resumen-icono warning"><i class="fa-solid fa-chart-line"></i></div><div><strong>${pct}%</strong> Eficiencia</div></div>
+        `;
+
+            document.getElementById('vista-previa-asistencia').scrollIntoView({ behavior: 'smooth' });
+
+        } catch (error) {
+            console.error(error);
+            Swal.fire('Error', 'No se pudieron obtener los datos de asistencia.', 'error');
+        }
+    };
 
     window.mostrarVistaPreviaAsistencia = mostrarVistaPreviaAsistencia;
     window.descargarListaPDF = function () {
@@ -670,6 +808,112 @@ function initControlLogic() {
         if (!th || th.getAttribute('data-init') === '1') return; th.setAttribute('data-init', '1');
         function filtrar() { var st = sh ? sh.value.toLowerCase() : '', ef = fe ? fe.value : 'todos'; th.querySelectorAll('.historial-row').forEach(function (f) { var n = (f.getAttribute('data-nombre') || '').toLowerCase(), e = f.getAttribute('data-estado') || ''; f.style.display = (!st || n.includes(st)) && (ef === 'todos' || e === ef) ? '' : 'none'; }); }
         if (sh) sh.addEventListener('input', filtrar); if (fe) fe.addEventListener('change', filtrar);
+    }
+
+    // === CARGAR ESTADÍSTICAS DESDE LA BD ===
+    async function cargarEstadisticas() {
+        try {
+            const trimestre = document.getElementById('filtro-trimestre').value || 2;
+            const anio = document.getElementById('filtro-anio').value || 2025;
+
+            const data = await apiPrefectura('obtener_estadisticas', { query: { trimestre, anio } });
+            const tbody = document.querySelector('#tabla-estadisticas-grupos tbody');
+
+            if (!tbody) return;
+            tbody.innerHTML = '';
+
+            if (!data.estadisticas || data.estadisticas.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="7" style="text-align:center; padding: 20px; color: #64748B;">No hay registros de asistencia en la base de datos para el Trimestre ${trimestre} de ${anio}.</td></tr>`;
+                return;
+            }
+
+            data.estadisticas.forEach(est => {
+                const pct = parseFloat(est.pct_asistencia) || 0;
+                let clasePct = pct >= 95 ? 'high' : (pct >= 85 ? 'medium' : 'low');
+                let colorFondoLow = clasePct === 'low' ? 'background: #FEE2E2; color: #991B1B;' : '';
+
+                const filaHTML = `
+                    <tr>
+                        <td><strong>${prefecturaEscapeHTML(est.grupo)}</strong></td>
+                        <td>${est.total_registros}</td>
+                        <td class="text-success">${est.presentes}</td>
+                        <td class="text-danger">${est.faltas}</td>
+                        <td><span class="text-muted-small">N/A</span></td> <td><span class="porcentaje ${clasePct}" style="${colorFondoLow}">${pct}%</span></td>
+                        <td><button class="btn-link" onclick="verDetalleEstadisticas('${prefecturaEscapeAttr(est.grupo)}', ${trimestre}, ${anio})">Ver detalle</button></td>
+                    </tr>
+                `;
+                tbody.insertAdjacentHTML('beforeend', filaHTML);
+            });
+        } catch (error) {
+            console.error("Error al cargar estadísticas:", error);
+            Swal.fire('Error', 'No se pudieron cargar las estadísticas', 'error');
+        }
+    }
+
+    // Escuchar cambios en los filtros para recargar automáticamente
+    const selectTrimestre = document.getElementById('filtro-trimestre');
+    const selectAnio = document.getElementById('filtro-anio');
+    if (selectTrimestre) selectTrimestre.addEventListener('change', cargarEstadisticas);
+    if (selectAnio) selectAnio.addEventListener('change', cargarEstadisticas);
+
+    // Placeholder para la acción "Ver Detalle"
+    window.verDetalleEstadisticas = function (grupo, trimestre, anio) {
+        Swal.fire({
+            title: `Estadísticas Grupo ${grupo}`,
+            text: `Mostrando detalles del T${trimestre} ${anio}. (Característica en desarrollo)`,
+            icon: 'info',
+            confirmButtonColor: '#192A56'
+        });
+    };
+
+    function switchSubView(targetId) {
+        sections.forEach(function (s) { s.classList.add('hidden'); });
+        var target = document.getElementById(targetId);
+        if (target) {
+            target.classList.remove('hidden'); target.classList.remove('fade-in');
+            void target.offsetWidth; target.classList.add('fade-in');
+        }
+        subNavItems.forEach(function (b) { b.classList.remove('active'); });
+        var ab = document.querySelector('.sub-nav-item[data-target="' + targetId + '"]');
+        if (ab) ab.classList.add('active');
+
+        if (targetId === 'section-historial') initHistorialLogic();
+        if (targetId === 'section-estadisticas') cargarEstadisticas();
+
+        // AÑADIR ESTA LÍNEA AQUÍ:
+        if (targetId === 'section-exportar') cargarFiltrosExportacion();
+    }
+
+    // Función para manejar el clic en las listas (Pills)
+    window.seleccionarItem = function (tipo, valor, elemento) {
+        document.getElementById(`export-${tipo}-asistencia`).value = valor;
+        const lista = document.getElementById(`lista-${tipo}s-exportar`);
+        lista.querySelectorAll('.list-item').forEach(el => el.classList.remove('active'));
+        elemento.classList.add('active');
+    };
+
+    // Modificamos la carga para dibujar <span> en lugar de <option>
+    async function cargarFiltrosExportacion() {
+        const listaGrupos = document.getElementById('lista-grupos-exportar');
+        const listaMaterias = document.getElementById('lista-materias-exportar');
+
+        if (listaGrupos && listaGrupos.innerHTML.trim() === '') {
+            try {
+                const data = await apiPrefectura('obtener_filtros_exportar');
+                if (data.grupos) {
+                    listaGrupos.innerHTML = data.grupos.map(g =>
+                        `<span class="list-item" onclick="seleccionarItem('grupo', '${prefecturaEscapeAttr(g.nombre)}', this)">${prefecturaEscapeHTML(g.nombre)}</span>`
+                    ).join('');
+                }
+                if (data.asignaturas) {
+                    listaMaterias.innerHTML = data.asignaturas.map(m =>
+                        `<span class="list-item" onclick="seleccionarItem('materia', '${prefecturaEscapeAttr(m.nombre)}', this)">${prefecturaEscapeHTML(m.nombre)}</span>`
+                    ).join('');
+                }
+            } catch (error) {
+                console.error("Error al cargar filtros:", error);
+            }
+        }
     }
 }
 

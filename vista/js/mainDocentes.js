@@ -5,7 +5,7 @@
 function toggleModal(modalId) {
     const modal = document.getElementById(modalId);
     if (!modal) return;
-    
+
     if (modal.style.display === "block") {
         modal.style.display = "none";
     } else {
@@ -14,7 +14,7 @@ function toggleModal(modalId) {
 }
 
 // Cerrar modal si se hace clic fuera de él
-window.onclick = function(event) {
+window.onclick = function (event) {
     if (event.target.classList.contains('modal')) {
         event.target.style.display = "none";
     }
@@ -23,20 +23,20 @@ window.onclick = function(event) {
 // Lógica para cargar las vistas dinámicas
 async function loadSection(sectionName) {
     const viewContainer = document.getElementById('view-container');
-    
+
     try {
         const response = await fetch(`docente/${sectionName}.html`);
-        
+
         if (!response.ok) {
             throw new Error(`No se encontró el archivo: ../vista/docente${sectionName}.html`);
         }
-        
+
         const html = await response.text();
         viewContainer.innerHTML = html;
-        
+
         // Reiniciar animación para que se vea el cambio suave
         viewContainer.classList.remove('fade-in');
-        void viewContainer.offsetWidth; 
+        void viewContainer.offsetWidth;
         viewContainer.classList.add('fade-in');
 
         console.log(`Sección ${sectionName} cargada exitosamente.`);
@@ -45,7 +45,7 @@ async function loadSection(sectionName) {
         if (sectionName === 'lista' && typeof inicializarPaseLista === 'function') {
             setTimeout(inicializarPaseLista, 50);
         }
-        
+
         // NUEVO: Si la sección que se cargó es misClases, inicializamos sus datos
         if (sectionName === 'misClases' && typeof inicializarMisClases === 'function') {
             setTimeout(inicializarMisClases, 100);
@@ -91,11 +91,11 @@ function obtenerTrimestreActual() {
     if ((mes === 9 && dia >= 1) || (mes === 10) || (mes === 11 && dia <= 21)) {
         return "1er Trimestre";
     }
-    
+
     if ((mes === 11 && dia >= 24) || (mes === 12) || (mes === 1) || (mes === 2) || (mes === 3 && dia <= 26)) {
         return "2do Trimestre";
     }
-    
+
     if ((mes === 4 && dia >= 13) || (mes === 5) || (mes === 6) || (mes === 7 && dia <= 17)) {
         return "3er Trimestre";
     }
@@ -126,7 +126,7 @@ function cargarAlumnos(grupo) {
 
     alumnosFalsos.forEach(alumno => {
         const tr = document.createElement('tr');
-        
+
         let estadoHTML = '';
         let botonesHTML = '';
 
@@ -178,7 +178,7 @@ function cargarAlumnos(grupo) {
 
     panel.style.display = 'block';
     panel.classList.remove('fade-in');
-    void panel.offsetWidth; 
+    void panel.offsetWidth;
     panel.classList.add('fade-in');
 }
 
@@ -213,24 +213,24 @@ function guardarAsistencia() {
 function exportarExcelLista() {
     const grupo = document.getElementById('grupo-select');
     const grupoNombre = grupo ? grupo.options[grupo.selectedIndex]?.text : '';
-    
+
     if (!grupo || !grupo.value) {
         alert("Por favor, seleccione un grupo antes de exportar.");
         return;
     }
-    
+
     // Obtener datos de la tabla
     const filas = document.querySelectorAll('#lista-alumnos-body tr');
-    
+
     if (filas.length === 0) {
         alert("No hay alumnos en la lista para exportar.");
         return;
     }
-    
+
     // Obtener fecha actual
     const fecha = document.getElementById('current-date-display')?.innerText || new Date().toLocaleDateString('es-ES');
     const trimestre = document.getElementById('trimestre-activo')?.value || '';
-    
+
     // Construir contenido CSV
     let contenido = '\uFEFF'; // BOM para UTF-8
     contenido += `CONTROL DE ASISTENCIA\n`;
@@ -238,14 +238,14 @@ function exportarExcelLista() {
     contenido += `Fecha: "${fecha}"\n`;
     contenido += `Periodo: "${trimestre}"\n\n`;
     contenido += `No.,Alumno,Matrícula,Estado\n`;
-    
+
     let contador = 1;
     filas.forEach(fila => {
         const nombre = fila.querySelector('b')?.innerText || '';
         const matricula = fila.querySelector('small')?.innerText?.replace('Matrícula: ', '') || '';
         const badge = fila.querySelector('.badge');
         let estado = 'Sin registro';
-        
+
         if (badge) {
             if (badge.classList.contains('badge-asistencia')) estado = 'Presente';
             else if (badge.classList.contains('badge-retardo')) estado = 'Retardo';
@@ -253,17 +253,17 @@ function exportarExcelLista() {
             else if (badge.classList.contains('badge-permiso')) estado = 'Permiso Justificado';
             else if (badge.classList.contains('badge-pendiente')) estado = 'Sin registro';
         }
-        
+
         contenido += `${contador},"${nombre}","${matricula}","${estado}"\n`;
         contador++;
     });
-    
+
     // Agregar resumen
     const presentes = document.getElementById('contador-presentes')?.textContent || '0';
     const retardos = document.getElementById('contador-retardos')?.textContent || '0';
     const faltas = document.getElementById('contador-faltas')?.textContent || '0';
     const justificados = document.getElementById('contador-justificados')?.textContent || '0';
-    
+
     contenido += `\n`;
     contenido += `RESUMEN\n`;
     contenido += `"Presentes","${presentes}"\n`;
@@ -273,23 +273,23 @@ function exportarExcelLista() {
     contenido += `\n`;
     contenido += `"Documento generado el","${new Date().toLocaleDateString('es-ES')}"\n`;
     contenido += `"Hora","${new Date().toLocaleTimeString('es-ES')}"\n`;
-    
+
     // Crear y descargar archivo
     const blob = new Blob([contenido], { type: 'text/csv;charset=utf-8;' });
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
     link.href = url;
-    
+
     // Nombre del archivo con fecha
     const fechaArchivo = new Date().toISOString().split('T')[0];
     const nombreGrupo = grupo.value.replace(/[^a-zA-Z0-9]/g, '_');
     link.download = `Lista_Asistencia_${nombreGrupo}_${fechaArchivo}.csv`;
-    
+
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
     URL.revokeObjectURL(url);
-    
+
     // Mostrar toast de confirmación
     mostrarToast('✅ Archivo Excel descargado exitosamente', 'success');
 }
@@ -298,33 +298,33 @@ function exportarExcelLista() {
 function exportarPDFLista() {
     const grupo = document.getElementById('grupo-select');
     const grupoNombre = grupo ? grupo.options[grupo.selectedIndex]?.text : '';
-    
+
     if (!grupo || !grupo.value) {
         alert("Por favor, seleccione un grupo antes de exportar.");
         return;
     }
-    
+
     // Obtener datos de la tabla
     const filas = document.querySelectorAll('#lista-alumnos-body tr');
-    
+
     if (filas.length === 0) {
         alert("No hay alumnos en la lista para exportar.");
         return;
     }
-    
+
     const fecha = document.getElementById('current-date-display')?.innerText || new Date().toLocaleDateString('es-ES');
     const trimestre = document.getElementById('trimestre-activo')?.value || '';
-    
+
     // Obtener resumen
     const presentes = document.getElementById('contador-presentes')?.textContent || '0';
     const retardos = document.getElementById('contador-retardos')?.textContent || '0';
     const faltas = document.getElementById('contador-faltas')?.textContent || '0';
     const justificados = document.getElementById('contador-justificados')?.textContent || '0';
-    
+
     // Construir tabla HTML
     let filasHTML = '';
     let contador = 1;
-    
+
     filas.forEach(fila => {
         const nombre = fila.querySelector('b')?.innerText || '';
         const matricula = fila.querySelector('small')?.innerText?.replace('Matrícula: ', '') || '';
@@ -332,7 +332,7 @@ function exportarPDFLista() {
         let estado = 'Sin registro';
         let colorEstado = '#475569';
         let bgEstado = '#E2E8F0';
-        
+
         if (badge) {
             if (badge.classList.contains('badge-asistencia')) {
                 estado = 'Presente';
@@ -352,7 +352,7 @@ function exportarPDFLista() {
                 bgEstado = '#E8EDF5';
             }
         }
-        
+
         filasHTML += `
             <tr>
                 <td style="text-align: center;">${contador}</td>
@@ -367,10 +367,10 @@ function exportarPDFLista() {
         `;
         contador++;
     });
-    
+
     // Abrir ventana para imprimir
     const ventana = window.open('', '_blank', 'width=900,height=700');
-    
+
     ventana.document.write(`
         <!DOCTYPE html>
         <html lang="es">
@@ -587,7 +587,7 @@ function exportarPDFLista() {
         </body>
         </html>
     `);
-    
+
     ventana.document.close();
 }
 
@@ -596,9 +596,9 @@ function exportarPDFLista() {
  */
 function mostrarToast(mensaje, tipo) {
     const toast = document.createElement('div');
-    
+
     const bgColor = tipo === 'success' ? 'var(--color-azul-marino, #192A56)' : 'var(--color-rojo-oscuro, #A1232E)';
-    
+
     toast.style.cssText = `
         position: fixed;
         bottom: 20px;
@@ -619,7 +619,7 @@ function mostrarToast(mensaje, tipo) {
     `;
     toast.innerHTML = mensaje;
     document.body.appendChild(toast);
-    
+
     setTimeout(() => {
         toast.style.animation = 'slideOutRight 0.3s ease forwards';
         setTimeout(() => toast.remove(), 300);
@@ -636,40 +636,40 @@ function descargarReporteTrimestral() {
 
 // Base de datos simulada de TODOS los alumnos del sistema
 const alumnosSistema = [
-    { 
-        id: 1, 
+    {
+        id: 1,
         nombre: 'Luis Martínez López',
         matricula: 'MAT2024001',
         curp: 'MALL080415HDFRNLA1',
         tutor: 'María López Hernández',
         telefonoTutor: '55-1234-5678'
     },
-    { 
-        id: 2, 
+    {
+        id: 2,
         nombre: 'Ana García Hernández',
         matricula: 'MAT2024002',
         curp: 'GAHA090612MDFRNNA2',
         tutor: 'Roberto García Ruiz',
         telefonoTutor: '55-2345-6789'
     },
-    { 
-        id: 3, 
+    {
+        id: 3,
         nombre: 'Carlos Pérez Díaz',
         matricula: 'MAT2024003',
         curp: 'PEDC100723HDFRZRA3',
         tutor: 'Laura Díaz Morales',
         telefonoTutor: '55-3456-7890'
     },
-    { 
-        id: 4, 
+    {
+        id: 4,
         nombre: 'María Rodríguez Silva',
         matricula: 'HIST2024001',
         curp: 'ROSM110205MDFDLRA4',
         tutor: 'José Rodríguez Pérez',
         telefonoTutor: '55-4567-8901'
     },
-    { 
-        id: 5, 
+    {
+        id: 5,
         nombre: 'Jorge Sánchez Ruiz',
         matricula: 'HIST2024002',
         curp: 'SARJ120918HDFNZRG5',
@@ -714,24 +714,24 @@ const clasesData = [
         horarios: ['Lunes 7:00-8:30', 'Miércoles 7:00-8:30'],
         icono: 'fa-calculator',
         alumnos: [
-            { 
-                id: 1, 
+            {
+                id: 1,
                 nombre: 'Luis Martínez López',
                 matricula: 'MAT2024001',
                 curp: 'MALL080415HDFRNLA1',
                 tutor: 'María López Hernández',
                 telefonoTutor: '55-1234-5678'
             },
-            { 
-                id: 2, 
+            {
+                id: 2,
                 nombre: 'Ana García Hernández',
                 matricula: 'MAT2024002',
                 curp: 'GAHA090612MDFRNNA2',
                 tutor: 'Roberto García Ruiz',
                 telefonoTutor: '55-2345-6789'
             },
-            { 
-                id: 3, 
+            {
+                id: 3,
                 nombre: 'Carlos Pérez Díaz',
                 matricula: 'MAT2024003',
                 curp: 'PEDC100723HDFRZRA3',
@@ -750,16 +750,16 @@ const clasesData = [
         horarios: ['Martes 8:30-10:00', 'Jueves 8:30-10:00'],
         icono: 'fa-book-open',
         alumnos: [
-            { 
-                id: 4, 
+            {
+                id: 4,
                 nombre: 'María Rodríguez Silva',
                 matricula: 'HIST2024001',
                 curp: 'ROSM110205MDFDLRA4',
                 tutor: 'José Rodríguez Pérez',
                 telefonoTutor: '55-4567-8901'
             },
-            { 
-                id: 5, 
+            {
+                id: 5,
                 nombre: 'Jorge Sánchez Ruiz',
                 matricula: 'HIST2024002',
                 curp: 'SARJ120918HDFNZRG5',
@@ -785,7 +785,7 @@ function inicializarMisClases() {
 }
 
 const observer = new MutationObserver(() => {
-    if (document.getElementById('clases-activas-container') && 
+    if (document.getElementById('clases-activas-container') &&
         document.getElementById('clases-activas-container').children.length === 0) {
         inicializarMisClases();
     }
@@ -801,7 +801,7 @@ document.addEventListener('DOMContentLoaded', inicializarMisClases);
 function cargarSolicitudes() {
     const container = document.getElementById('requests-container');
     if (!container) return;
-    
+
     container.innerHTML = `
         <div class="request-item">
             <div class="student-avatar">
@@ -876,7 +876,7 @@ function actualizarContadorSolicitudes() {
 function cargarClasesActivas() {
     const container = document.getElementById('clases-activas-container');
     if (!container) return;
-    
+
     container.innerHTML = clasesData.map(clase => `
         <div class="clase-card">
             <div class="clase-banner">
@@ -919,13 +919,13 @@ function cargarClasesActivas() {
 function agregarHorario() {
     const container = document.getElementById('horarios-container');
     const rows = container.querySelectorAll('.horario-row');
-    
+
     if (rows.length >= 1) {
         rows.forEach(row => {
             row.querySelector('.btn-remove-horario').style.display = 'flex';
         });
     }
-    
+
     const newRow = document.createElement('div');
     newRow.className = 'horario-row';
     newRow.innerHTML = `
@@ -963,7 +963,7 @@ function agregarHorario() {
         </button>
     `;
     container.appendChild(newRow);
-    
+
     newRow.style.opacity = '0';
     newRow.style.transform = 'translateY(-10px)';
     newRow.style.transition = 'all 0.3s';
@@ -977,12 +977,12 @@ function eliminarHorario(btn) {
     const row = btn.closest('.horario-row');
     const container = document.getElementById('horarios-container');
     const rows = container.querySelectorAll('.horario-row');
-    
+
     if (rows.length <= 1) {
         alert('Debe tener al menos un horario.');
         return;
     }
-    
+
     row.style.opacity = '0';
     row.style.transform = 'translateX(30px)';
     row.style.transition = 'all 0.3s';
@@ -1001,7 +1001,7 @@ function eliminarHorario(btn) {
 
 function crearClase(event) {
     event.preventDefault();
-    
+
     const nombre = document.getElementById('nombreClase').value.trim();
     const grado = document.getElementById('gradoClase').value;
     const grupo = document.getElementById('grupoClase').value;
@@ -1016,7 +1016,7 @@ function crearClase(event) {
         const dia = row.querySelector('.dia-select').value;
         const inicio = row.querySelector('.hora-inicio-select').value;
         const fin = row.querySelector('.hora-fin-select').value;
-        
+
         if (!dia || !inicio || !fin) {
             horarioValido = false;
         } else {
@@ -1048,10 +1048,10 @@ function crearClase(event) {
 
     clasesData.push(nuevaClase);
     cargarClasesActivas();
-    
+
     toggleModal('modal-crear');
     document.getElementById('form-crear-clase').reset();
-    
+
     const container = document.getElementById('horarios-container');
     container.innerHTML = `
         <div class="horario-row">
@@ -1089,7 +1089,7 @@ function crearClase(event) {
             </button>
         </div>
     `;
-    
+
     alert(`¡Clase "${nombre}" creada exitosamente!`);
 }
 
@@ -1103,30 +1103,30 @@ function abrirGestionClase(idClase) {
 
     claseSeleccionadaId = idClase;
     reporteGenerado = null;
-    
-    document.getElementById('titulo-gestion-modal').innerHTML = 
+
+    document.getElementById('titulo-gestion-modal').innerHTML =
         `<i class="fa-solid fa-gear"></i> ${clase.nombre} (${clase.grado}° "${clase.grupo}")`;
-    
+
     cargarAlumnosGestion(clase);
-    
-    document.getElementById('resultado-reporte').innerHTML = 
+
+    document.getElementById('resultado-reporte').innerHTML =
         '<p class="placeholder-message">Seleccione una semana y haga clic en "Consultar" para ver el reporte de asistencias del grupo.</p>';
     document.getElementById('semana-reporte').value = '';
     document.getElementById('export-buttons').style.display = 'none';
-    
+
     cambiarTabGestion('alumnos');
-    
+
     toggleModal('modal-gestionar');
 }
 
 function cargarAlumnosGestion(clase) {
     const listaContainer = document.getElementById('lista-alumnos-gestion');
     const totalSpan = document.getElementById('total-alumnos-gestion');
-    
+
     if (!listaContainer || !totalSpan) return;
-    
+
     totalSpan.textContent = clase.alumnos.length;
-    
+
     if (clase.alumnos.length === 0) {
         listaContainer.innerHTML = `
             <p style="color: var(--text-muted); text-align: center; padding: 20px;">
@@ -1153,7 +1153,7 @@ function cargarAlumnosGestion(clase) {
 
 function eliminarAlumno(idClase, idAlumno) {
     if (!confirm('¿Está seguro de eliminar este alumno de la clase?')) return;
-    
+
     const clase = clasesData.find(c => c.id === idClase);
     if (clase) {
         const alumno = clase.alumnos.find(a => a.id === idAlumno);
@@ -1171,7 +1171,7 @@ function eliminarAlumno(idClase, idAlumno) {
 function abrirModalAgregarAlumno() {
     const clase = clasesData.find(c => c.id === claseSeleccionadaId);
     if (!clase) return;
-    
+
     // Crear modal dinámicamente si no existe
     let modal = document.getElementById('modal-agregar-alumno');
     if (!modal) {
@@ -1211,25 +1211,25 @@ function abrirModalAgregarAlumno() {
         `;
         document.body.appendChild(modal);
     }
-    
+
     // Cargar lista de alumnos disponibles (que no están ya en la clase)
     cargarAlumnosDisponibles(clase);
-    
+
     // Limpiar búsqueda anterior
     document.getElementById('buscar-matricula-input').value = '';
     document.getElementById('resultado-busqueda-alumno').innerHTML = '';
-    
+
     toggleModal('modal-agregar-alumno');
 }
 
 function cargarAlumnosDisponibles(clase) {
     const container = document.getElementById('alumnos-disponibles-lista');
     if (!container) return;
-    
+
     // Filtrar alumnos que NO están en la clase actual
     const idsEnClase = clase.alumnos.map(a => a.id);
     const alumnosDisponibles = alumnosSistema.filter(a => !idsEnClase.includes(a.id));
-    
+
     if (alumnosDisponibles.length === 0) {
         container.innerHTML = `
             <p style="color: var(--text-muted); text-align: center; padding: 20px;">
@@ -1237,7 +1237,7 @@ function cargarAlumnosDisponibles(clase) {
             </p>`;
         return;
     }
-    
+
     container.innerHTML = alumnosDisponibles.map(alumno => `
         <div class="alumno-item" style="cursor: default;">
             <img src="https://ui-avatars.com/api/?name=${encodeURIComponent(alumno.nombre)}&background=192A56&color=fff" 
@@ -1260,17 +1260,17 @@ function buscarAlumnoPorMatricula() {
     const resultadoDiv = document.getElementById('resultado-busqueda-alumno');
     const matricula = input.value.trim();
     const clase = clasesData.find(c => c.id === claseSeleccionadaId);
-    
+
     if (!matricula) {
         alert('Por favor, ingrese una matrícula para buscar.');
         return;
     }
-    
+
     // Buscar en el sistema
-    const alumno = alumnosSistema.find(a => 
+    const alumno = alumnosSistema.find(a =>
         a.matricula.toLowerCase() === matricula.toLowerCase()
     );
-    
+
     if (!alumno) {
         resultadoDiv.innerHTML = `
             <div style="background: #FEF2F2; padding: 15px; border-radius: 10px; color: var(--danger);">
@@ -1279,10 +1279,10 @@ function buscarAlumnoPorMatricula() {
             </div>`;
         return;
     }
-    
+
     // Verificar si ya está en la clase
     const yaEstaEnClase = clase.alumnos.some(a => a.id === alumno.id);
-    
+
     if (yaEstaEnClase) {
         resultadoDiv.innerHTML = `
             <div style="background: #FFFBEB; padding: 15px; border-radius: 10px; color: #92400E;">
@@ -1291,7 +1291,7 @@ function buscarAlumnoPorMatricula() {
             </div>`;
         return;
     }
-    
+
     // Mostrar resultado exitoso con botón para agregar
     resultadoDiv.innerHTML = `
         <div style="background: #F0FDF4; padding: 15px; border-radius: 10px; border: 2px solid var(--success);">
@@ -1314,33 +1314,33 @@ function buscarAlumnoPorMatricula() {
 function agregarAlumnoAClase(idAlumno) {
     const clase = clasesData.find(c => c.id === claseSeleccionadaId);
     if (!clase) return;
-    
+
     // Verificar que no esté ya en la clase
     if (clase.alumnos.some(a => a.id === idAlumno)) {
         alert('Este alumno ya está inscrito en la clase.');
         return;
     }
-    
+
     // Buscar alumno en el sistema
     const alumno = alumnosSistema.find(a => a.id === idAlumno);
     if (!alumno) {
         alert('Alumno no encontrado en el sistema.');
         return;
     }
-    
+
     // Agregar a la clase
-    clase.alumnos.push({...alumno});
-    
+    clase.alumnos.push({ ...alumno });
+
     // Actualizar vistas
     cargarAlumnosGestion(clase);
     cargarClasesActivas();
-    
+
     // Actualizar lista de disponibles en el modal
     const claseActualizada = clasesData.find(c => c.id === claseSeleccionadaId);
     cargarAlumnosDisponibles(claseActualizada);
     document.getElementById('resultado-busqueda-alumno').innerHTML = '';
     document.getElementById('buscar-matricula-input').value = '';
-    
+
     alert(`¡${alumno.nombre} ha sido agregado exitosamente a la clase!`);
 }
 
@@ -1350,13 +1350,13 @@ function agregarAlumnoAClase(idAlumno) {
 
 function verDetalleAlumno(event, idClase, idAlumno) {
     if (event.target.closest('.btn-eliminar-alumno')) return;
-    
+
     const clase = clasesData.find(c => c.id === idClase);
     if (!clase) return;
-    
+
     const alumno = clase.alumnos.find(a => a.id === idAlumno);
     if (!alumno) return;
-    
+
     const detalleBody = document.getElementById('detalle-alumno-body');
     detalleBody.innerHTML = `
         <div class="detalle-alumno-card">
@@ -1392,7 +1392,7 @@ function verDetalleAlumno(event, idClase, idAlumno) {
             </button>
         </div>
     `;
-    
+
     toggleModal('modal-detalle-alumno');
 }
 
@@ -1403,7 +1403,7 @@ function verDetalleAlumno(event, idClase, idAlumno) {
 function cambiarTabGestion(tabName) {
     document.querySelectorAll('#modal-gestionar .tab-btn').forEach(btn => btn.classList.remove('active'));
     document.querySelectorAll('#modal-gestionar .tab-content').forEach(content => content.classList.remove('active'));
-    
+
     if (tabName === 'alumnos') {
         document.querySelector('#modal-gestionar .tab-btn:nth-child(1)').classList.add('active');
         document.getElementById('tab-alumnos').classList.add('active');
@@ -1422,12 +1422,12 @@ function generarReporteSemanal() {
     const resultadoDiv = document.getElementById('resultado-reporte');
     const exportButtons = document.getElementById('export-buttons');
     const clase = clasesData.find(c => c.id === claseSeleccionadaId);
-    
+
     if (!semanaInput) {
         alert('Por favor, seleccione una semana.');
         return;
     }
-    
+
     if (!clase || clase.alumnos.length === 0) {
         resultadoDiv.innerHTML = `
             <p style="color: var(--danger); text-align: center;">
@@ -1439,7 +1439,7 @@ function generarReporteSemanal() {
     }
 
     const diasSemana = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes'];
-    
+
     reporteGenerado = {
         semana: semanaInput,
         clase: clase.nombre,
@@ -1449,7 +1449,7 @@ function generarReporteSemanal() {
         dias: diasSemana,
         alumnos: []
     };
-    
+
     let tablaHTML = `
         <h4 style="color: var(--color-azul-marino); margin-bottom: 15px;">
             <i class="fa-solid fa-calendar-week"></i> Semana del ${semanaInput}
@@ -1472,11 +1472,11 @@ function generarReporteSemanal() {
             matricula: alumno.matricula,
             asistencias: []
         };
-        
+
         tablaHTML += `<tr>
             <td><strong>${alumno.nombre}</strong></td>
             <td><small>${alumno.matricula}</small></td>`;
-        
+
         diasSemana.forEach(() => {
             const asistio = Math.random() > 0.2;
             registroAlumno.asistencias.push(asistio);
@@ -1487,20 +1487,20 @@ function generarReporteSemanal() {
                     </span>
                 </td>`;
         });
-        
+
         tablaHTML += '</tr>';
         reporteGenerado.alumnos.push(registroAlumno);
     });
 
     tablaHTML += '</tbody></table></div>';
-    
+
     tablaHTML += `
         <div style="margin-top: 15px; padding: 10px; background: #F0F9FF; border-radius: 8px; font-size: 0.9rem;">
             <i class="fa-solid fa-circle-info"></i> 
             <strong>Nota:</strong> Este reporte es una simulación. Conéctelo a su base de datos para datos reales.
         </div>
     `;
-    
+
     resultadoDiv.innerHTML = tablaHTML;
     exportButtons.style.display = 'flex';
 }
@@ -1509,36 +1509,124 @@ function generarReporteSemanal() {
 // EXPORTACIÓN DE REPORTES (EXCEL / PDF)
 // ==========================================
 
-function exportarReporteExcel() {
+async function exportarReporteExcel() {
     if (!reporteGenerado) {
         alert('Primero genere un reporte semanal.');
         return;
     }
-    
+
+    // Validar que la librería se haya cargado
+    if (typeof ExcelJS === 'undefined') {
+        alert('Cargando motor de Excel, intente de nuevo en un segundo...');
+        return;
+    }
+
     const r = reporteGenerado;
-    let contenido = `Reporte de Asistencia Semanal\n`;
-    contenido += `Clase: ${r.clase} (${r.grado}° "${r.grupo}")\n`;
-    contenido += `Código: ${r.codigo}\n`;
-    contenido += `Semana: ${r.semana}\n\n`;
-    contenido += `Alumno\tMatrícula\t${r.dias.join('\t')}\n`;
-    
-    r.alumnos.forEach(alumno => {
-        contenido += `${alumno.nombre}\t${alumno.matricula}\t`;
-        contenido += alumno.asistencias.map(a => a ? 'Presente' : 'Falta').join('\t');
-        contenido += '\n';
+    const wb = new ExcelJS.Workbook();
+    const ws = wb.addWorksheet('Reporte de Asistencia');
+
+    // 1. Definir las columnas y sus anchos para que no se apachurre
+    const columnas = [
+        { header: '', key: 'alumno', width: 35 },
+        { header: '', key: 'matricula', width: 15 }
+    ];
+    r.dias.forEach((dia, index) => {
+        columnas.push({ header: '', key: `dia_${index}`, width: 18 });
     });
-    
-    const blob = new Blob(['\uFEFF' + contenido], { type: 'text/csv;charset=utf-8;' });
+    ws.columns = columnas;
+
+    // 2. Encabezado principal del Documento (Color Azul Marino)
+    ws.mergeCells('A1', String.fromCharCode(66 + r.dias.length) + '1'); // Combina hasta la última columna
+    const titulo = ws.getCell('A1');
+    titulo.value = '📊 Reporte de Asistencia Semanal';
+    titulo.font = { size: 16, bold: true, color: { argb: 'FFFFFFFF' } };
+    titulo.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF192A56' } }; // Azul Institucional
+    titulo.alignment = { vertical: 'middle', horizontal: 'center' };
+
+    // 3. Información de la clase
+    ws.getCell('A2').value = `Clase: ${r.clase} (${r.grado}° "${r.grupo}")`;
+    ws.getCell('A3').value = `Código: ${r.codigo}`;
+    ws.getCell('A4').value = `Semana: ${r.semana}`;
+
+    ['A2', 'A3', 'A4'].forEach(celda => {
+        ws.getCell(celda).font = { bold: true, color: { argb: 'FF1E293B' } };
+    });
+
+    // 4. Fila de Encabezados de la Tabla
+    const headerRow = ws.getRow(6);
+    headerRow.values = ['Alumno', 'Matrícula', ...r.dias];
+    headerRow.font = { bold: true, color: { argb: 'FFFFFFFF' } };
+    headerRow.height = 25;
+
+    headerRow.eachCell((cell) => {
+        cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF192A56' } };
+        cell.alignment = { horizontal: 'center', vertical: 'middle' };
+        cell.border = {
+            top: { style: 'thin' }, left: { style: 'thin' }, bottom: { style: 'thin' }, right: { style: 'thin' }
+        };
+    });
+
+    // 5. Diccionarios de textos y colores dinámicos
+    const etiquetasExcel = {
+        presente: '✔ Presente',
+        retardo: '⏱ Retardo',
+        falta: '✘ Falta',
+        falta_retardo: '✘ Falta (Retardos)',
+        sin_registro: 'Sin registro'
+    };
+
+    const coloresEstado = {
+        presente: 'FF10B981',       // Verde
+        retardo: 'FFD6A848',        // Dorado
+        falta: 'FFEF4444',          // Rojo
+        falta_retardo: 'FFB91C1C',  // Rojo Oscuro
+        sin_registro: 'FF94A3B8'    // Gris
+    };
+
+    // 6. Llenar los datos de los alumnos
+    let currentRow = 7;
+    r.alumnos.forEach(alumno => {
+        const row = ws.getRow(currentRow);
+        row.getCell(1).value = alumno.nombre;
+        row.getCell(2).value = alumno.matricula;
+        row.getCell(2).alignment = { horizontal: 'center' };
+
+        alumno.asistencias.forEach((estado, index) => {
+            const cell = row.getCell(3 + index);
+            cell.value = etiquetasExcel[estado] || 'Sin registro';
+
+            // Aplicamos el color correspondiente al estado
+            cell.font = {
+                bold: estado !== 'sin_registro',
+                color: { argb: coloresEstado[estado] || 'FF94A3B8' }
+            };
+            cell.alignment = { horizontal: 'center', vertical: 'middle' };
+        });
+
+        // Aplicar bordes a toda la fila
+        row.eachCell({ includeEmpty: true }, (cell) => {
+            cell.border = {
+                top: { style: 'thin', color: { argb: 'FFE2E8F0' } },
+                left: { style: 'thin', color: { argb: 'FFE2E8F0' } },
+                bottom: { style: 'thin', color: { argb: 'FFE2E8F0' } },
+                right: { style: 'thin', color: { argb: 'FFE2E8F0' } }
+            };
+        });
+
+        currentRow++;
+    });
+
+    // 7. Generar el archivo real .xlsx y descargarlo
+    const buffer = await wb.xlsx.writeBuffer();
+    const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
     link.href = url;
-    link.download = `Reporte_Asistencia_${r.codigo}_${r.semana}.csv`;
+    link.download = `Reporte_Asistencia_${r.codigo}_${r.semana}.xlsx`; // ¡Nota que ahora es .xlsx!
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
     URL.revokeObjectURL(url);
-    
-    alert(`El archivo 'Reporte_Asistencia_${r.codigo}_${r.semana}.csv' comenzará a descargarse.`);
 }
 
 function exportarReportePDF() {
@@ -1546,10 +1634,10 @@ function exportarReportePDF() {
         alert('Primero genere un reporte semanal.');
         return;
     }
-    
+
     const r = reporteGenerado;
-    const ventana = window.open('', '_blank', 'width=900,height=700');
-    
+    const ventana = window.open('', '_blank', 'width=1000,height=700');
+
     let html = `
         <!DOCTYPE html>
         <html lang="es">
@@ -1562,11 +1650,18 @@ function exportarReportePDF() {
                 .header h1 { color: #192A56; margin: 0; font-size: 1.5rem; }
                 .header p { color: #64748B; margin: 5px 0; }
                 table { width: 100%; border-collapse: collapse; margin-top: 20px; }
-                th { background: #192A56; color: white; padding: 10px; text-align: left; font-size: 0.85rem; }
-                td, th { padding: 8px 10px; border: 1px solid #E2E8F0; font-size: 0.85rem; }
+                th { background: #192A56; color: white; padding: 10px; text-align: center; font-size: 0.85rem; }
+                td { padding: 8px 10px; border: 1px solid #E2E8F0; font-size: 0.85rem; }
+                td:first-child, td:nth-child(2) { text-align: left; }
                 tr:nth-child(even) { background: #F8FAFC; }
-                .presente { color: #10B981; font-weight: bold; }
-                .falta { color: #EF4444; font-weight: bold; }
+                
+                /* Colores dinámicos para cada estado */
+                .estado-presente { color: #10B981; font-weight: bold; }
+                .estado-retardo { color: #D97706; font-weight: bold; }
+                .estado-falta { color: #EF4444; font-weight: bold; }
+                .estado-falta-retardo { color: #B91C1C; font-weight: bold; }
+                .estado-sin-registro { color: #94A3B8; }
+                
                 .footer { margin-top: 30px; text-align: center; color: #94A3B8; font-size: 0.75rem; }
             </style>
         </head>
@@ -1580,28 +1675,39 @@ function exportarReportePDF() {
             <table>
                 <thead>
                     <tr>
-                        <th>Alumno</th>
-                        <th>Matrícula</th>
+                        <th style="text-align: left;">Alumno</th>
+                        <th style="text-align: left;">Matrícula</th>
                         ${r.dias.map(dia => `<th>${dia}</th>`).join('')}
                     </tr>
                 </thead>
                 <tbody>
     `;
-    
+
+    // Configuración visual por cada estado
+    const configPDF = {
+        presente: { clase: 'estado-presente', texto: '✔ Presente' },
+        retardo: { clase: 'estado-retardo', texto: '⏱ Retardo' },
+        falta: { clase: 'estado-falta', texto: '✘ Falta' },
+        falta_retardo: { clase: 'estado-falta-retardo', texto: '✘ Falta (Retardos)' },
+        sin_registro: { clase: 'estado-sin-registro', texto: '— Sin registro' }
+    };
+
     r.alumnos.forEach(alumno => {
         html += `<tr>
             <td><strong>${alumno.nombre}</strong></td>
             <td>${alumno.matricula}</td>`;
-        alumno.asistencias.forEach(asistio => {
+
+        alumno.asistencias.forEach(estado => {
+            const cfg = configPDF[estado] || configPDF['sin_registro'];
             html += `<td style="text-align: center;">
-                <span class="${asistio ? 'presente' : 'falta'}">
-                    ${asistio ? '✔ Presente' : '✘ Falta'}
+                <span class="${cfg.clase}">
+                    ${cfg.texto}
                 </span>
             </td>`;
         });
         html += '</tr>';
     });
-    
+
     html += `
                 </tbody>
             </table>
@@ -1611,10 +1717,10 @@ function exportarReportePDF() {
         </body>
         </html>
     `;
-    
+
     ventana.document.write(html);
     ventana.document.close();
-    
+
     setTimeout(() => {
         ventana.print();
     }, 500);
@@ -1631,20 +1737,20 @@ function exportarReportePDF() {
 function actualizarResumenAsistencia() {
     const panel = document.getElementById('panel-asistencia');
     const resumen = document.getElementById('resumen-asistencia');
-    
+
     // Si el panel no está visible, ocultar resumen
     if (!panel || panel.style.display === 'none') {
         if (resumen) resumen.style.display = 'none';
         return;
     }
-    
+
     // Mostrar resumen
     if (resumen) resumen.style.display = 'block';
-    
+
     // Contar badges por tipo
     const badges = document.querySelectorAll('#lista-alumnos-body .badge');
     let presentes = 0, retardos = 0, faltas = 0, justificados = 0;
-    
+
     badges.forEach(badge => {
         if (badge.classList.contains('badge-asistencia')) {
             presentes++;
@@ -1656,18 +1762,18 @@ function actualizarResumenAsistencia() {
             justificados++;
         }
     });
-    
+
     // Actualizar contadores en el DOM
     const contadorPresentes = document.getElementById('contador-presentes');
     const contadorRetardos = document.getElementById('contador-retardos');
     const contadorFaltas = document.getElementById('contador-faltas');
     const contadorJustificados = document.getElementById('contador-justificados');
-    
+
     if (contadorPresentes) contadorPresentes.textContent = presentes;
     if (contadorRetardos) contadorRetardos.textContent = retardos;
     if (contadorFaltas) contadorFaltas.textContent = faltas;
     if (contadorJustificados) contadorJustificados.textContent = justificados;
-    
+
     // Animación sutil en los números que cambiaron
     [contadorPresentes, contadorRetardos, contadorFaltas, contadorJustificados].forEach(contador => {
         if (contador) {
@@ -1685,24 +1791,24 @@ function actualizarResumenAsistencia() {
  */
 function resetearAsistencia() {
     const badges = document.querySelectorAll('#lista-alumnos-body .badge');
-    
+
     if (badges.length === 0) {
         alert('No hay alumnos en la lista para reiniciar.');
         return;
     }
-    
+
     if (!confirm('¿Está seguro de reiniciar todas las selecciones de asistencia? Esta acción no se puede deshacer.')) {
         return;
     }
-    
+
     badges.forEach(badge => {
         badge.className = 'badge badge-pendiente';
         badge.innerHTML = '<i class="fa-solid fa-minus"></i> Sin registro';
     });
-    
+
     // Actualizar resumen
     actualizarResumenAsistencia();
-    
+
     // Animación de feedback visual
     const panel = document.getElementById('panel-asistencia');
     if (panel) {
@@ -1712,7 +1818,7 @@ function resetearAsistencia() {
             panel.style.boxShadow = '0 4px 20px rgba(0,0,0,0.04)';
         }, 600);
     }
-    
+
     // Mostrar mensaje de confirmación
     const toast = document.createElement('div');
     toast.style.cssText = `
@@ -1730,7 +1836,7 @@ function resetearAsistencia() {
     `;
     toast.innerHTML = '<i class="fa-solid fa-circle-check"></i> Asistencia reiniciada correctamente';
     document.body.appendChild(toast);
-    
+
     setTimeout(() => {
         toast.style.animation = 'slideOutRight 0.3s ease forwards';
         setTimeout(() => toast.remove(), 300);
@@ -1759,14 +1865,14 @@ function marcarAsistencia(idAlumno, tipo) {
         badge.classList.add('badge-falta');
         badge.innerHTML = '<i class="fa-solid fa-xmark"></i> Falta';
     }
-    
+
     // Efecto de confirmación visual en el badge
     badge.style.transform = 'scale(1.1)';
     badge.style.transition = 'transform 0.2s ease';
     setTimeout(() => {
         badge.style.transform = 'scale(1)';
     }, 200);
-    
+
     // Actualizar resumen de asistencia
     actualizarResumenAsistencia();
 }
@@ -1777,41 +1883,41 @@ function marcarAsistencia(idAlumno, tipo) {
 function guardarAsistencia() {
     const panel = document.getElementById('panel-asistencia');
     const badges = document.querySelectorAll('#lista-alumnos-body .badge');
-    
+
     if (!panel || panel.style.display === 'none') {
         alert('No hay una lista de asistencia activa para guardar.');
         return;
     }
-    
+
     // Verificar si hay alumnos sin registrar
     const sinRegistrar = document.querySelectorAll('#lista-alumnos-body .badge-pendiente').length;
-    
+
     if (sinRegistrar > 0) {
         if (!confirm(`Hay ${sinRegistrar} alumno(s) sin registrar asistencia. ¿Desea continuar y guardar de todos modos?`)) {
             return;
         }
     }
-    
+
     // Mostrar animación de carga
     const btnGuardar = document.querySelector('.btn-save-attendance');
     if (btnGuardar) {
         btnGuardar.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Guardando...';
         btnGuardar.disabled = true;
     }
-    
+
     // Simular guardado
     setTimeout(() => {
         alert("✅ ¡Registro del día guardado exitosamente en la base de datos!");
-        
+
         if (btnGuardar) {
             btnGuardar.innerHTML = '<i class="fa-solid fa-cloud-arrow-up"></i> Finalizar y Guardar Registro';
             btnGuardar.disabled = false;
         }
-        
+
         // Ocultar panel
         document.getElementById('panel-asistencia').style.display = 'none';
         document.getElementById('grupo-select').value = '';
-        
+
         // Ocultar resumen
         const resumen = document.getElementById('resumen-asistencia');
         if (resumen) resumen.style.display = 'none';
@@ -1842,7 +1948,7 @@ function cargarAlumnos(grupo) {
 
     alumnosFalsos.forEach(alumno => {
         const tr = document.createElement('tr');
-        
+
         let estadoHTML = '';
         let botonesHTML = '';
 
@@ -1897,9 +2003,9 @@ function cargarAlumnos(grupo) {
     // Mostrar panel con animación
     panel.style.display = 'block';
     panel.classList.remove('fade-in');
-    void panel.offsetWidth; 
+    void panel.offsetWidth;
     panel.classList.add('fade-in');
-    
+
     // Actualizar resumen
     actualizarResumenAsistencia();
 }
@@ -1991,11 +2097,11 @@ async function inicializarSesionDocente() {
 
 document.addEventListener('DOMContentLoaded', () => {
     inicializarSesionDocente();
-    
+
     // === FUNCIÓN A PRUEBA DE BALAS PARA CERRAR SESIÓN ===
     const btnLogout = document.getElementById('btn-logout');
     if (btnLogout) {
-        btnLogout.addEventListener('click', function(e) {
+        btnLogout.addEventListener('click', function (e) {
             e.preventDefault(); // Evitamos que salte directo
             Swal.fire({
                 icon: 'warning',
@@ -2008,8 +2114,8 @@ document.addEventListener('DOMContentLoaded', () => {
                     <hr style="border: none; border-top: 1px solid #E2E8F0; width: 80%; margin: 0 auto;">
                 `,
                 showCancelButton: true,
-                confirmButtonColor: '#192A56', 
-                cancelButtonColor: '#64748B',  
+                confirmButtonColor: '#192A56',
+                cancelButtonColor: '#64748B',
                 confirmButtonText: '<i class="fa-solid fa-right-from-bracket"></i> Sí, salir',
                 cancelButtonText: 'Cancelar',
                 customClass: { popup: 'swal-solicitud-popup' }
@@ -2017,7 +2123,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (result.isConfirmed) {
                     try {
                         await apiDocente('logout', { method: 'POST' });
-                        window.location.href = '../index.html'; 
+                        window.location.href = '../index.html';
                     } catch (error) {
                         console.error('Error al cerrar sesión:', error);
                         window.location.href = '../index.html';
@@ -2448,7 +2554,7 @@ async function cargarAlumnos(idCurso) {
         tr.dataset.idAlumno = alumno.id;
         tr.dataset.estado = estado === 'pendiente' ? 'pendiente' : estado;
 
-        const badge = badgeAsistencia(alumno.id, estado, alumno.motivo_justificante);
+        const badge = badgeAsistencia(alumno.id, estado, alumno.motivo_justificante, alumno.archivo_justificante);
         const botones = justificado ? `
             <div class="action-group"><button class="disabled-btn" disabled>Justificado</button></div>
         ` : `
@@ -2477,12 +2583,13 @@ async function cargarAlumnos(idCurso) {
     actualizarResumenAsistencia();
 }
 
-function badgeAsistencia(idAlumno, estado, motivo = '') {
+function badgeAsistencia(idAlumno, estado, motivo = '', archivos = '') {
     const datos = {
         presente: ['badge-asistencia', 'fa-check', 'Presente'],
         asistencia: ['badge-asistencia', 'fa-check', 'Presente'],
         retardo: ['badge-retardo', 'fa-clock', 'Retardo'],
         falta: ['badge-falta', 'fa-xmark', 'Falta'],
+        falta_retardo: ['badge-falta', 'fa-xmark', 'Falta por Retardos'], // <--- ESTA LÍNEA ES NUEVA
         justificado: ['badge-permiso', 'fa-file-medical', 'Permiso Justificado'],
         pendiente: ['badge-pendiente', 'fa-minus', 'Sin registro'],
         sin_registro: ['badge-pendiente', 'fa-minus', 'Sin registro']
@@ -2492,7 +2599,24 @@ function badgeAsistencia(idAlumno, estado, motivo = '') {
         <span class="badge ${datos[0]}" id="badge-${idAlumno}">
             <i class="fa-solid ${datos[1]}"></i> ${datos[2]}
         </span>
-        ${motivo ? `<div class="motivo-text">${escapar(motivo)}</div>` : ''}`;
+        ${motivo ? `<div class="motivo-text">${escapar(motivo)}</div>` : ''}
+        ${renderArchivosJustificanteDocente(archivos)}`;
+}
+
+function renderArchivosJustificanteDocente(valor) {
+    if (!valor) return '';
+    const links = String(valor)
+        .split(',')
+        .map(url => url.trim())
+        .filter(Boolean)
+        .map(url => {
+            const href = /^https?:\/\//i.test(url) || url.startsWith('../')
+                ? url
+                : `../${url.replace(/^\/+/, '')}`;
+            const nombre = url.split('/').pop();
+            return `<a class="motivo-text" href="${escapar(href)}" target="_blank" rel="noopener"><i class="fa-solid fa-paperclip"></i> ${escapar(nombre)}</a>`;
+        });
+    return links.length ? `<div>${links.join('')}</div>` : '';
 }
 
 function marcarAsistencia(idAlumno, tipo) {
@@ -2598,7 +2722,8 @@ async function generarReporteSemanal() {
         reporteGenerado.alumnos.push({
             nombre: alumno.nombre,
             matricula: alumno.matricula,
-            asistencias: alumno.asistencias.map(e => e === 'presente' || e === 'retardo')
+            // AQUÍ ESTÁ LA MAGIA: Guardamos el estado exacto como texto
+            asistencias: alumno.asistencias
         });
         tablaHTML += `<tr><td><strong>${escapar(alumno.nombre)}</strong></td><td><small>${escapar(alumno.matricula || '')}</small></td>`;
         alumno.asistencias.forEach(estado => {
@@ -2614,13 +2739,16 @@ async function generarReporteSemanal() {
 
 function etiquetaEstadoReporte(estado) {
     const labels = {
-        presente: ['badge-asistio', 'fa-check', 'Presente'],
-        retardo: ['badge-asistio', 'fa-clock', 'Retardo'],
-        falta: ['badge-falto', 'fa-xmark', 'Falta'],
-        dudoso: ['badge-falto', 'fa-question', 'Dudoso'],
-        sin_registro: ['', 'fa-minus', 'Sin registro']
+        presente: ['badge badge-asistencia', 'fa-check', 'Presente'], // <-- Verde
+        retardo: ['badge badge-retardo', 'fa-clock', 'Retardo'],      // <-- Amarillo
+        falta: ['badge badge-falta', 'fa-xmark', 'Falta'],            // <-- Rojo
+        falta_retardo: ['badge badge-falta', 'fa-xmark', 'Falta por Retardos'], // <-- Rojo
+        dudoso: ['badge badge-falta', 'fa-question', 'Dudoso'],
+        sin_registro: ['badge badge-pendiente', 'fa-minus', 'Sin registro'] // <-- Gris
     };
-    const item = labels[estado] || labels.sin_registro;
+
+    const item = labels[estado] || labels['sin_registro'];
+
     return `<span class="${item[0]}"><i class="fa-solid ${item[1]}"></i> ${item[2]}</span>`;
 }
 

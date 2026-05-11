@@ -7,68 +7,7 @@
     </div>
 
     <div class="grid-materias" id="grid-activas">
-        <div class="materia-card add-materia" onclick="abrirModalUnirse()">
-            <div class="add-content">
-                <div class="add-icon"><i class="fa-solid fa-plus"></i></div>
-                <h4>Unirse a clase</h4>
-                <span>Ingresa el código</span>
-            </div>
-        </div>
-
-        <div class="materia-card active-card" data-status="safe">
-            <div class="card-status-line safe"></div>
-            <div class="card-body">
-                <div class="materia-icon-box">
-                    <i class="fa-solid fa-calculator"></i>
-                </div>
-                <div class="materia-main">
-                    <h4>Matemáticas</h4>
-                    <p><i class="fa-solid fa-user-tie"></i> Eduardo García</p>
-                </div>
-                <button class="btn-info-profe" title="prof.mate@escuela.com">
-                    <i class="fa-solid fa-circle-info"></i>
-                </button>
-            </div>
-            
-            <div class="attendance-visual">
-                <div class="progress-container">
-                    <div class="progress-bar" style="width: 95%;"></div>
-                </div>
-                <div class="attendance-stats">
-                    <span class="percentage">95% de Asistencia</span>
-                    <span class="count">2 de 40 faltas</span>
-                </div>
-            </div>
-        </div>
-
-        <div class="materia-card active-card" data-status="risk">
-            <div class="card-status-line risk"></div>
-            <div class="card-body">
-                <div class="materia-icon-box" style="background: rgba(161, 35, 46, 0.1); color: var(--color-rojo-oscuro);">
-                    <i class="fa-solid fa-flask"></i>
-                </div>
-                <div class="materia-main">
-                    <h4>Química</h4>
-                    <p><i class="fa-solid fa-user-tie"></i> Ana Martínez</p>
-                </div>
-                <button class="btn-info-profe" title="prof.quimica@escuela.com">
-                    <i class="fa-solid fa-circle-info"></i>
-                </button>
-            </div>
-            
-            <div class="attendance-visual">
-                <div class="progress-container">
-                    <div class="progress-bar risk" style="width: 75%;"></div>
-                </div>
-                <div class="attendance-stats">
-                    <span class="percentage risk-text">75% (En Riesgo)</span>
-                    <span class="count">10 de 40 faltas</span>
-                </div>
-            </div>
-            <button class="btn-action-risk" onclick="loadSection('justificantes')">
-                <i class="fa-solid fa-file-circle-plus"></i> Justificar ahora
-            </button>
-        </div>
+        <!-- Se llena dinámicamente con JS -->
     </div>
 
     <div class="materias-header secondary">
@@ -76,20 +15,12 @@
     </div>
     
     <div class="grid-materias" id="grid-pendientes">
-        <div class="materia-card pending-card">
-            <div class="pending-badge">Pendiente</div>
-            <div class="card-body">
-                <div class="materia-icon-box gray">
-                    <i class="fa-solid fa-atom"></i>
-                </div>
-                <div class="materia-main">
-                    <h4>Física II</h4>
-                    <p>Esperando aprobación del docente</p>
-                </div>
-            </div>
-        </div>
+        <!-- Se llena dinámicamente con JS -->
     </div>
 
+    <!-- ==========================================
+    MODAL UNIRSE A CLASE
+    ========================================== -->
     <div id="modal-unirse-clase" class="modal">
         <div class="modal-content fade-in">
             <div class="modal-header" style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #EAEAEA; padding-bottom: 15px; margin-bottom: 20px;">
@@ -132,4 +63,113 @@
             </div>
         </div>
     </div>
+
+    <!-- ==========================================
+MODAL DETALLE DE MATERIA
+========================================== -->
+<div id="modal-detalle-materia" class="modal-detalle-overlay hidden">
+    <div class="modal-detalle-content fade-in">
+        <button class="btn-close-modal" onclick="cerrarModalDetalleMateria()">
+            <i class="fa-solid fa-xmark"></i>
+        </button>
+        
+        <!-- ENCABEZADO -->
+        <div class="modal-detalle-header-materia">
+            <div class="detalle-icono-materia" id="detalle-materia-icono">
+                <i class="fa-solid fa-book"></i>
+            </div>
+            <div>
+                <h3 id="detalle-materia-nombre">Nombre de la Materia</h3>
+                <p id="detalle-materia-grupo" class="text-muted">Grupo</p>
+            </div>
+        </div>
+        
+        <!-- CUERPO -->
+        <div class="modal-detalle-body">
+            <!-- Datos generales -->
+            <div class="detalle-grid">
+                <div class="detalle-item">
+                    <label><i class="fa-solid fa-key"></i> Código de Clase</label>
+                    <span id="detalle-codigo-clase">---</span>
+                </div>
+                <div class="detalle-item">
+                    <label><i class="fa-solid fa-user-tie"></i> Docente</label>
+                    <span id="detalle-docente-nombre">---</span>
+                </div>
+                <div class="detalle-item">
+                    <label><i class="fa-solid fa-envelope"></i> Correo</label>
+                    <span id="detalle-docente-correo">---</span>
+                </div>
+                <div class="detalle-item">
+                    <label><i class="fa-solid fa-calendar"></i> Periodo</label>
+                    <span id="detalle-periodo">---</span>
+                </div>
+            </div>
+            
+            <!-- Asistencia -->
+            <div class="detalle-asistencia mt-20">
+                <h4><i class="fa-solid fa-chart-bar"></i> Asistencia General</h4>
+                <div class="progress-container-large">
+                    <div class="progress-bar-large" id="detalle-progress-bar" style="width: 0%;"></div>
+                </div>
+                <div class="asistencia-detalle-stats mt-10">
+                    <span id="detalle-porcentaje">0% de Asistencia</span>
+                </div>
+                <div class="asistencia-mini-stats">
+                    <div class="mini-stat">
+                        <i class="fa-solid fa-check-circle text-success"></i>
+                        <span>Presentes: <strong id="detalle-presentes">0</strong></span>
+                    </div>
+                    <div class="mini-stat">
+                        <i class="fa-solid fa-clock text-warning"></i>
+                        <span>Retardos: <strong id="detalle-retardos">0</strong></span>
+                    </div>
+                    <div class="mini-stat">
+                        <i class="fa-solid fa-xmark-circle text-danger"></i>
+                        <span>Faltas: <strong id="detalle-faltas">0</strong></span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Horario -->
+            <div class="detalle-asistencia mt-20">
+                <h4><i class="fa-solid fa-clock"></i> Horario de Clase</h4>
+                <div id="detalle-horario">
+                    <p class="text-muted">Cargando horario...</p>
+                </div>
+            </div>
+        </div>
+        
+        <!-- PIE -->
+        <div class="modal-detalle-footer-materia">
+            <button class="btn-mega btn-cancelar" onclick="cerrarModalDetalleMateria()">
+                <i class="fa-solid fa-xmark"></i> Cerrar
+            </button>
+            <button class="btn-mega btn-confirm-eliminar" id="btn-abandonar-materia" onclick="confirmarAbandonarMateria()">
+                <i class="fa-solid fa-right-from-bracket"></i> Abandonar Clase
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- ==========================================
+MODAL CONFIRMAR ABANDONO DE MATERIA
+========================================== -->
+<div id="modal-confirm-abandono" class="modal-confirm-overlay hidden">
+    <div class="modal-confirm-content fade-in">
+        <div class="confirm-icon">
+            <i class="fa-solid fa-triangle-exclamation"></i>
+        </div>
+        <h3>¿Abandonar esta clase?</h3>
+        <p id="mensaje-abandono">Si abandonas la clase <strong id="nombre-materia-abandono"></strong>, perderás el acceso a su contenido y registros de asistencia. Esta acción no se puede deshacer.</p>
+        <div class="confirm-actions">
+            <button class="btn-mega btn-cancelar" onclick="cerrarModalConfirmAbandono()">
+                <i class="fa-solid fa-xmark"></i> Cancelar
+            </button>
+            <button class="btn-mega btn-confirm-eliminar" id="btn-confirmar-abandono" onclick="ejecutarAbandonarMateria()">
+                <i class="fa-solid fa-right-from-bracket"></i> Sí, Abandonar
+            </button>
+        </div>
+    </div>
+</div>
 </div>
