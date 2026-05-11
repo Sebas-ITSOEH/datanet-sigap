@@ -96,6 +96,25 @@ const ValidadorRegistro = {
     return { valido: true, mensaje: "" };
   },
 
+  // Validar matrícula escolar (8 dígitos)
+  validarMatricula(valor) {
+    const matricula = (valor || "").trim();
+    if (matricula === "") {
+      return { valido: false, mensaje: "La matrícula escolar es obligatoria." };
+    }
+    if (!this.patrones.matricula.test(matricula)) {
+      return { valido: false, mensaje: "La matrícula debe tener 8 dígitos." };
+    }
+    return { valido: true, mensaje: "" };
+  },
+
+  // Extraer matrícula del correo del alumno (primeros 8 dígitos)
+  extraerMatriculaDelCorreo(correo) {
+    const correoLimpio = (correo || "").trim().toLowerCase();
+    const match = correoLimpio.match(/^(\d{8})@/);
+    return match ? match[1] : "";
+  },
+
   // Validar NSS
   validarNSS(valor) {
     const nss = (valor || "").trim();
@@ -205,6 +224,10 @@ const GestorValidacion = {
     telTutor: {
       validador: (v) => ValidadorRegistro.validarTelefono(v),
       feedback: "telTutor-feedback",
+    },
+    matricula_escolar: {
+      validador: (v) => ValidadorRegistro.validarMatricula(v),
+      feedback: "matricula_escolar-feedback",
     },
     nss: {
       validador: (v) => ValidadorRegistro.validarNSS(v),
@@ -336,7 +359,7 @@ const GestorValidacion = {
     let camposValidar = ["pass", "confirmPass"];
 
     if (rol === "alumno") {
-      camposValidar.push("telTutor");
+      camposValidar.push("matricula_escolar", "telTutor");
     } else if (rol === "docente") {
       camposValidar.push("nss", "rfc");
     }
@@ -348,6 +371,24 @@ const GestorValidacion = {
     return todosValidos;
   },
 
+  // Extraer matrícula del correo y autocompletar el campo
+  autocompletarMatricula() {
+    const emailInput = document.getElementById("email");
+    const matriculaInput = document.getElementById("matricula_escolar");
+    
+    if (!emailInput || !matriculaInput) return;
+    
+    const correo = emailInput.value.trim().toLowerCase();
+    const matricula = ValidadorRegistro.extraerMatriculaDelCorreo(correo);
+    
+    matriculaInput.value = matricula;
+    
+    // Validar la matrícula si tiene valor
+    if (matricula) {
+      this.validarCampo("matricula_escolar");
+    }
+  },
+
   esEmailAlumno(email) {
     return ValidadorRegistro.patrones.correoAlumno.test(
       email.trim().toLowerCase()
@@ -356,6 +397,7 @@ const GestorValidacion = {
 
   agregarListenersParaTipoRol() {
     const telTutor = document.getElementById("telTutor");
+    const matriculaEscolar = document.getElementById("matricula_escolar");
     const nss = document.getElementById("nss");
     const rfc = document.getElementById("rfc");
 
@@ -363,10 +405,17 @@ const GestorValidacion = {
       telTutor.addEventListener("input", () => this.validarCampo("telTutor"));
       telTutor.addEventListener("blur", () => this.validarCampo("telTutor"));
     }
+    
+    if (matriculaEscolar) {
+      matriculaEscolar.addEventListener("input", () => this.validarCampo("matricula_escolar"));
+      matriculaEscolar.addEventListener("blur", () => this.validarCampo("matricula_escolar"));
+    }
+    
     if (nss) {
       nss.addEventListener("input", () => this.validarCampo("nss"));
       nss.addEventListener("blur", () => this.validarCampo("nss"));
     }
+    
     if (rfc) {
       rfc.addEventListener("input", () => this.validarCampo("rfc"));
       rfc.addEventListener("blur", () => this.validarCampo("rfc"));

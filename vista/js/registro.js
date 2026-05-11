@@ -174,6 +174,9 @@ function irAStep3() {
   if (rol === "alumno") {
     if (seccionAlumno) seccionAlumno.style.display = "block";
     if (seccionDocente) seccionDocente.style.display = "none";
+    
+    // Extraer y autocompletar matrícula del correo
+    GestorValidacion.autocompletarMatricula();
   } else {
     if (seccionAlumno) seccionAlumno.style.display = "none";
     if (seccionDocente) seccionDocente.style.display = "block";
@@ -264,7 +267,7 @@ async function enviarRegistro() {
     correo: document.getElementById("email")?.value.trim().toLowerCase() || "",
     password: document.getElementById("pass")?.value || "",
     rol: rol,
-    matricula_escolar: rol === "alumno" ? "" : null,
+    matricula_escolar: rol === "alumno" ? (document.getElementById("matricula_escolar")?.value.trim() || "") : null,
     telefono: rol === "alumno" ? (document.getElementById("telTutor")?.value.trim() || "") : null,
     clave_docente: rol === "docente" ? (document.getElementById("id-valor")?.value.trim() || "") : null,
     nss: rol === "docente" ? (document.getElementById("nss")?.value.trim() || "") : null,
