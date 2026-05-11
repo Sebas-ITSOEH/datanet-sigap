@@ -1741,6 +1741,8 @@ function actualizarResumenAsistencia() {
     // Si el panel no está visible, ocultar resumen
     if (!panel || panel.style.display === 'none') {
         if (resumen) resumen.style.display = 'none';
+        const alertaDudosos = document.getElementById('alerta-dudosos-qr');
+        if (alertaDudosos) alertaDudosos.style.display = 'none';
         return;
     }
 
@@ -2035,6 +2037,7 @@ let clasesDocente = [];
 let alumnosDisponiblesDocente = [];
 let claseSeleccionadaDocente = null;
 let cursoListaActivo = null;
+let qrRefreshTimerDocente = null;
 
 async function apiDocente(accion, opciones = {}) {
     const query = opciones.query ? `&${new URLSearchParams(opciones.query).toString()}` : '';
@@ -2073,6 +2076,96 @@ function escapar(texto) {
 
 function fechaISOActual() {
     return new Date().toISOString().split('T')[0];
+}
+
+function detenerQrDocente() {
+    if (qrRefreshTimerDocente) {
+        clearInterval(qrRefreshTimerDocente);
+        qrRefreshTimerDocente = null;
+    }
+}
+
+async function refrescarQrDocente(forzar = false) {
+    if (!cursoListaActivo) return;
+
+    const img = document.getElementById('qr-token-img');
+    const placeholder = document.getElementById('qr-token-placeholder');
+    const sesionEl = document.getElementById('qr-sesion-id');
+    const expiraEl = document.getElementById('qr-expira');
+
+    if (placeholder && forzar) {
+        placeholder.style.display = 'grid';
+        placeholder.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Generando QR...';
+    }
+    if (img && forzar) img.style.display = 'none';
+
+    try {
+        const data = await apiDocente('generar_qr_token', {
+            method: 'POST',
+            body: {
+                id_curso: cursoListaActivo,
+                fecha: fechaISOActual(),
+                segundos_vigencia: 30
+            }
+        });
+
+        const qr = data.qr;
+        if (!qr?.token) throw new Error('El servidor no devolvio un token QR.');
+
+        if (img) {
+            img.src = `https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=${encodeURIComponent(qr.token)}&bgcolor=FFFFFF&color=192A56`;
+            img.style.display = 'block';
+        }
+        if (placeholder) placeholder.style.display = 'none';
+        if (sesionEl) sesionEl.textContent = qr.id_sesion || '---';
+        if (expiraEl) expiraEl.textContent = qr.fecha_expiracion || '---';
+        sincronizarAsistenciasQrDocente();
+    } catch (error) {
+        if (placeholder) {
+            placeholder.style.display = 'grid';
+            placeholder.innerHTML = `<i class="fa-solid fa-triangle-exclamation"></i> ${escapar(error.message)}`;
+        }
+        if (img) img.style.display = 'none';
+    }
+}
+
+function iniciarQrDocente() {
+    detenerQrDocente();
+    refrescarQrDocente(true);
+    qrRefreshTimerDocente = setInterval(() => refrescarQrDocente(false), 30000);
+}
+
+async function sincronizarAsistenciasQrDocente() {
+    if (!cursoListaActivo || !document.getElementById('lista-alumnos-body')) return;
+
+    try {
+        const data = await apiDocente('lista_asistencia', {
+            query: { id_curso: cursoListaActivo, fecha: fechaISOActual() }
+        });
+
+        (data.alumnos || []).forEach(alumno => {
+            const row = document.querySelector(`#lista-alumnos-body tr[data-id-alumno="${alumno.id}"]`);
+            if (!row || row.dataset.editadoManual === 'true' || row.dataset.estado === 'justificado') return;
+
+            const estadoServidor = Number(alumno.justificado) === 1 ? 'justificado' : (alumno.estado || 'pendiente');
+            if (estadoServidor === row.dataset.estado) return;
+
+            row.dataset.estado = estadoServidor === 'pendiente' ? 'pendiente' : estadoServidor;
+            const estadoCell = row.children[1];
+            if (estadoCell) {
+                estadoCell.innerHTML = badgeAsistencia(
+                    alumno.id,
+                    estadoServidor,
+                    alumno.motivo_justificante,
+                    alumno.archivo_justificante
+                );
+            }
+        });
+
+        actualizarResumenAsistencia();
+    } catch (error) {
+        console.warn('No se pudo sincronizar la asistencia QR:', error);
+    }
 }
 
 async function inicializarSesionDocente() {
@@ -2538,6 +2631,7 @@ async function cargarAlumnos(idCurso) {
     cursoListaActivo = idCurso;
 
     if (!idCurso) {
+        detenerQrDocente();
         panel.style.display = 'none';
         if (resumen) resumen.style.display = 'none';
         return;
@@ -2581,6 +2675,7 @@ async function cargarAlumnos(idCurso) {
     void panel.offsetWidth;
     panel.classList.add('fade-in');
     actualizarResumenAsistencia();
+    iniciarQrDocente();
 }
 
 function badgeAsistencia(idAlumno, estado, motivo = '', archivos = '') {
@@ -2589,6 +2684,7 @@ function badgeAsistencia(idAlumno, estado, motivo = '', archivos = '') {
         asistencia: ['badge-asistencia', 'fa-check', 'Presente'],
         retardo: ['badge-retardo', 'fa-clock', 'Retardo'],
         falta: ['badge-falta', 'fa-xmark', 'Falta'],
+        dudoso: ['badge-dudoso', 'fa-user-check', 'Verificar en aula'],
         falta_retardo: ['badge-falta', 'fa-xmark', 'Falta por Retardos'], // <--- ESTA LÍNEA ES NUEVA
         justificado: ['badge-permiso', 'fa-file-medical', 'Permiso Justificado'],
         pendiente: ['badge-pendiente', 'fa-minus', 'Sin registro'],
@@ -2599,6 +2695,7 @@ function badgeAsistencia(idAlumno, estado, motivo = '', archivos = '') {
         <span class="badge ${datos[0]}" id="badge-${idAlumno}">
             <i class="fa-solid ${datos[1]}"></i> ${datos[2]}
         </span>
+        ${estado === 'dudoso' ? '<div class="motivo-text qr-warning"><i class="fa-solid fa-qrcode"></i> Registro por QR sin confirmacion Bluetooth</div>' : ''}
         ${motivo ? `<div class="motivo-text">${escapar(motivo)}</div>` : ''}
         ${renderArchivosJustificanteDocente(archivos)}`;
 }
@@ -2625,6 +2722,7 @@ function marcarAsistencia(idAlumno, tipo) {
     if (!badge || !row) return;
 
     row.dataset.estado = tipo;
+    row.dataset.editadoManual = 'true';
     badge.className = 'badge';
 
     if (tipo === 'asistencia') {
@@ -2767,6 +2865,8 @@ function actualizarResumenAsistencia() {
 
     if (!panel || panel.style.display === 'none') {
         if (resumen) resumen.style.display = 'none';
+        const alertaDudosos = document.getElementById('alerta-dudosos-qr');
+        if (alertaDudosos) alertaDudosos.style.display = 'none';
         return;
     }
 
@@ -2777,12 +2877,14 @@ function actualizarResumenAsistencia() {
     let retardos = 0;
     let faltas = 0;
     let justificados = 0;
+    let dudosos = 0;
 
     badges.forEach(badge => {
         if (badge.classList.contains('badge-asistencia')) presentes++;
         else if (badge.classList.contains('badge-retardo')) retardos++;
         else if (badge.classList.contains('badge-falta')) faltas++;
         else if (badge.classList.contains('badge-permiso')) justificados++;
+        else if (badge.classList.contains('badge-dudoso')) dudosos++;
     });
 
     const contadorPresentes = document.getElementById('contador-presentes');
@@ -2794,6 +2896,12 @@ function actualizarResumenAsistencia() {
     if (contadorRetardos) contadorRetardos.textContent = retardos;
     if (contadorFaltas) contadorFaltas.textContent = faltas;
     if (contadorJustificados) contadorJustificados.textContent = justificados;
+
+    const alertaDudosos = document.getElementById('alerta-dudosos-qr');
+    if (alertaDudosos) {
+        alertaDudosos.style.display = dudosos > 0 ? 'flex' : 'none';
+        alertaDudosos.innerHTML = `<i class="fa-solid fa-triangle-exclamation"></i> ${dudosos} alumno(s) registraron asistencia por QR sin Bluetooth. Verifique su presencia en el aula.`;
+    }
 }
 
 function resetearAsistencia() {
@@ -2810,6 +2918,7 @@ function resetearAsistencia() {
     rows.forEach(row => {
         if (row.dataset.estado === 'justificado') return;
         row.dataset.estado = 'pendiente';
+        delete row.dataset.editadoManual;
         const badge = row.querySelector('.badge');
         if (badge) {
             badge.className = 'badge badge-pendiente';

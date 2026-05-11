@@ -489,6 +489,112 @@ class Alumno
     // JUSTIFICANTES
     // ═══════════════════════════════════════
 
+    public function beaconsPorMateria(array $usuario, $idCurso)
+    {
+        $ctx = $this->contextoUsuario($usuario);
+        if (!$ctx['alumno']) {
+            throw new RuntimeException('No hay alumno asociado a esta cuenta.');
+        }
+
+        $idAlumno = (int) $ctx['alumno']['id'];
+        $this->validarInscripcionAlumno($idAlumno, $idCurso);
+
+        $stmt = $this->db->prepare(
+            'SELECT b.id_beacon, b.uuid
+             FROM beacons b
+             INNER JOIN cursos c ON b.id_grupo = c.id_grupo
+             WHERE c.id_curso = :id_curso
+             AND b.uuid IS NOT NULL
+             AND b.uuid != ""'
+        );
+        $stmt->execute([':id_curso' => $idCurso]);
+
+        return $stmt->fetchAll();
+    }
+
+    public function registrarAsistenciaQr(array $usuario, $token, $beaconUuid)
+    {
+        $ctx = $this->contextoUsuario($usuario);
+        if (!$ctx['alumno']) {
+            throw new RuntimeException('No hay alumno asociado a esta cuenta.');
+        }
+
+        $idAlumno = (int) $ctx['alumno']['id'];
+        $token = trim($token);
+        $beaconUuid = strtolower(trim($beaconUuid));
+
+        $stmtToken = $this->db->prepare('CALL sp_validar_qr_token(:token)');
+        $stmtToken->execute([':token' => $token]);
+        $qr = $stmtToken->fetch();
+        $stmtToken->closeCursor();
+
+        if (!$qr) {
+            throw new RuntimeException('Token QR no encontrado.');
+        }
+
+        $idSesion = (int) $qr['id_sesion'];
+        $tokenValido = (int) ($qr['token_valido'] ?? 0) === 1;
+        $sesion = $this->obtenerSesionParaQr($idSesion);
+        $inscrito = $this->estaInscrito($idAlumno, (int) $sesion['id_curso']);
+        $bluetoothValido = $beaconUuid !== ''
+            && $this->validarBeaconCurso((int) $sesion['id_curso'], $beaconUuid);
+        $estadoFinal = $bluetoothValido ? 'presente' : 'dudoso';
+        $intentoValido = $tokenValido && $inscrito;
+
+        $stmtIntento = $this->db->prepare(
+            'INSERT INTO intentos_asistencia (id_usuario, id_sesion, codigo_qr, valido)
+             VALUES (:id_usuario, :id_sesion, :codigo_qr, :valido)'
+        );
+        $stmtIntento->execute([
+            ':id_usuario' => $idAlumno,
+            ':id_sesion' => $idSesion,
+            ':codigo_qr' => $token,
+            ':valido' => $intentoValido ? 1 : 0,
+        ]);
+
+        if (!$tokenValido) {
+            throw new RuntimeException('El token QR expiro o ya no esta activo.');
+        }
+
+        if (!$inscrito) {
+            throw new RuntimeException('No estas inscrito en la clase de este QR.');
+        }
+
+        $stmtAsistencia = $this->db->prepare(
+            'INSERT INTO asistencias
+                (id_sesion, id_usuario, qr_valido, bluetooth_valido, validado_docente, estado_final)
+             VALUES
+                (:id_sesion, :id_usuario, TRUE, :bluetooth_valido, FALSE, :estado_final)
+             ON DUPLICATE KEY UPDATE
+                qr_valido = TRUE,
+                bluetooth_valido = VALUES(bluetooth_valido),
+                estado_final = CASE
+                    WHEN validado_docente = TRUE THEN estado_final
+                    ELSE VALUES(estado_final)
+                END,
+                fecha_hora_registro = CURRENT_TIMESTAMP'
+        );
+        $stmtAsistencia->execute([
+            ':id_sesion' => $idSesion,
+            ':id_usuario' => $idAlumno,
+            ':bluetooth_valido' => $bluetoothValido ? 1 : 0,
+            ':estado_final' => $estadoFinal,
+        ]);
+
+        return [
+            'registrado' => true,
+            'id_sesion' => $idSesion,
+            'id_curso' => (int) $sesion['id_curso'],
+            'materia' => $sesion['materia'],
+            'fecha' => $sesion['fecha'],
+            'hora_inicio' => $sesion['hora_inicio'],
+            'qr_valido' => true,
+            'bluetooth_valido' => $bluetoothValido,
+            'estado_final' => $estadoFinal,
+            'requiere_revision' => !$bluetoothValido,
+        ];
+    }
+
     public function justificantes(array $usuario)
 {
     $ctx = $this->contextoUsuario($usuario);
@@ -867,6 +973,71 @@ private function extraerMetadata($descripcion)
     // MÉTODOS PRIVADOS AUXILIARES
     // ═══════════════════════════════════════
 
+    private function validarInscripcionAlumno($idAlumno, $idCurso)
+    {
+        if (!$this->estaInscrito($idAlumno, $idCurso)) {
+            throw new RuntimeException('No estas inscrito en esta materia.');
+        }
+    }
+
+    private function estaInscrito($idAlumno, $idCurso)
+    {
+        $stmt = $this->db->prepare(
+            'SELECT COUNT(*) FROM inscripciones
+             WHERE id_curso = :id_curso AND id_alumno = :id_alumno'
+        );
+        $stmt->execute([
+            ':id_curso' => $idCurso,
+            ':id_alumno' => $idAlumno,
+        ]);
+
+        return (int) $stmt->fetchColumn() > 0;
+    }
+
+    private function validarBeaconCurso($idCurso, $beaconUuid)
+    {
+        $stmt = $this->db->prepare(
+            'SELECT COUNT(*)
+             FROM beacons b
+             INNER JOIN cursos c ON b.id_grupo = c.id_grupo
+             WHERE c.id_curso = :id_curso
+             AND LOWER(b.uuid) = LOWER(:uuid)'
+        );
+        $stmt->execute([
+            ':id_curso' => $idCurso,
+            ':uuid' => $beaconUuid,
+        ]);
+
+        return (int) $stmt->fetchColumn() > 0;
+    }
+
+    private function obtenerSesionParaQr($idSesion)
+    {
+        $stmt = $this->db->prepare(
+            'SELECT
+                s.id_sesion,
+                s.id_curso,
+                s.fecha,
+                TIME_FORMAT(s.hora_inicio, "%H:%i") AS hora_inicio,
+                a.nombre AS materia,
+                g.nombre AS grupo
+             FROM sesiones s
+             INNER JOIN cursos c ON s.id_curso = c.id_curso
+             INNER JOIN asignaturas a ON c.id_asignatura = a.id_asignatura
+             INNER JOIN grupos g ON c.id_grupo = g.id_grupo
+             WHERE s.id_sesion = :id_sesion
+             LIMIT 1'
+        );
+        $stmt->execute([':id_sesion' => $idSesion]);
+        $sesion = $stmt->fetch();
+
+        if (!$sesion) {
+            throw new RuntimeException('La sesion del QR no existe.');
+        }
+
+        return $sesion;
+    }
+
  private function obtenerAlumno($idAlumno)
 {
     $stmt = $this->db->prepare(
@@ -1092,6 +1263,28 @@ public function materiasPorDia(array $usuario, $fecha)
                 FOREIGN KEY (id_hijo) REFERENCES usuarios(id_usuario) ON DELETE CASCADE
             )'
         );
+
+        $this->db->exec(
+            'CREATE TABLE IF NOT EXISTS qr_tokens (
+                id_qr_token INT AUTO_INCREMENT PRIMARY KEY,
+                token VARCHAR(64) NOT NULL UNIQUE,
+                id_sesion INT NOT NULL,
+                fecha_generacion TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                fecha_expiracion TIMESTAMP NOT NULL,
+                activo BOOLEAN NOT NULL DEFAULT TRUE,
+                usado BOOLEAN NOT NULL DEFAULT FALSE,
+                FOREIGN KEY (id_sesion) REFERENCES sesiones(id_sesion) ON DELETE CASCADE,
+                INDEX idx_qr_token_token (token),
+                INDEX idx_qr_token_sesion (id_sesion),
+                INDEX idx_qr_token_expiracion (fecha_expiracion)
+            )'
+        );
+
+        try {
+            $this->db->exec('DROP TRIGGER IF EXISTS tr_qr_tokens_desactivar_expirados');
+        } catch (Throwable $e) {
+            // El procedimiento sp_generar_qr_token ya desactiva los tokens anteriores.
+        }
     }
 
     private function iconoAsignatura($nombre)

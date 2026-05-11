@@ -14,6 +14,64 @@
     --text-muted: #64748B;
 }
 
+.qr-attendance-panel {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 150px auto;
+    gap: 18px;
+    align-items: center;
+    padding: 18px;
+    margin-bottom: 18px;
+    border: 1px solid #E2E8F0;
+    border-radius: 8px;
+    background: #F8FAFC;
+}
+
+.qr-copy h3 {
+    margin: 0 0 6px;
+    color: var(--color-azul-marino);
+}
+
+.qr-copy p {
+    margin: 0 0 10px;
+    color: #64748B;
+}
+
+.qr-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    color: #475569;
+    font-size: 0.9rem;
+}
+
+.qr-box {
+    width: 150px;
+    height: 150px;
+    display: grid;
+    place-items: center;
+    background: white;
+    border: 1px solid #CBD5E1;
+    border-radius: 8px;
+}
+
+.qr-box img {
+    width: 132px;
+    height: 132px;
+}
+
+.qr-placeholder {
+    padding: 12px;
+    text-align: center;
+    color: #64748B;
+    font-size: 0.82rem;
+}
+
+@media (max-width: 760px) {
+    .qr-attendance-panel {
+        grid-template-columns: 1fr;
+    }
+}
+
 /* --- LAYOUT GENERAL --- */
 .lista-layout {
     padding: 1.5rem;
@@ -437,6 +495,12 @@
     border: 1px solid var(--color-rojo-oscuro);
 }
 
+.badge-dudoso {
+    background: #FEF3C7;
+    color: #92400E;
+    border: 1px solid #F59E0B;
+}
+
 .badge-permiso { 
     background: #E8EDF5; 
     color: var(--color-azul-marino);
@@ -448,6 +512,23 @@
     color: var(--text-muted);
     margin-top: 4px;
     font-style: italic;
+}
+
+.qr-warning {
+    color: #92400E;
+    font-weight: 700;
+}
+
+.alerta-dudosos-qr {
+    align-items: center;
+    gap: 10px;
+    margin-top: 14px;
+    padding: 12px 14px;
+    border: 1px solid #F59E0B;
+    border-radius: 8px;
+    background: #FFFBEB;
+    color: #92400E;
+    font-weight: 700;
 }
 
 /* --- BOTONES DE ACCIÓN --- */

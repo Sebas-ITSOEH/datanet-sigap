@@ -138,6 +138,20 @@ MODAL DETALLE DE MATERIA
                     <p class="text-muted">Cargando horario...</p>
                 </div>
             </div>
+
+            <div class="detalle-asistencia mt-20 qr-scan-panel">
+                <h4><i class="fa-solid fa-qrcode"></i> Registro por QR y Bluetooth</h4>
+                <div class="qr-scan-grid">
+                    <input type="text" id="input-token-qr" class="input-codigo" placeholder="Token escaneado del QR">
+                    <button class="btn-mega btn-cancelar" type="button" onclick="escanearQrAlumno()">
+                        <i class="fa-solid fa-camera"></i> Escanear QR
+                    </button>
+                    <button class="btn-mega" type="button" onclick="registrarAsistenciaQrAlumno()">
+                        <i class="fa-solid fa-bluetooth-b"></i> Validar y registrar
+                    </button>
+                </div>
+                <p id="qr-scan-status" class="text-muted">Escanea el QR del docente; el sistema verificara el beacon del grupo antes de registrar.</p>
+            </div>
         </div>
         
         <!-- PIE -->

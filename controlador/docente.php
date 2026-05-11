@@ -99,6 +99,19 @@ try {
             responder($modelo->obtenerListaAsistencia($idDocente, $idCurso, $fecha));
             break;
 
+        case 'generar_qr_token':
+            requerirPost();
+            validarCampos($input, ['id_curso']);
+            responder([
+                'qr' => $modelo->generarQrToken(
+                    $idDocente,
+                    (int) $input['id_curso'],
+                    $input['fecha'] ?? date('Y-m-d'),
+                    (int) ($input['segundos_vigencia'] ?? 30)
+                ),
+            ], 201);
+            break;
+
         case 'guardar_asistencia':
             requerirPost();
             validarCampos($input, ['id_curso', 'fecha']);

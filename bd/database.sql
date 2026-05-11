@@ -660,6 +660,199 @@ WHERE codigo_actual IN ('EDF-20260504', 'EDF-20260505', 'EDF-20260506', 'EDF-202
 
 -- ===========================================================
 
-select * from usuarios;
+-- ==========================================================
+-- 🔐 MÓDULO DE TOKENS QR DINÁMICOS
+-- Agregar este bloque al final de tu script actual.
+-- No rompe ninguna funcionalidad existente.
+-- ==========================================================
 
-USE datanet;
+-- 📌 TABLA DE TOKENS QR
+CREATE TABLE IF NOT EXISTS qr_tokens (
+    id_qr_token INT AUTO_INCREMENT PRIMARY KEY,
+    token VARCHAR(64) NOT NULL UNIQUE,
+    id_sesion INT NOT NULL,
+    fecha_generacion TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    fecha_expiracion TIMESTAMP NOT NULL,
+    activo BOOLEAN NOT NULL DEFAULT TRUE,
+    usado BOOLEAN NOT NULL DEFAULT FALSE,
+
+    FOREIGN KEY (id_sesion)
+        REFERENCES sesiones(id_sesion)
+        ON DELETE CASCADE,
+
+    INDEX idx_qr_token_token (token),
+    INDEX idx_qr_token_sesion (id_sesion),
+    INDEX idx_qr_token_expiracion (fecha_expiracion)
+);
+
+-- ==========================================================
+-- 🧹 TOKENS EXPIRADOS
+-- No se usa trigger sobre qr_tokens porque MySQL no permite
+-- modificar la misma tabla desde su propio trigger.
+-- sp_generar_qr_token desactiva tokens anteriores y
+-- sp_limpiar_qr_tokens_expirados elimina caducados.
+-- ==========================================================
+
+DROP TRIGGER IF EXISTS tr_qr_tokens_desactivar_expirados;
+
+-- ==========================================================
+-- ⚙️ PROCEDIMIENTO: GENERAR TOKEN QR
+-- Genera un token aleatorio con vigencia configurable.
+-- ==========================================================
+
+DELIMITER $$
+
+CREATE PROCEDURE sp_generar_qr_token(
+    IN p_id_sesion INT,
+    IN p_segundos_vigencia INT
+)
+BEGIN
+    DECLARE v_token VARCHAR(64);
+
+    -- Token aleatorio usando SHA2
+    SET v_token = SHA2(
+        CONCAT(
+            UUID(),
+            p_id_sesion,
+            NOW(),
+            RAND()
+        ),
+        256
+    );
+
+    -- Desactivar tokens activos anteriores de la misma sesión
+    UPDATE qr_tokens
+    SET activo = FALSE
+    WHERE id_sesion = p_id_sesion
+      AND activo = TRUE;
+
+    -- Insertar nuevo token
+    INSERT INTO qr_tokens (
+        token,
+        id_sesion,
+        fecha_expiracion
+    )
+    VALUES (
+        v_token,
+        p_id_sesion,
+        DATE_ADD(NOW(), INTERVAL p_segundos_vigencia SECOND)
+    );
+
+    -- Devolver token generado
+    SELECT
+        token,
+        id_sesion,
+        fecha_generacion,
+        fecha_expiracion
+    FROM qr_tokens
+    WHERE id_qr_token = LAST_INSERT_ID();
+END$$
+
+DELIMITER ;
+
+-- ==========================================================
+-- ✅ PROCEDIMIENTO: VALIDAR TOKEN QR
+-- Verifica existencia, vigencia y estado.
+-- ==========================================================
+
+DELIMITER $$
+
+CREATE PROCEDURE sp_validar_qr_token(
+    IN p_token VARCHAR(64)
+)
+BEGIN
+    SELECT
+        qt.id_qr_token,
+        qt.id_sesion,
+        qt.token,
+        qt.activo,
+        qt.usado,
+        qt.fecha_generacion,
+        qt.fecha_expiracion,
+        CASE
+            WHEN qt.activo = TRUE
+             AND qt.usado = FALSE
+             AND qt.fecha_expiracion >= NOW()
+            THEN TRUE
+            ELSE FALSE
+        END AS token_valido
+    FROM qr_tokens qt
+    WHERE qt.token = p_token
+    LIMIT 1;
+END$$
+
+DELIMITER ;
+
+-- ==========================================================
+-- ♻️ PROCEDIMIENTO: MARCAR TOKEN COMO USADO
+-- Opcional. Úsalo si quieres un solo uso por token.
+-- ==========================================================
+
+DELIMITER $$
+
+CREATE PROCEDURE sp_marcar_qr_token_usado(
+    IN p_token VARCHAR(64)
+)
+BEGIN
+    UPDATE qr_tokens
+    SET usado = TRUE,
+        activo = FALSE
+    WHERE token = p_token;
+END$$
+
+DELIMITER ;
+
+-- ==========================================================
+-- 🧹 PROCEDIMIENTO: LIMPIAR TOKENS CADUCADOS
+-- Recomendado ejecutar periódicamente.
+-- ==========================================================
+
+DELIMITER $$
+
+CREATE PROCEDURE sp_limpiar_qr_tokens_expirados()
+BEGIN
+    DELETE FROM qr_tokens
+    WHERE fecha_expiracion < DATE_SUB(NOW(), INTERVAL 1 DAY);
+END$$
+
+DELIMITER ;
+
+-- ==========================================================
+-- 👁️ VISTA: TOKEN ACTIVO POR SESIÓN
+-- ==========================================================
+
+CREATE OR REPLACE VIEW vw_qr_token_activo AS
+SELECT
+    qt.id_qr_token,
+    qt.token,
+    qt.id_sesion,
+    qt.fecha_generacion,
+    qt.fecha_expiracion,
+    s.id_curso,
+    s.fecha,
+    s.hora_inicio,
+    s.hora_fin
+FROM qr_tokens qt
+INNER JOIN sesiones s
+    ON qt.id_sesion = s.id_sesion
+WHERE qt.activo = TRUE
+  AND qt.fecha_expiracion >= NOW();
+
+-- ==========================================================
+-- 📝 EJEMPLO DE USO
+-- ==========================================================
+
+-- Generar un token con vigencia de 30 segundos:
+-- CALL sp_generar_qr_token(1, 30);
+
+-- Validar un token:
+-- CALL sp_validar_qr_token('TOKEN_AQUI');
+
+-- Marcar token como usado (opcional):
+-- CALL sp_marcar_qr_token_usado('TOKEN_AQUI');
+
+-- Limpiar tokens expirados:
+-- CALL sp_limpiar_qr_tokens_expirados();
+
+-- Ver token activo:
+-- SELECT * FROM vw_qr_token_activo;

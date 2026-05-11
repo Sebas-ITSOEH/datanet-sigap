@@ -278,7 +278,7 @@ class Docente
         }, $cursos);
     }
 
-   public function obtenerListaAsistencia($idDocente, $idCurso, $fecha)
+public function obtenerListaAsistencia($idDocente, $idCurso, $fecha)
 {
     $this->validarCursoDocente($idDocente, $idCurso);
     $idSesion = $this->obtenerOCrearSesion($idCurso, $fecha);
@@ -313,6 +313,33 @@ class Docente
         'alumnos' => $stmt->fetchAll(),
     ];
 }
+
+    public function generarQrToken($idDocente, $idCurso, $fecha, $segundosVigencia = 30)
+    {
+        $this->validarCursoDocente($idDocente, $idCurso);
+        $idSesion = $this->obtenerOCrearSesion($idCurso, $fecha);
+        $segundosVigencia = max(10, min(300, (int) $segundosVigencia));
+
+        $stmt = $this->db->prepare('CALL sp_generar_qr_token(:id_sesion, :segundos)');
+        $stmt->execute([
+            ':id_sesion' => $idSesion,
+            ':segundos' => $segundosVigencia,
+        ]);
+        $token = $stmt->fetch();
+        $stmt->closeCursor();
+
+        if (!$token) {
+            throw new RuntimeException('No se pudo generar el token QR.');
+        }
+
+        return [
+            'token' => $token['token'],
+            'id_sesion' => (int) $token['id_sesion'],
+            'fecha_generacion' => $token['fecha_generacion'],
+            'fecha_expiracion' => $token['fecha_expiracion'],
+            'segundos_vigencia' => $segundosVigencia,
+        ];
+    }
 
     public function guardarAsistencia($idDocente, $idCurso, $fecha, array $registros)
     {
@@ -505,6 +532,28 @@ class Docente
                 UNIQUE KEY uq_solicitud_curso_alumno (id_curso, id_alumno, estado)
             )'
         );
+
+        $this->db->exec(
+            'CREATE TABLE IF NOT EXISTS qr_tokens (
+                id_qr_token INT AUTO_INCREMENT PRIMARY KEY,
+                token VARCHAR(64) NOT NULL UNIQUE,
+                id_sesion INT NOT NULL,
+                fecha_generacion TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                fecha_expiracion TIMESTAMP NOT NULL,
+                activo BOOLEAN NOT NULL DEFAULT TRUE,
+                usado BOOLEAN NOT NULL DEFAULT FALSE,
+                FOREIGN KEY (id_sesion) REFERENCES sesiones(id_sesion) ON DELETE CASCADE,
+                INDEX idx_qr_token_token (token),
+                INDEX idx_qr_token_sesion (id_sesion),
+                INDEX idx_qr_token_expiracion (fecha_expiracion)
+            )'
+        );
+
+        try {
+            $this->db->exec('DROP TRIGGER IF EXISTS tr_qr_tokens_desactivar_expirados');
+        } catch (Throwable $e) {
+            // El procedimiento sp_generar_qr_token ya desactiva los tokens anteriores.
+        }
     }
 
     private function obtenerHorariosCurso($idCurso)

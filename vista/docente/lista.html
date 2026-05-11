@@ -42,6 +42,26 @@
 
     <!-- PANEL DE LISTA DE ALUMNOS -->
     <div id="panel-asistencia" style="display: none;" class="table-card fade-in">
+        <div class="qr-attendance-panel">
+            <div class="qr-copy">
+                <h3><i class="fa-solid fa-qrcode"></i> QR dinamico de asistencia</h3>
+                <p>El token se renueva cada 30 segundos para la sesion actual.</p>
+                <div class="qr-meta">
+                    <span>Sesion: <strong id="qr-sesion-id">---</strong></span>
+                    <span>Expira: <strong id="qr-expira">---</strong></span>
+                </div>
+            </div>
+            <div class="qr-box">
+                <img id="qr-token-img" alt="QR de asistencia" src="" style="display:none;">
+                <div id="qr-token-placeholder" class="qr-placeholder">
+                    <i class="fa-solid fa-spinner fa-spin"></i>
+                    Generando QR...
+                </div>
+            </div>
+            <button class="btn-exp pdf" type="button" onclick="refrescarQrDocente(true)" title="Renovar QR ahora">
+                <i class="fa-solid fa-rotate"></i> Renovar
+            </button>
+        </div>
         
         <!-- Encabezado de la tabla con botones de exportación -->
         <div class="table-header-actions">
@@ -78,6 +98,8 @@
             <span>Faltas: <strong id="contador-faltas">0</strong></span>
             <span>Justificados: <strong id="contador-justificados">0</strong></span>
         </div>
+
+        <div id="alerta-dudosos-qr" class="alerta-dudosos-qr" style="display: none;"></div>
 
         <!-- Pie con botón de guardar -->
         <div class="footer-actions">

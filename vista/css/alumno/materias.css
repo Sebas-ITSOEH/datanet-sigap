@@ -608,3 +608,20 @@
     from { opacity: 0; transform: translateY(10px); }
     to { opacity: 1; transform: translateY(0); }
 }
+
+.qr-scan-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto auto;
+    gap: 10px;
+    align-items: center;
+}
+
+.qr-scan-panel .input-codigo {
+    width: 100%;
+}
+
+@media (max-width: 760px) {
+    .qr-scan-grid {
+        grid-template-columns: 1fr;
+    }
+}

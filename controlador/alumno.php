@@ -89,6 +89,24 @@ try {
             responder(['historial' => $modelo->historialPorMateria($usuario, $idCurso)]);
             break;
 
+        case 'beacons_materia':
+            $idCurso = (int) ($_GET['id_curso'] ?? 0);
+            if (!$idCurso) {
+                throw new RuntimeException('ID de curso requerido.');
+            }
+            responder(['beacons' => $modelo->beaconsPorMateria($usuario, $idCurso)]);
+            break;
+
+        case 'registrar_asistencia_qr':
+            requerirPost();
+            $token = trim($input['token'] ?? '');
+            $beaconUuid = trim($input['beacon_uuid'] ?? '');
+            if ($token === '') {
+                throw new RuntimeException('El token QR es requerido.');
+            }
+            responder($modelo->registrarAsistenciaQr($usuario, $token, $beaconUuid), 201);
+            break;
+
         case 'justificantes':
             responder($modelo->justificantes($usuario));
             break;

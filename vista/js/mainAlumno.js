@@ -507,6 +507,110 @@ function cerrarModalDetalleMateria() {
     }
 }
 
+async function escanearQrAlumno() {
+    const status = document.getElementById('qr-scan-status');
+    const input = document.getElementById('input-token-qr');
+
+    if (!('BarcodeDetector' in window)) {
+        if (status) status.textContent = 'Tu navegador no permite escanear QR desde aqui. Escribe o pega el token.';
+        return;
+    }
+
+    let stream = null;
+    try {
+        if (status) status.textContent = 'Abriendo camara para leer el QR...';
+        stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
+        const video = document.createElement('video');
+        video.srcObject = stream;
+        video.setAttribute('playsinline', 'true');
+        await video.play();
+
+        const detector = new BarcodeDetector({ formats: ['qr_code'] });
+        const inicio = Date.now();
+
+        while (Date.now() - inicio < 20000) {
+            const codigos = await detector.detect(video);
+            if (codigos.length > 0) {
+                const token = codigos[0].rawValue || '';
+                if (input) input.value = token.trim();
+                if (status) status.textContent = 'QR leido. Ahora valida Bluetooth y registra.';
+                return;
+            }
+            await new Promise(resolve => setTimeout(resolve, 400));
+        }
+
+        if (status) status.textContent = 'No se detecto un QR. Intenta de nuevo o pega el token.';
+    } catch (error) {
+        if (status) status.textContent = `No se pudo usar la camara: ${error.message}`;
+    } finally {
+        if (stream) stream.getTracks().forEach(track => track.stop());
+    }
+}
+
+async function detectarBeaconAlumno(idCurso) {
+    const data = await apiAlumno('beacons_materia', { query: { id_curso: idCurso } });
+    const beacons = (data.beacons || []).filter(b => b.uuid);
+    if (beacons.length === 0) {
+        throw new Error('No hay beacons configurados para el grupo de esta materia.');
+    }
+
+    if (!navigator.bluetooth) {
+        throw new Error('Este navegador no soporta Web Bluetooth. Usa Chrome o Edge en HTTPS/local.');
+    }
+
+    const services = beacons.map(b => String(b.uuid).toLowerCase());
+    await navigator.bluetooth.requestDevice({
+        filters: services.map(uuid => ({ services: [uuid] })),
+        optionalServices: services
+    });
+
+    return services[0];
+}
+
+async function registrarAsistenciaQrAlumno() {
+    if (!cursoActualDetalle) return;
+
+    const input = document.getElementById('input-token-qr');
+    const status = document.getElementById('qr-scan-status');
+    const token = input?.value.trim();
+
+    if (!token) {
+        if (status) status.textContent = 'Primero escanea o pega el token del QR.';
+        return;
+    }
+
+    try {
+        if (status) status.textContent = 'Buscando beacon Bluetooth del grupo...';
+        let beaconUuid = '';
+        let avisoBluetooth = '';
+        try {
+            beaconUuid = await detectarBeaconAlumno(cursoActualDetalle);
+        } catch (bluetoothError) {
+            avisoBluetooth = bluetoothError.message;
+        }
+
+        if (status) {
+            status.textContent = beaconUuid
+                ? 'Beacon detectado. Registrando asistencia...'
+                : 'No se pudo validar Bluetooth. Registrando como sospechosa...';
+        }
+        const data = await apiAlumno('registrar_asistencia_qr', {
+            method: 'POST',
+            body: { token, beacon_uuid: beaconUuid }
+        });
+
+        const mensaje = data.requiere_revision
+            ? `Asistencia sospechosa registrada para ${data.materia}. El docente debera verificarla. ${avisoBluetooth}`
+            : `Asistencia registrada para ${data.materia} (${data.fecha} ${data.hora_inicio}).`;
+        if (status) status.textContent = mensaje;
+        await abrirDetalleMateria(cursoActualDetalle);
+        const nuevoStatus = document.getElementById('qr-scan-status');
+        if (nuevoStatus) nuevoStatus.textContent = mensaje;
+    } catch (error) {
+        if (status) status.textContent = error.message;
+    }
+}
+
 // ==========================================
 // 7. MODAL UNIRSE A CLASE
 // ==========================================
