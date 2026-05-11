@@ -142,6 +142,18 @@ const ValidadorRegistro = {
     return { valido: true, mensaje: "" };
   },
 
+  // Validar clave de docente
+  validarClaveDocente(valor) {
+    const clave = (valor || "").trim();
+    if (clave === "") {
+      return { valido: false, mensaje: "La clave de docente es obligatoria." };
+    }
+    if (clave.length < 3) {
+      return { valido: false, mensaje: "La clave debe tener al menos 3 caracteres." };
+    }
+    return { valido: true, mensaje: "" };
+  },
+
   // Validar contraseña (con verificación de requisitos individuales)
   validarPassword(valor) {
     const password = valor || "";
@@ -236,6 +248,10 @@ const GestorValidacion = {
     rfc: {
       validador: (v) => ValidadorRegistro.validarRFC(v),
       feedback: "rfc-feedback",
+    },
+    clave_docente: {
+      validador: (v) => ValidadorRegistro.validarClaveDocente(v),
+      feedback: "clave_docente-feedback",
     },
   },
 
@@ -361,7 +377,7 @@ const GestorValidacion = {
     if (rol === "alumno") {
       camposValidar.push("matricula_escolar", "telTutor");
     } else if (rol === "docente") {
-      camposValidar.push("nss", "rfc");
+      camposValidar.push("clave_docente", "nss", "rfc");
     }
 
     const todosValidos = camposValidar.every((idCampo) => {
@@ -398,6 +414,7 @@ const GestorValidacion = {
   agregarListenersParaTipoRol() {
     const telTutor = document.getElementById("telTutor");
     const matriculaEscolar = document.getElementById("matricula_escolar");
+    const claveDocente = document.getElementById("clave_docente");
     const nss = document.getElementById("nss");
     const rfc = document.getElementById("rfc");
 
@@ -409,6 +426,11 @@ const GestorValidacion = {
     if (matriculaEscolar) {
       matriculaEscolar.addEventListener("input", () => this.validarCampo("matricula_escolar"));
       matriculaEscolar.addEventListener("blur", () => this.validarCampo("matricula_escolar"));
+    }
+
+    if (claveDocente) {
+      claveDocente.addEventListener("input", () => this.validarCampo("clave_docente"));
+      claveDocente.addEventListener("blur", () => this.validarCampo("clave_docente"));
     }
     
     if (nss) {

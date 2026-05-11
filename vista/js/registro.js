@@ -269,7 +269,7 @@ async function enviarRegistro() {
     rol: rol,
     matricula_escolar: rol === "alumno" ? (document.getElementById("matricula_escolar")?.value.trim() || "") : null,
     telefono: rol === "alumno" ? (document.getElementById("telTutor")?.value.trim() || "") : null,
-    clave_docente: rol === "docente" ? (document.getElementById("id-valor")?.value.trim() || "") : null,
+    clave_docente: rol === "docente" ? (document.getElementById("clave_docente")?.value.trim() || "") : null,
     nss: rol === "docente" ? (document.getElementById("nss")?.value.trim() || "") : null,
     rfc: rol === "docente" ? (document.getElementById("rfc")?.value.trim().toUpperCase() || "") : null,
   };
