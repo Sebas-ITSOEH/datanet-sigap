@@ -153,23 +153,34 @@ class ModeloPrefectura {
 
     public static function mdlListarPersonal($rol = 'alumno', $grupo = 'todos') {
         if ($rol === 'alumno') {
+            // Se añaden subconsultas para contar el total de registros y el total de presencias/retardos
             $sql = "
                 SELECT 
                     u.id_usuario, u.nombre, u.apellido, u.correo, u.rol, 
                     u.matricula_escolar, u.telefono, u.curp, u.estado,
-                    COALESCE(g.nombre, 'Sin grupo') AS grupo
+                    COALESCE(ga.grupo, 'Sin grupo') AS grupo,
+                    (SELECT COUNT(*) FROM asistencias a WHERE a.id_usuario = u.id_usuario) AS total_registros,
+                    (SELECT COUNT(*) FROM asistencias a WHERE a.id_usuario = u.id_usuario AND a.estado_final IN ('presente', 'retardo')) AS total_asistencias
                 FROM usuarios u
-                LEFT JOIN inscripciones i ON u.id_usuario = i.id_alumno
-                LEFT JOIN cursos c ON i.id_curso = c.id_curso
-                LEFT JOIN grupos g ON c.id_grupo = g.id_grupo
+                LEFT JOIN (
+                    SELECT x.id_alumno, SUBSTRING_INDEX(GROUP_CONCAT(x.nombre ORDER BY x.total DESC, x.nombre ASC SEPARATOR ','), ',', 1) AS grupo
+                    FROM (
+                        SELECT i.id_alumno, g.nombre, COUNT(*) AS total
+                        FROM inscripciones i
+                        INNER JOIN cursos c ON i.id_curso = c.id_curso
+                        INNER JOIN grupos g ON c.id_grupo = g.id_grupo
+                        GROUP BY i.id_alumno, g.nombre
+                    ) x
+                    GROUP BY x.id_alumno
+                ) ga ON ga.id_alumno = u.id_usuario
                 WHERE u.rol = 'alumno'
             ";
             
             if ($grupo !== 'todos' && $grupo !== '') {
-                $sql .= " AND g.nombre = :grupo";
+                $sql .= " AND ga.grupo = :grupo";
             }
             
-            $sql .= " GROUP BY u.id_usuario, u.nombre, u.apellido, u.correo, u.rol, u.matricula_escolar, u.telefono, u.curp, u.estado, g.nombre ORDER BY g.nombre, u.apellido ASC";
+            $sql .= " ORDER BY ga.grupo, u.apellido ASC";
             
             $stmt = Conexion::conectar()->prepare($sql);
             if ($grupo !== 'todos' && $grupo !== '') {

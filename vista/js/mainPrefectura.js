@@ -925,14 +925,15 @@ function initPersonalLogic() {
 
     var tabButtons = document.querySelectorAll('.tab-btn');
     var filterLinks = document.querySelectorAll('.filter-link');
+    var btnRiesgo = document.getElementById('menu-alumnos-riesgo');
     var searchInput = document.getElementById('searchPersona');
     var tablaAlumnos = document.getElementById('tabla-alumnos');
     var tablaDocentes = document.getElementById('tabla-docentes');
+    var isRiesgoFilter = false; // Variable para saber si estamos viendo solo riesgos
 
     // === CARGAR PERSONAL DESDE LA BD ===
     async function cargarPersonal() {
         try {
-            // 1. Pedimos los datos UNO POR UNO (secuencial) para evitar bloqueos de sesión en PHP
             const dataAlumnos = await apiPrefectura('listar_personal', { query: { rol: 'alumno' } });
             const dataDocentes = await apiPrefectura('listar_personal', { query: { rol: 'docente' } });
 
@@ -940,20 +941,36 @@ function initPersonalLogic() {
             const tbodyDocentes = document.querySelector('#tabla-docentes tbody');
 
             if (!tbodyAlumnos || !tbodyDocentes) return;
-
             tbodyAlumnos.innerHTML = '';
             tbodyDocentes.innerHTML = '';
 
-            // 2. DIBUJAR ALUMNOS
+            // 2. DIBUJAR ALUMNOS CON CÁLCULO DE ASISTENCIA
             if (dataAlumnos && dataAlumnos.personal && dataAlumnos.personal.length > 0) {
                 dataAlumnos.personal.forEach(p => {
                     const nombreCompleto = `${p.nombre} ${p.apellido}`;
-                    const badgeEstado = p.estado == 1
-                        ? '<span class="badge success"><i class="fa-solid fa-check"></i> Regular</span>'
-                        : '<span class="badge warning">Inactivo</span>';
+
+                    // LÓGICA DE ASISTENCIA
+                    let estadoEscolar = 'regular';
+                    let badgeAsistencia = '';
+                    const registros = parseInt(p.total_registros) || 0;
+                    const asistencias = parseInt(p.total_asistencias) || 0;
+
+                    if (registros === 0) {
+                        estadoEscolar = 'sin_registro';
+                        badgeAsistencia = '<span class="badge" style="background:#E2E8F0; color:#475569;"><i class="fa-solid fa-minus"></i> Sin registro</span>';
+                    } else {
+                        const pct = (asistencias / registros) * 100;
+                        if (pct < 80) {
+                            estadoEscolar = 'riesgo';
+                            badgeAsistencia = `<span class="badge danger" title="${pct.toFixed(1)}% de asistencia"><i class="fa-solid fa-triangle-exclamation"></i> Riesgo (${pct.toFixed(0)}%)</span>`;
+                        } else {
+                            estadoEscolar = 'regular';
+                            badgeAsistencia = `<span class="badge success" title="${pct.toFixed(1)}% de asistencia"><i class="fa-solid fa-check"></i> Regular (${pct.toFixed(0)}%)</span>`;
+                        }
+                    }
 
                     const filaHTML = `
-                        <tr data-tipo="alumno" data-nombre="${nombreCompleto}" data-matricula="${p.matricula_escolar}" data-grupo="${p.grupo}">
+                        <tr data-tipo="alumno" data-nombre="${nombreCompleto}" data-matricula="${p.matricula_escolar}" data-grupo="${p.grupo}" data-estado-escolar="${estadoEscolar}">
                             <td>
                                 <div class="alumno-cell">
                                     <img src="https://ui-avatars.com/api/?name=${encodeURIComponent(nombreCompleto)}&background=D6A848&color=192A56&size=36">
@@ -963,7 +980,7 @@ function initPersonalLogic() {
                             <td>${p.matricula_escolar || 'N/A'}</td>
                             <td>${p.grupo || 'Sin asignar'}</td>
                             <td><span class="badge info">Matutino</span></td>
-                            <td>${badgeEstado}</td>
+                            <td>${badgeAsistencia}</td>
                             <td>
                                 <button class="btn-expediente btn-ver-expediente"><i class="fa-solid fa-folder-open"></i> Expediente</button>
                             </td>
@@ -1003,11 +1020,9 @@ function initPersonalLogic() {
                     tbodyDocentes.insertAdjacentHTML('beforeend', filaHTML);
                 });
             } else {
-                // Si la BD no trae docentes, mostramos este mensaje en lugar de una tabla vacía
                 tbodyDocentes.innerHTML = '<tr><td colspan="6" style="text-align:center; padding: 20px; color: #64748B;"><i class="fa-solid fa-circle-exclamation"></i> No hay docentes registrados en la base de datos.</td></tr>';
             }
 
-            // Aplicar el filtro después de que todo se haya cargado
             filterTable();
         } catch (error) {
             console.error("Error al cargar personal:", error);
@@ -1016,93 +1031,6 @@ function initPersonalLogic() {
 
     cargarPersonal();
 
-    // === NUEVO REGISTRO DE PERSONAL ===
-    window.nuevoRegistro = function () {
-        Swal.fire({
-            title: 'Nuevo Registro de Personal',
-            html: `
-                <div style="text-align:left;">
-                    <div style="margin-bottom:12px;">
-                        <label style="font-size:0.7rem; font-weight:600;">Rol</label>
-                        <select id="reg-rol" class="swal2-input" style="width:100%;">
-                            <option value="alumno">Alumno</option>
-                            <option value="docente">Docente</option>
-                        </select>
-                    </div>
-                    <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
-                        <div>
-                            <label style="font-size:0.7rem; font-weight:600;">Nombre(s)</label>
-                            <input type="text" id="reg-nombre" class="swal2-input" style="width:100%;" placeholder="Ej: Juan">
-                        </div>
-                        <div>
-                            <label style="font-size:0.7rem; font-weight:600;">Apellidos</label>
-                            <input type="text" id="reg-apellido" class="swal2-input" style="width:100%;" placeholder="Ej: Pérez">
-                        </div>
-                    </div>
-                    <div style="margin-bottom:12px; margin-top:12px;">
-                        <label style="font-size:0.7rem; font-weight:600;">Correo Institucional</label>
-                        <input type="email" id="reg-correo" class="swal2-input" style="width:100%;" placeholder="ejemplo@escuela.edu.mx">
-                    </div>
-                    <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:12px;">
-                        <div>
-                            <label style="font-size:0.7rem; font-weight:600;">Matrícula / ID</label>
-                            <input type="text" id="reg-matricula" class="swal2-input" style="width:100%;">
-                        </div>
-                        <div>
-                            <label style="font-size:0.7rem; font-weight:600;">Teléfono</label>
-                            <input type="text" id="reg-telefono" class="swal2-input" style="width:100%;">
-                        </div>
-                    </div>
-                    <div style="margin-bottom:12px;">
-                        <label style="font-size:0.7rem; font-weight:600;">Contraseña Temporal</label>
-                        <input type="password" id="reg-password" class="swal2-input" style="width:100%;" placeholder="Mínimo 6 caracteres">
-                    </div>
-                </div>
-            `,
-            width: 600,
-            showCancelButton: true,
-            confirmButtonText: '<i class="fa-solid fa-floppy-disk"></i> Registrar',
-            confirmButtonColor: '#10B981',
-            cancelButtonText: 'Cancelar',
-            customClass: { popup: 'swal-solicitud-popup' },
-            preConfirm: () => {
-                const nombre = document.getElementById('reg-nombre').value.trim();
-                const apellido = document.getElementById('reg-apellido').value.trim();
-                const correo = document.getElementById('reg-correo').value.trim();
-                const password = document.getElementById('reg-password').value;
-
-                if (!nombre || !apellido || !correo || !password) {
-                    Swal.showValidationMessage('Nombre, Apellido, Correo y Contraseña son obligatorios.');
-                    return false;
-                }
-
-                return {
-                    rol: document.getElementById('reg-rol').value,
-                    nombre: nombre,
-                    apellido: apellido,
-                    correo: correo,
-                    matricula: document.getElementById('reg-matricula').value.trim(),
-                    telefono: document.getElementById('reg-telefono').value.trim(),
-                    password: password
-                };
-            }
-        }).then(async (result) => {
-            if (result.isConfirmed) {
-                try {
-                    await apiPrefectura('crear_usuario', {
-                        method: 'POST',
-                        body: result.value
-                    });
-
-                    Swal.fire('¡Registrado!', 'El usuario se ha guardado correctamente.', 'success');
-                    cargarPersonal(); // Refrescar la tabla
-                } catch (error) {
-                    Swal.fire('Error', error.message, 'error');
-                }
-            }
-        });
-    };
-
     function filterTable() {
         if (!tablaAlumnos) return;
         var activeRoleEl = document.querySelector('.tab-btn.active');
@@ -1110,6 +1038,13 @@ function initPersonalLogic() {
         var activeGroupEl = document.querySelector('.filter-link.active');
         var activeGroup = activeGroupEl ? activeGroupEl.getAttribute('data-group') : 'all';
         var searchTerm = searchInput ? searchInput.value.toLowerCase().trim() : '';
+
+        // Forzar vista de alumnos si estamos buscando "En Riesgo"
+        if (isRiesgoFilter) {
+            activeRole = 'alumno';
+            document.querySelector('.tab-btn[data-role="alumno"]').classList.add('active');
+            document.querySelector('.tab-btn[data-role="docente"]').classList.remove('active');
+        }
 
         if (activeRole === 'alumno') {
             if (tablaAlumnos) tablaAlumnos.classList.remove('hidden');
@@ -1123,22 +1058,33 @@ function initPersonalLogic() {
         filas.forEach(function (fila) {
             var nombre = (fila.getAttribute('data-nombre') || '').toLowerCase();
             var matricula = (fila.getAttribute('data-matricula') || fila.getAttribute('data-id') || '').toLowerCase();
-
-            // NORMALIZACIÓN DE GRUPOS
             var grupo = (fila.getAttribute('data-grupo') || '').toLowerCase().replace(/\s/g, '').replace('º', '°');
+            var estadoEscolar = fila.getAttribute('data-estado-escolar') || '';
             var activeGroupNormalizado = activeGroup.toLowerCase().replace(/\s/g, '').replace('º', '°');
 
             var textoFila = fila.innerText.toLowerCase();
-
             var matchesSearch = !searchTerm || nombre.includes(searchTerm) || matricula.includes(searchTerm) || textoFila.includes(searchTerm);
             var matchesGroup = (activeRole === 'docente') || (activeGroup === 'all') || (grupo === activeGroupNormalizado);
 
-            if (matchesSearch && matchesGroup) { fila.style.display = ''; } else { fila.style.display = 'none'; }
+            // Si el filtro de riesgo está activo, ignoramos el filtro de grupo y solo mostramos a los de riesgo
+            var matchesRiesgo = !isRiesgoFilter || estadoEscolar === 'riesgo';
+
+            if (matchesSearch && (isRiesgoFilter ? true : matchesGroup) && matchesRiesgo) {
+                fila.style.display = '';
+            } else {
+                fila.style.display = 'none';
+            }
         });
     }
 
+    // --- EVENTOS DE CLIC PARA FILTROS ---
+
+    // Clic en Pestañas (Alumnos/Docentes)
     tabButtons.forEach(function (btn) {
         btn.addEventListener('click', function () {
+            isRiesgoFilter = false; // Apagar filtro de riesgo
+            if (btnRiesgo) btnRiesgo.classList.remove('active-danger'); // Quitar estilo rojo al botón de riesgo
+
             tabButtons.forEach(function (b) { b.classList.remove('active'); });
             btn.classList.add('active');
             if (searchInput) searchInput.value = '';
@@ -1146,14 +1092,34 @@ function initPersonalLogic() {
         });
     });
 
+    // Clic en Grupos Laterales
     filterLinks.forEach(function (link) {
         link.addEventListener('click', function (e) {
             e.preventDefault();
+            isRiesgoFilter = false; // Apagar filtro de riesgo
+            if (btnRiesgo) btnRiesgo.classList.remove('active-danger'); // Quitar estilo rojo al botón de riesgo
+
             filterLinks.forEach(function (l) { l.classList.remove('active'); });
             link.classList.add('active');
             filterTable();
         });
     });
+
+    // Clic en "Alumnos en Riesgo"
+    if (btnRiesgo) {
+        btnRiesgo.addEventListener('click', function (e) {
+            e.preventDefault();
+            isRiesgoFilter = true; // Activar bandera de riesgo
+
+            // Quitar selecciones normales
+            filterLinks.forEach(function (l) { l.classList.remove('active'); });
+
+            // Añadir un estilo temporal al botón para saber que está seleccionado
+            btnRiesgo.classList.add('active-danger');
+
+            filterTable();
+        });
+    }
 
     if (searchInput) searchInput.addEventListener('input', filterTable);
 
