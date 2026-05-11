@@ -103,6 +103,19 @@ try {
             'asignaturas' => $asignaturas
         ];
     }
+    elseif ($accion === 'obtener_expediente_alumno' && $metodo === 'GET') {
+        $matricula = $_GET['matricula'] ?? '';
+        $fecha_inicio = $_GET['fecha_inicio'] ?? null;
+        $fecha_fin = $_GET['fecha_fin'] ?? null;
+        $materia = $_GET['materia'] ?? null;
+
+        if(empty($matricula)) throw new Exception('No se proporcionó la matrícula del alumno.');
+        
+        $respuesta = [
+            'ok' => true, 
+            'historial' => ModeloPrefectura::mdlObtenerExpedienteAlumno($matricula, $fecha_inicio, $fecha_fin, $materia)
+        ];
+    }
     // AQUÍ ESTÁ LA NUEVA ACCIÓN DE CERRAR SESIÓN
     elseif ($accion === 'logout' && $metodo === 'POST') {
         session_unset();

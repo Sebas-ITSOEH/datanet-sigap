@@ -1123,13 +1123,148 @@ function initPersonalLogic() {
 
     if (searchInput) searchInput.addEventListener('input', filterTable);
 
-    function clickEnTabla(e) {
+    async function clickEnTabla(e) {
         var btnExp = e.target.closest('.btn-expediente') || e.target.closest('.btn-ver-expediente');
+
         if (btnExp) {
             e.stopPropagation();
             var fila = btnExp.closest('tr');
-            var d = { nombre: fila.getAttribute('data-nombre'), grupo: fila.getAttribute('data-grupo') };
-            Swal.fire('Expediente Escolar', 'Mostrando expediente de: ' + d.nombre, 'info');
+            var matricula = fila.getAttribute('data-matricula');
+            var nombre = fila.getAttribute('data-nombre');
+            var grupo = fila.getAttribute('data-grupo');
+            var pctHtml = fila.querySelector('td:nth-child(5)').innerHTML;
+
+            // Mostrar estado de carga
+            Swal.fire({
+                title: 'Cargando Expediente...',
+                allowOutsideClick: false,
+                didOpen: () => Swal.showLoading()
+            });
+
+            try {
+                // Extraer materias dinámicas para el select
+                const resFiltros = await apiPrefectura('obtener_filtros_exportar');
+                let optionsMateria = '<option value="">Todas las materias</option>';
+                if (resFiltros.asignaturas) {
+                    resFiltros.asignaturas.forEach(m => {
+                        optionsMateria += `<option value="${prefecturaEscapeAttr(m.nombre)}">${prefecturaEscapeHTML(m.nombre)}</option>`;
+                    });
+                }
+
+                function cargarTablaExpediente(f_inicio = '', f_fin = '', mat = '') {
+                    const tbody = document.getElementById('tbody-expediente');
+                    if (!tbody) return;
+
+                    tbody.innerHTML = '<tr><td colspan="4" style="text-align:center; padding:20px;"><i class="fa-solid fa-spinner fa-spin"></i> Cargando...</td></tr>';
+
+                    apiPrefectura('obtener_expediente_alumno', { query: { matricula: matricula, fecha_inicio: f_inicio, fecha_fin: f_fin, materia: mat } })
+                        .then(data => {
+                            let trs = '';
+                            if (data.historial.length === 0) {
+                                trs = '<tr><td colspan="4" style="text-align:center; padding: 20px; color:#64748B;">No hay registros para este filtro.</td></tr>';
+                            } else {
+                                data.historial.forEach(h => {
+                                    let badge = '';
+                                    if (h.estado_final === 'presente') badge = '<span class="badge success">Presente</span>';
+                                    else if (h.estado_final === 'falta') badge = '<span class="badge danger">Falta</span>';
+                                    else if (h.estado_final === 'retardo') badge = '<span class="badge warning">Retardo</span>';
+                                    else badge = `<span class="badge info" style="text-transform: capitalize;">${h.estado_final}</span>`;
+
+                                    trs += `
+                                        <tr>
+                                            <td><i class="fa-regular fa-calendar" style="color:#64748B;"></i> ${h.fecha_fmt}</td>
+                                            <td><strong>${h.materia}</strong></td>
+                                            <td><i class="fa-regular fa-clock" style="color:#64748B;"></i> ${h.hora}</td>
+                                            <td>${badge}</td>
+                                        </tr>
+                                    `;
+                                });
+                            }
+                            tbody.innerHTML = trs;
+                        })
+                        .catch(err => {
+                            tbody.innerHTML = '<tr><td colspan="4" style="text-align:center; color:red;">Error al cargar datos.</td></tr>';
+                        });
+                }
+
+                const modalHtml = `
+                    <div class="expediente-header">
+                        <div class="expediente-info">
+                            <img src="https://ui-avatars.com/api/?name=${encodeURIComponent(nombre)}&background=D6A848&color=192A56&size=54">
+                            <div>
+                                <h3>${nombre}</h3>
+                                <p>Grupo: <strong>${grupo}</strong> | Matrícula: <strong>${matricula}</strong></p>
+                            </div>
+                        </div>
+                        <div class="expediente-badge">${pctHtml}</div>
+                    </div>
+                    
+                    <div class="expediente-filtros">
+                        <div class="filtro-fecha">
+                            <label>Materia:</label>
+                            <select id="exp-materia">
+                                ${optionsMateria}
+                            </select>
+                        </div>
+                        <div class="filtro-fecha">
+                            <label>Desde:</label>
+                            <input type="date" id="exp-fecha-inicio">
+                        </div>
+                        <div class="filtro-fecha">
+                            <label>Hasta:</label>
+                            <input type="date" id="exp-fecha-fin">
+                        </div>
+                        <button id="btn-filtrar-exp" class="btn-filtrar-mini"><i class="fa-solid fa-filter"></i> Filtrar</button>
+                        <button id="btn-limpiar-exp" class="btn-limpiar-mini" title="Limpiar"><i class="fa-solid fa-rotate-right"></i></button>
+                    </div>
+                    
+                    <h4 class="expediente-subtitle"><i class="fa-solid fa-list-check"></i> Registros de Asistencia</h4>
+                    
+                    <div class="expediente-table-container">
+                        <table class="expediente-table">
+                            <thead>
+                                <tr><th>Fecha</th><th>Materia</th><th>Hora</th><th>Estado</th></tr>
+                            </thead>
+                            <tbody id="tbody-expediente">
+                            </tbody>
+                        </table>
+                    </div>
+                `;
+
+                Swal.fire({
+                    title: '',
+                    html: modalHtml,
+                    width: 750,
+                    showCloseButton: true,
+                    confirmButtonText: '<i class="fa-solid fa-check"></i> Entendido',
+                    confirmButtonColor: '#192A56',
+                    customClass: {
+                        popup: 'swal-solicitud-popup modal-expediente-fix',
+                        closeButton: 'btn-close-fix'
+                    },
+                    didOpen: () => {
+                        cargarTablaExpediente(); // Llenado inicial sin filtros
+
+                        document.getElementById('btn-filtrar-exp').addEventListener('click', () => {
+                            const fi = document.getElementById('exp-fecha-inicio').value;
+                            const ff = document.getElementById('exp-fecha-fin').value;
+                            const mat = document.getElementById('exp-materia').value;
+                            cargarTablaExpediente(fi, ff, mat);
+                        });
+
+                        document.getElementById('btn-limpiar-exp').addEventListener('click', () => {
+                            document.getElementById('exp-fecha-inicio').value = '';
+                            document.getElementById('exp-fecha-fin').value = '';
+                            document.getElementById('exp-materia').value = '';
+                            cargarTablaExpediente();
+                        });
+                    }
+                });
+
+            } catch (error) {
+                console.error(error);
+                Swal.fire('Error', 'No se pudo cargar el expediente.', 'error');
+            }
         }
     }
     if (tablaAlumnos) tablaAlumnos.addEventListener('click', clickEnTabla);

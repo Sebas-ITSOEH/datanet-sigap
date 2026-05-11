@@ -284,5 +284,51 @@ class ModeloPrefectura {
         $stmt->execute();
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
+
+    // ============================================================
+    // OBTENER HISTORIAL DETALLADO DEL EXPEDIENTE DE UN ALUMNO
+    // ============================================================
+    public static function mdlObtenerExpedienteAlumno($matricula, $fecha_inicio = null, $fecha_fin = null, $materia = null) {
+        $pdo = Conexion::conectar();
+        $sql = "
+            SELECT 
+                DATE_FORMAT(s.fecha, '%d/%m/%Y') AS fecha_fmt,
+                asig.nombre AS materia,
+                DATE_FORMAT(s.hora_inicio, '%H:%i') as hora,
+                a.estado_final
+            FROM asistencias a
+            INNER JOIN sesiones s ON a.id_sesion = s.id_sesion
+            INNER JOIN cursos c ON s.id_curso = c.id_curso
+            INNER JOIN asignaturas asig ON c.id_asignatura = asig.id_asignatura
+            INNER JOIN usuarios u ON a.id_usuario = u.id_usuario
+            WHERE u.matricula_escolar = :matricula
+        ";
+        
+        if (!empty($fecha_inicio) && !empty($fecha_fin)) {
+            $sql .= " AND s.fecha BETWEEN :fecha_inicio AND :fecha_fin";
+        }
+        
+        // Se añade condición de materia si no está vacía
+        if (!empty($materia)) {
+            $sql .= " AND asig.nombre = :materia";
+        }
+        
+        $sql .= " ORDER BY s.fecha DESC, s.hora_inicio DESC LIMIT 100";
+        
+        $stmt = $pdo->prepare($sql);
+        $stmt->bindParam(":matricula", $matricula, PDO::PARAM_STR);
+        
+        if (!empty($fecha_inicio) && !empty($fecha_fin)) {
+            $stmt->bindParam(":fecha_inicio", $fecha_inicio, PDO::PARAM_STR);
+            $stmt->bindParam(":fecha_fin", $fecha_fin, PDO::PARAM_STR);
+        }
+
+        if (!empty($materia)) {
+            $stmt->bindParam(":materia", $materia, PDO::PARAM_STR);
+        }
+        
+        $stmt->execute();
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
 }
 ?>

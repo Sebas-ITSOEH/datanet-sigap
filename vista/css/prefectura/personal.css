@@ -567,3 +567,191 @@ body {
 .menu-link.active-danger i {
    color: var(--white) !important;
 }
+
+/* ==========================================
+   DISEÑO MODAL EXPEDIENTE ALUMNO
+   ========================================== */
+.expediente-header {
+   display: flex;
+   justify-content: space-between;
+   align-items: center;
+   background: #F8FAFC;
+   padding: 16px;
+   border-radius: 10px;
+   border: 1px solid #E2E8F0;
+}
+
+.expediente-info {
+   display: flex;
+   align-items: center;
+   gap: 15px;
+}
+
+.expediente-info img {
+   border-radius: 10px;
+   border: 2px solid var(--color-dorado);
+}
+
+.expediente-info h3 {
+   margin: 0;
+   color: var(--color-azul-marino);
+   font-size: 1.1rem;
+   font-weight: 700;
+}
+
+.expediente-info p {
+   margin: 4px 0 0;
+   font-size: 0.82rem;
+   color: var(--text-muted);
+}
+
+.expediente-badge {
+   transform: scale(1.1);
+   /* Hace la pastilla de porcentaje un poco más grande */
+}
+
+.expediente-subtitle {
+   margin-top: 24px;
+   color: var(--color-azul-marino);
+   border-bottom: 2px solid var(--color-dorado);
+   padding-bottom: 8px;
+   font-size: 0.95rem;
+   font-weight: 700;
+}
+
+.expediente-table-container {
+   max-height: 350px;
+   /* Activa el scroll si hay muchos registros */
+   overflow-y: auto;
+   margin-top: 12px;
+   border: 1px solid #E2E8F0;
+   border-radius: 8px;
+}
+
+.expediente-table {
+   width: 100%;
+   border-collapse: collapse;
+   font-size: 0.85rem;
+   text-align: left;
+}
+
+.expediente-table th {
+   background: var(--color-azul-marino);
+   color: white;
+   padding: 12px;
+   position: sticky;
+   /* Hace que los encabezados no se muevan al hacer scroll */
+   top: 0;
+   z-index: 2;
+   font-size: 0.75rem;
+   text-transform: uppercase;
+}
+
+.expediente-table td {
+   padding: 12px;
+   border-bottom: 1px solid #F1F5F9;
+   color: var(--text-main);
+}
+
+.expediente-table tr:hover {
+   background: #FEF9F0;
+}
+
+/* ==========================================
+   DISEÑO FIX MODAL & FILTROS EXPEDIENTE
+   ========================================== */
+/* Despega el contenido de arriba para que no estorbe la "X" */
+.modal-expediente-fix {
+    padding-top: 50px !important; 
+    position: relative;
+}
+
+/* Diseño moderno para el botón de cerrar "X" */
+.btn-close-fix {
+    top: 10px !important;
+    right: 15px !important;
+    color: #64748B !important;
+    background: #F1F5F9 !important;
+    border-radius: 50% !important;
+    width: 32px !important;
+    height: 32px !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    font-size: 1.2rem !important;
+    transition: all 0.2s ease !important;
+}
+.btn-close-fix:hover {
+    background: #E2E8F0 !important;
+    color: #EF4444 !important;
+}
+
+/* Barra de filtros de fecha */
+.expediente-filtros {
+    display: flex;
+    gap: 12px;
+    align-items: flex-end;
+    margin-top: 15px;
+    background: #F8FAFC;
+    padding: 14px 16px;
+    border-radius: 8px;
+    border: 1px dashed #CBD5E1;
+    flex-wrap: wrap;
+}
+
+.filtro-fecha {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+
+.filtro-fecha label {
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: var(--color-azul-marino);
+}
+
+.filtro-fecha input, 
+.filtro-fecha select {
+    padding: 8px 10px;
+    font-size: 0.85rem;
+    border: 1px solid #CBD5E1;
+    border-radius: 6px;
+    outline: none;
+    font-family: inherit;
+    color: var(--text-main);
+    background: #ffffff; /* Asegura fondo blanco */
+}
+
+.filtro-fecha input:focus, 
+.filtro-fecha select:focus {
+    border-color: var(--color-azul-marino);
+}
+
+.btn-filtrar-mini {
+    background: var(--color-azul-marino);
+    color: white;
+    border: none;
+    padding: 9px 16px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: 600;
+    font-size: 0.85rem;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    transition: all 0.2s;
+}
+.btn-filtrar-mini:hover { background: #0F1D3D; }
+
+.btn-limpiar-mini {
+    background: #F1F5F9;
+    color: #64748B;
+    border: 1px solid #CBD5E1;
+    padding: 8px 12px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 0.95rem;
+    transition: all 0.2s;
+}
+.btn-limpiar-mini:hover { background: #E2E8F0; color: #1E293B; }
