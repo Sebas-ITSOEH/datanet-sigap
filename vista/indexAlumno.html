@@ -1,6 +1,12 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
+     <head>
+    <title>Secundaria Lic. Benito Juárez - Inicio</title>
+
+   <link rel="icon" type="image/png" href="Imagenes/logoSQ.png">
+    
+    </head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>SIGAP - Portal Alumno</title>
@@ -19,11 +25,14 @@
     <header class="encabezado-principal alumno-header">
     <nav class="contenedor-navegacion nav-alumno">
         
-        <div class="logotipo">
-            <i class="fa-solid fa-school-flag"></i>
+        <div class="logotipo" style="display: flex; align-items: center; gap: 12px;">
+            <img src="./Imagenes/logoSQ.png" 
+                 alt="Logo" 
+                 style="height: 45px; width: auto; object-fit: contain; display: block;">
+            
             <div class="brand-text">
-                <span class="main-title">D.A.T.A.N.E.T.</span>
-                <span class="sub-title">Lic. Benito Juárez</span>
+                <span class="main-title">Sec. Gral. Benito Juárez</span>
+                <span class="sub-title">D.A.T.A.N.E.T.</span>
             </div>
         </div>
 
@@ -47,7 +56,7 @@
 
         <div class="acciones-usuario-portal">
 
-            <div class="perfil-header user-profile" onclick="loadSection('perfil')">
+            <div class="perfil-header user-profile" onclick="loadSection('perfil')" style="cursor: pointer;">
                 <div class="user-text">
                     <span class="name" id="alumno-nombre-header">Alumno</span>
                     <span class="role" id="alumno-rol-header">Alumno</span>
@@ -66,29 +75,61 @@
     <main id="view-container">
         </main>
 
-    <footer class="creative-footer">
-        <div class="footer-wave">
-            <svg viewBox="0 0 1200 120" preserveAspectRatio="none">
-                <path d="M321.39,56.44c58-10.79,114.16-30.13,172-41.86,82.39-16.72,168.19-17.73,250.45-.39C823.78,31,906.67,72,985.66,92.83c70.05,18.48,146.53,26.09,214.34,3V0H0V46.35C50.7,56.33,115.05,62,176,63.26,242.4,64.62,283.08,60.61,321.39,56.44Z" class="shape-fill"></path>
-            </svg>
-        </div>
-        <div class="footer-content">
-            <div class="footer-top">
-                <div class="footer-brand">
-                    <h3>Diseño Avanzado de Telecomunicaciones y Arquitectura de Networking</h3>
-                    <p>Desarrollada por estudiantes de ISIC del Tecnologico Nacional de Mexico Campus ITSOEH </p>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+
+
+
+<div class="container-principal" style="padding: 50px 0; min-height: 10vh;">
+    </div>
+
+
+
+
+
+<footer class="creative-footer">
+    <div class="footer-content">
+        <div class="footer-top">
+            <div class="footer-brand">
+                <h3>Diseño Avanzado de Telecomunicaciones y Arquitectura de Networking</h3>
+                <p>Desarrollada por estudiantes de ISIC del Tecnológico Nacional de México Campus ITSOEH</p>
+            </div>
+            
+            <div class="footer-contact">
+                <div class="contact-item">
+                    <i class="fas fa-user-tie contact-icon"></i>
+                    
+                        <strong>Director:</strong> 
+                        <span>Prof. Gustavo Eleazar Viveros Niño</span>
+                    
                 </div>
-                <div class="footer-status">
-                    <span class="status-indicator">
-                        <span class="dot"></span> Sistema en línea
-                    </span>
+                <div class="contact-item">
+                    <i class="fas fa-school contact-icon"></i>
+                    <span>Esc. Sec. Gral. "Benito Juárez"</span>
+                </div>
+                <div class="contact-item">
+                    <i class="fas fa-map-marker-alt contact-icon"></i>
+                    <span>Miguel Hidalgo 14, Educación, 42952 Tlaxcoapan, Hgo.</span>
+                </div>
+                <div class="contact-item">
+                    <i class="fas fa-phone-alt contact-icon"></i>
+                    <span>+52 778 737 0111</span>
                 </div>
             </div>
-            <div class="footer-bottom">
-                <p>&copy; 2026 Secundaria General "Lic. Benito Juárez". Todos los derechos reservados.</p>
+
+            <div class="footer-status">
+                <span class="status-indicator">
+                    <span class="dot"></span> Sistema en línea
+                </span>
             </div>
         </div>
-    </footer>
+        
+        <hr class="footer-divider">
+        
+        <div class="footer-bottom">
+            <p>&copy; 2026 Secundaria General "Lic. Benito Juárez". Todos los derechos reservados.</p>
+        </div>
+    </div>
+</footer>
 
     <div class="modal-logout-overlay hidden" id="modal-logout">
         <div class="modal-logout-content fade-in">

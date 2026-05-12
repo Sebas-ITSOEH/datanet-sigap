@@ -55,26 +55,75 @@ window.inicializarLogin = function() {
         });
     }
 
-    const passInput = document.getElementById('pass');
-    if (passInput) {
-        const toggleBtn = document.createElement('button');
-        toggleBtn.type = 'button';
-        toggleBtn.className = 'toggle-password';
-        toggleBtn.innerHTML = '<i class="fa-solid fa-eye"></i>';
+   const passInput = document.getElementById('pass');
+const togglePassword = document.getElementById('togglePassword');
+const passwordMessage = document.getElementById('passwordMessage');
 
-        const passContainer = passInput.parentElement;
-        passContainer.style.position = 'relative';
-        passContainer.appendChild(toggleBtn);
+// =============================
+// OJO PASSWORD
+// =============================
+if (togglePassword && !togglePassword.dataset.active) {
 
-        toggleBtn.addEventListener('click', function() {
-            const type = passInput.getAttribute('type') === 'password' ? 'text' : 'password';
-            passInput.setAttribute('type', type);
-            toggleBtn.innerHTML = type === 'password'
-                ? '<i class="fa-solid fa-eye"></i>'
-                : '<i class="fa-solid fa-eye-slash"></i>';
-        });
-    }
-};
+    togglePassword.dataset.active = 'true';
+
+    togglePassword.addEventListener('click', () => {
+
+        if (passInput.type === 'password') {
+
+            passInput.type = 'text';
+
+            togglePassword.innerHTML =
+                '<i class="fa-solid fa-eye-slash"></i>';
+
+                 } else {
+
+            passInput.type = 'password';
+
+            togglePassword.innerHTML =
+                '<i class="fa-solid fa-eye"></i>';
+        }
+    });
+}
+
+// =============================
+// VALIDACION PASSWORD
+// =============================
+if (passInput && !passInput.dataset.validation) {
+
+    passInput.dataset.validation = 'true';
+
+    passInput.addEventListener('input', function () {
+
+        // MAXIMO 15
+        if (this.value.length > 15) {
+
+             this.value = this.value.slice(0, 15);
+
+            passwordMessage.textContent =
+                'Ya llegaste al límite de 15 caracteres';
+
+            passwordMessage.style.color = '#C7A03D';
+
+            return;
+        }
+
+        // MENOS DE 8
+        if (
+            this.value.length > 0 &&
+            this.value.length < 8
+        ) {
+
+            passwordMessage.textContent =
+                'La contraseña debe tener mínimo 8 caracteres';
+
+            passwordMessage.style.color = '#A1232E';
+        }
+
+          else {
+            passwordMessage.textContent = '';
+        }
+    });
+}
 
 function mostrarNotificacion(mensaje, tipo) {
     const notif = document.createElement('div');

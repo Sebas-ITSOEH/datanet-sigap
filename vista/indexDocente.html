@@ -2,6 +2,12 @@
 <html lang="es">
 
 <head>
+     <head>
+    <title>Secundaria Lic. Benito Juárez - Inicio</title>
+
+   <link rel="icon" type="image/png" href="Imagenes/logoSQ.png">
+    
+    </head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>SIGAP - Portal Docente</title>
@@ -17,48 +23,52 @@
 
 <body>
 
-    <header class="main-header">
-        <div class="header-container">
+<header class="main-header">
+    <div class="header-container">
 
-            <div class="header-left">
-                <div style="display: flex; align-items: center; gap: 16px; cursor: pointer;"
-                    onclick="window.location.href='indexDocente.html'">
-                    <div class="logo-box">
-                        <i class="fa-solid fa-school"></i>
-                    </div>
-                    <div class="header-titles">
-                        <h1>D.A.T.A.N.E.T.</h1>
-                        <span>Sec. Gral. Benito Juárez</span>
-                    </div>
+        <div class="header-left">
+            <div style="display: flex; align-items: center; gap: 16px; cursor: pointer;"
+                onclick="window.location.href='indexDocente.html'">
+                
+                <div class="logo-container">
+                    <img src="./Imagenes/logoSQ.png" 
+                         alt="Logo" 
+                         style="height: 45px; width: auto; object-fit: contain; display: block;">
                 </div>
+
+                 <div class="header-titles">
+                <h1>Esc. Sec. Gral. "Benito Juárez"</h1>
+                <span class="sub-title">D.A.T.A.N.E.T.</span>
             </div>
-
-            <nav class="header-nav">
-                <button class="nav-item" onclick="loadSection('misClases')">
-                    <i class="fa-solid fa-users-rectangle"></i> <span>Mis Clases</span>
-                </button>
-                <button class="nav-item" onclick="loadSection('lista')">
-                    <i class="fa-solid fa-list-check"></i> <span>Pase de Lista</span>
-                </button>
-            </nav>
-
-            <div class="header-right">
-                <div class="user-profile">
-                    <div class="user-info">
-                        <span class="user-name" id="docente-nombre-header">Docente</span>
-                        <span class="user-role">Docente</span>
-                    </div>
-                    <div class="user-avatar-circle">
-                        <span id="docente-iniciales-header">DC</span>
-                    </div>
-                </div>
-                <button id="btn-logout" class="btn-icon" title="Cerrar Sesión" style="margin-left: 15px;">
-                    <i class="fa-solid fa-power-off"></i>
-                </button>
             </div>
-
         </div>
-    </header>
+
+        <nav class="header-nav">
+            <button class="nav-item" onclick="loadSection('misClases')">
+                <i class="fa-solid fa-users-rectangle"></i> <span>Mis Clases</span>
+            </button>
+            <button class="nav-item" onclick="loadSection('lista')">
+                <i class="fa-solid fa-list-check"></i> <span>Pase de Lista</span>
+            </button>
+        </nav>
+
+        <div class="header-right">
+            <div class="user-profile">
+                <div class="user-info">
+                    <span class="user-name" id="docente-nombre-header">Docente</span>
+                    <span class="user-role">Docente</span>
+                </div>
+                <div class="user-avatar-circle">
+                    <span id="docente-iniciales-header">DC</span>
+                </div>
+            </div>
+            <button id="btn-logout" class="btn-icon" title="Cerrar Sesión" style="margin-left: 15px;">
+                <i class="fa-solid fa-power-off"></i>
+            </button>
+        </div>
+
+    </div>
+</header>
 
     <main id="view-container">
         <div class="dashboard-container fade-in" style="padding: 2rem;">
@@ -131,29 +141,59 @@
         </div>
     </main>
 
-    <footer class="creative-footer">
-        <div class="footer-wave">
-            <svg viewBox="0 0 1200 120" preserveAspectRatio="none">
-                <path
-                    d="M321.39,56.44c58-10.79,114.16-30.13,172-41.86,82.39-16.72,168.19-17.73,250.45-.39C823.78,31,906.67,72,985.66,92.83c70.05,18.48,146.53,26.09,214.34,3V0H0V46.35C50.7,56.33,115.05,62,176,63.26,242.4,64.62,283.08,60.61,321.39,56.44Z"
-                    class="shape-fill"></path>
-            </svg>
-        </div>
-        <div class="footer-content">
-            <div class="footer-top">
-                <div class="footer-brand">
-                    <h3>SIGAP - DOCENTES</h3>
-                    <p>Sistema de Gestión de Asistencia y Permisos</p>
+ <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+
+
+ <div class="container-principal" style="padding: 50px 0; min-height: 30vh;">
+    </div>
+
+
+
+
+<footer class="creative-footer">
+    <div class="footer-content">
+        <div class="footer-top">
+            <div class="footer-brand">
+                <h3>Diseño Avanzado de Telecomunicaciones y Arquitectura de Networking</h3>
+                <p>Desarrollada por estudiantes de ISIC del Tecnológico Nacional de México Campus ITSOEH</p>
+            </div>
+            
+            <div class="footer-contact">
+                <div class="contact-item">
+                    <i class="fas fa-user-tie contact-icon"></i>
+                    
+                        <strong>Director:</strong> 
+                        <span>Prof. Gustavo Eleazar Viveros Niño</span>
+                    
                 </div>
-                <div class="status-indicator">
-                    <span class="dot"></span> Servidor Activo
+                <div class="contact-item">
+                    <i class="fas fa-school contact-icon"></i>
+                    <span>Esc. Sec. Gral. "Benito Juárez"</span>
+                </div>
+                <div class="contact-item">
+                    <i class="fas fa-map-marker-alt contact-icon"></i>
+                    <span>Miguel Hidalgo 14, Educación, 42952 Tlaxcoapan, Hgo.</span>
+                </div>
+                <div class="contact-item">
+                    <i class="fas fa-phone-alt contact-icon"></i>
+                    <span>+52 778 737 0111</span>
                 </div>
             </div>
-            <div class="footer-bottom">
-                <p>&copy; 2026 D.A.T.A.N.E.T. • Panel de Control Académico</p>
+
+            <div class="footer-status">
+                <span class="status-indicator">
+                    <span class="dot"></span> Sistema en línea
+                </span>
             </div>
         </div>
-    </footer>
+        
+        <hr class="footer-divider">
+        
+        <div class="footer-bottom">
+            <p>&copy; 2026 Secundaria General "Lic. Benito Juárez". Todos los derechos reservados.</p>
+        </div>
+    </div>
+</footer>
 
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
