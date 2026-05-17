@@ -5,6 +5,7 @@ document.addEventListener('DOMContentLoaded', function () {
     const vistaInicio = document.getElementById('vista-inicio');
     const vistaLogin = document.getElementById('vista-login');
     const vistaRegistro = document.getElementById('vista-registro');
+    const vistaSensores = document.getElementById('vista-sensores');
 
     // --- Smooth Scrolling ---
     const menuEnlaces = document.querySelectorAll('.menu-enlaces a[href^="#"]');
@@ -32,6 +33,7 @@ document.addEventListener('DOMContentLoaded', function () {
         vistaInicio.style.display = 'none';
         vistaLogin.style.display = 'none';
         vistaRegistro.style.display = 'none';
+        vistaSensores.style.display = 'none';
 
         // Mostrar la vista seleccionada
         switch (vista) {
@@ -63,6 +65,12 @@ document.addEventListener('DOMContentLoaded', function () {
                 // ✅ RUTA CORREGIDA
                 cargarComponente('vista/registro.html', vistaRegistro, iniciarRegistro);
                 window.scrollTo({ top: 0, behavior: 'smooth' });
+                break;
+
+            case 'sensores':
+                vistaSensores.style.display = 'block';
+                actualizarEnlaceActivo('sensores');
+                window.location.href = 'http://localhost:5173/';
                 break;
         }
     }

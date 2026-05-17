@@ -558,13 +558,37 @@ async function detectarBeaconAlumno(idCurso) {
         throw new Error('Este navegador no soporta Web Bluetooth. Usa Chrome o Edge en HTTPS/local.');
     }
 
-    const services = beacons.map(b => String(b.uuid).toLowerCase());
-    await navigator.bluetooth.requestDevice({
-        filters: services.map(uuid => ({ services: [uuid] })),
-        optionalServices: services
-    });
+    const uuids = beacons.map(b => String(b.uuid).toLowerCase());
+    console.log('🔍 Buscando beacons con UUIDs:', uuids);
 
-    return services[0];
+    try {
+        // Intento 1: Con filtro específico de manufacturer data (iBeacon Apple)
+        console.log('Intento 1: Escaneo con manufacturer data (iBeacon)...');
+        await navigator.bluetooth.requestDevice({
+            filters: [{
+                manufacturerData: {
+                    0x004C: {} // Apple manufacturer ID para iBeacon
+                }
+            }]
+        });
+        console.log('✅ Beacon detectado por manufacturer data');
+    } catch (error1) {
+        console.warn('⚠️ No se encontró por manufacturer data:', error1.message);
+        
+        try {
+            // Intento 2: Escaneo más abierto - cualquier dispositivo BLE
+            console.log('Intento 2: Escaneo abierto (cualquier dispositivo BLE)...');
+            await navigator.bluetooth.requestDevice({
+                acceptAllDevices: true
+            });
+            console.log('✅ Dispositivo detectado (escaneo abierto)');
+        } catch (error2) {
+            console.error('❌ Error en ambos intentos:', error2.message);
+            throw new Error('No se pudo detectar ningún dispositivo Bluetooth. Asegúrate que:\n1. El teléfono tiene Bluetooth activado\n2. El beacon simulado está transmitiendo\n3. Chrome/Edge tiene permiso para Bluetooth\n\nDetalles: ' + error2.message);
+        }
+    }
+
+    return uuids[0];
 }
 
 async function registrarAsistenciaQrAlumno() {

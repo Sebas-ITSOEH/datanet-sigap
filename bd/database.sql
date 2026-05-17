@@ -856,3 +856,129 @@ WHERE qt.activo = TRUE
 
 -- Ver token activo:
 -- SELECT * FROM vw_qr_token_activo;
+
+
+
+-- ===========================================================
+-- REGISTROS DE ASISTENCIA DE PRUEBA
+-- Ajustados para que al menos un alumno tenga 3 retardos
+-- en una misma semana y clase.
+-- ===========================================================
+
+-- Actualizar el ENUM para aceptar falta_retardo
+ALTER TABLE asistencias
+MODIFY COLUMN estado_final ENUM(
+    'presente',
+    'falta',
+    'retardo',
+    'dudoso',
+    'falta_retardo'
+) DEFAULT 'falta';
+
+-- ===========================================================
+-- 1. SESIONES DE PRUEBA (SEMANA DEL 4 AL 8 DE MAYO DE 2026)
+-- Curso: Educación Física (id_curso = 9)
+-- Docente: Ana María Rodríguez
+-- ===========================================================
+INSERT IGNORE INTO sesiones (
+    id_curso,
+    fecha,
+    hora_inicio,
+    hora_fin,
+    codigo_actual
+) VALUES
+(9, '2026-05-04', '14:00:00', '15:00:00', 'EDF-20260504'),
+(9, '2026-05-05', '14:00:00', '15:00:00', 'EDF-20260505'),
+(9, '2026-05-06', '14:00:00', '15:00:00', 'EDF-20260506'),
+(9, '2026-05-07', '14:00:00', '15:00:00', 'EDF-20260507'),
+(9, '2026-05-08', '14:00:00', '15:00:00', 'EDF-20260508');
+
+-- Obtener IDs de sesiones
+SET @sesion_4 = (SELECT id_sesion FROM sesiones WHERE codigo_actual = 'EDF-20260504');
+SET @sesion_5 = (SELECT id_sesion FROM sesiones WHERE codigo_actual = 'EDF-20260505');
+SET @sesion_6 = (SELECT id_sesion FROM sesiones WHERE codigo_actual = 'EDF-20260506');
+SET @sesion_7 = (SELECT id_sesion FROM sesiones WHERE codigo_actual = 'EDF-20260507');
+SET @sesion_8 = (SELECT id_sesion FROM sesiones WHERE codigo_actual = 'EDF-20260508');
+
+-- ===========================================================
+-- 2. REGISTROS DE ASISTENCIA
+-- Alumno Juan Carlos Hernández López (id_usuario = 7)
+-- Tiene 3 retardos durante la semana.
+-- ===========================================================
+INSERT INTO asistencias (
+    id_sesion,
+    id_usuario,
+    qr_valido,
+    bluetooth_valido,
+    validado_docente,
+    estado_final
+) VALUES
+-- Lunes -> Retardo 1
+(@sesion_4, 7, TRUE, TRUE, TRUE, 'retardo'),
+
+-- Martes -> Retardo 2
+(@sesion_5, 7, TRUE, TRUE, TRUE, 'retardo'),
+
+-- Miércoles -> Retardo 3
+(@sesion_6, 7, TRUE, TRUE, TRUE, 'retardo'),
+
+-- Jueves -> Se convierte en falta por acumulación
+(@sesion_7, 7, TRUE, TRUE, TRUE, 'falta_retardo'),
+
+-- Viernes -> Asistencia normal
+(@sesion_8, 7, TRUE, TRUE, TRUE, 'presente')
+
+ON DUPLICATE KEY UPDATE
+    qr_valido = VALUES(qr_valido),
+    bluetooth_valido = VALUES(bluetooth_valido),
+    validado_docente = VALUES(validado_docente),
+    estado_final = VALUES(estado_final);
+
+-- ===========================================================
+-- 3. REGISTROS NORMALES DE OTROS ALUMNOS
+-- ===========================================================
+INSERT INTO asistencias (
+    id_sesion,
+    id_usuario,
+    qr_valido,
+    bluetooth_valido,
+    validado_docente,
+    estado_final
+) VALUES
+(@sesion_4, 8, TRUE, TRUE, TRUE, 'presente'),
+(@sesion_5, 8, TRUE, TRUE, TRUE, 'presente'),
+(@sesion_6, 8, TRUE, TRUE, TRUE, 'presente'),
+(@sesion_7, 8, TRUE, TRUE, TRUE, 'presente'),
+(@sesion_8, 8, TRUE, TRUE, TRUE, 'presente'),
+
+(@sesion_4, 9, TRUE, TRUE, TRUE, 'presente'),
+(@sesion_5, 9, TRUE, TRUE, TRUE, 'presente'),
+(@sesion_6, 9, TRUE, TRUE, TRUE, 'presente'),
+(@sesion_7, 9, TRUE, TRUE, TRUE, 'presente'),
+(@sesion_8, 9, TRUE, TRUE, TRUE, 'presente')
+
+ON DUPLICATE KEY UPDATE
+    qr_valido = VALUES(qr_valido),
+    bluetooth_valido = VALUES(bluetooth_valido),
+    validado_docente = VALUES(validado_docente),
+    estado_final = VALUES(estado_final);
+
+-- ===========================================================
+-- CONSULTA DE VERIFICACIÓN
+-- ===========================================================
+SELECT
+    CONCAT(u.nombre, ' ', u.apellido) AS alumno,
+    s.fecha,
+    a.estado_final
+FROM asistencias a
+INNER JOIN usuarios u ON a.id_usuario = u.id_usuario
+INNER JOIN sesiones s ON a.id_sesion = s.id_sesion
+WHERE a.id_usuario = 7
+  AND s.id_sesion IN (
+        @sesion_4,
+        @sesion_5,
+        @sesion_6,
+        @sesion_7,
+        @sesion_8
+    )
+ORDER BY s.fecha;
