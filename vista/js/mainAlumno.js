@@ -511,39 +511,84 @@ async function escanearQrAlumno() {
     const status = document.getElementById('qr-scan-status');
     const input = document.getElementById('input-token-qr');
 
-    if (!('BarcodeDetector' in window)) {
-        if (status) status.textContent = 'Tu navegador no permite escanear QR desde aqui. Escribe o pega el token.';
+    // Verificar que jsQR esté disponible
+    if (typeof jsQR === 'undefined') {
+        if (status) status.textContent = 'Librería QR no disponible. Escribe o pega el token.';
         return;
     }
 
     let stream = null;
+    let isScanning = true;
+    
     try {
-        if (status) status.textContent = 'Abriendo camara para leer el QR...';
-        stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
+        if (status) status.textContent = 'Abriendo cámara para leer el QR...';
+        stream = await navigator.mediaDevices.getUserMedia({ 
+            video: { facingMode: 'environment' } 
+        });
+        
         const video = document.createElement('video');
         video.srcObject = stream;
         video.setAttribute('playsinline', 'true');
+        video.width = 320;
+        video.height = 240;
         await video.play();
 
-        const detector = new BarcodeDetector({ formats: ['qr_code'] });
+        const canvas = document.createElement('canvas');
+        const ctx = canvas.getContext('2d');
+        canvas.width = video.videoWidth || 320;
+        canvas.height = video.videoHeight || 240;
+        
         const inicio = Date.now();
+        const timeout = 30000; // 30 segundos de escaneo
 
-        while (Date.now() - inicio < 20000) {
-            const codigos = await detector.detect(video);
-            if (codigos.length > 0) {
-                const token = codigos[0].rawValue || '';
-                if (input) input.value = token.trim();
-                if (status) status.textContent = 'QR leido. Ahora valida Bluetooth y registra.';
+        // Función de escaneo recursiva
+        const scan = () => {
+            if (!isScanning) return;
+            
+            // Verificar timeout
+            if (Date.now() - inicio > timeout) {
+                if (status) status.textContent = 'No se detectó un QR en 30 segundos. Intenta de nuevo o pega el token.';
+                isScanning = false;
                 return;
             }
-            await new Promise(resolve => setTimeout(resolve, 400));
-        }
 
-        if (status) status.textContent = 'No se detecto un QR. Intenta de nuevo o pega el token.';
+            // Dibujar video en canvas
+            if (video.readyState === video.HAVE_ENOUGH_DATA) {
+                canvas.width = video.videoWidth;
+                canvas.height = video.videoHeight;
+                ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+                
+                try {
+                    const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+                    const code = jsQR(imageData.data, imageData.width, imageData.height);
+                    
+                    if (code) {
+                        const token = code.data.trim();
+                        if (input) input.value = token;
+                        if (status) status.textContent = 'QR leído: ' + token + '. Ahora valida Bluetooth y registra.';
+                        isScanning = false;
+                        return;
+                    }
+                } catch (err) {
+                    console.warn('Error al procesar QR:', err);
+                }
+            }
+            
+            // Continuar escaneando
+            requestAnimationFrame(scan);
+        };
+        
+        scan();
+        
     } catch (error) {
-        if (status) status.textContent = `No se pudo usar la camara: ${error.message}`;
+        if (status) status.textContent = `Error al acceder a la cámara: ${error.message}`;
+        console.error('Error de cámara:', error);
     } finally {
-        if (stream) stream.getTracks().forEach(track => track.stop());
+        // Detener el escaneo después de un tiempo
+        setTimeout(() => {
+            isScanning = false;
+            if (stream) stream.getTracks().forEach(track => track.stop());
+        }, 30100);
     }
 }
 
