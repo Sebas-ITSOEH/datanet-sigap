@@ -330,5 +330,83 @@ class ModeloPrefectura {
         $stmt->execute();
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
+
+    // ============================================================
+    // OBTENER HORARIO DE UN DOCENTE
+    // ============================================================
+    public static function mdlObtenerHorarioDocente($id_docente) {
+        $pdo = Conexion::conectar();
+        $sql = "
+            SELECT 
+                a.nombre AS asignatura,
+                g.nombre AS grupo,
+                hc.dia_semana,
+                DATE_FORMAT(hc.hora_inicio, '%H:%i') AS hora_inicio,
+                DATE_FORMAT(hc.hora_fin, '%H:%i') AS hora_fin
+            FROM cursos c
+            INNER JOIN asignaturas a ON c.id_asignatura = a.id_asignatura
+            INNER JOIN grupos g ON c.id_grupo = g.id_grupo
+            INNER JOIN horarios_cursos hc ON c.id_curso = hc.id_curso
+            WHERE c.id_docente = :id_docente
+            ORDER BY 
+                CASE 
+                    WHEN LOWER(hc.dia_semana) LIKE 'lunes%' THEN 1
+                    WHEN LOWER(hc.dia_semana) LIKE 'martes%' THEN 2
+                    WHEN LOWER(hc.dia_semana) LIKE 'mi%' THEN 3
+                    WHEN LOWER(hc.dia_semana) LIKE 'jueves%' THEN 4
+                    WHEN LOWER(hc.dia_semana) LIKE 'viernes%' THEN 5
+                    ELSE 6
+                END, hc.hora_inicio
+        ";
+        $stmt = $pdo->prepare($sql);
+        $stmt->bindParam(":id_docente", $id_docente, PDO::PARAM_INT);
+        $stmt->execute();
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+    // ============================================================
+    // OBTENER ALUMNOS EN RIESGO POR GRUPO Y TRIMESTRE
+    // ============================================================
+    public static function mdlObtenerRiesgoPorGrupo($trimestre, $anio, $grupo) {
+        $pdo = Conexion::conectar();
+        
+        $fecha_inicio = '';
+        $fecha_fin = '';
+        
+        switch ($trimestre) {
+            case 1: $fecha_inicio = "$anio-01-01"; $fecha_fin = "$anio-03-31"; break;
+            case 2: $fecha_inicio = "$anio-04-01"; $fecha_fin = "$anio-06-30"; break;
+            case 3: $fecha_inicio = "$anio-07-01"; $fecha_fin = "$anio-09-30"; break;
+            case 4: $fecha_inicio = "$anio-10-01"; $fecha_fin = "$anio-12-31"; break;
+        }
+
+        $sql = "
+            SELECT 
+                u.matricula_escolar,
+                CONCAT(u.nombre, ' ', u.apellido) AS alumno,
+                u.telefono AS telefono_tutor,
+                SUM(CASE WHEN a.estado_final = 'falta' THEN 1 ELSE 0 END) AS total_faltas,
+                ROUND(SUM(CASE WHEN a.estado_final = 'presente' THEN 1 ELSE 0 END) / COUNT(DISTINCT a.id_asistencia) * 100, 2) AS pct_asistencia
+            FROM asistencias a
+            INNER JOIN sesiones s ON a.id_sesion = s.id_sesion
+            INNER JOIN cursos c ON s.id_curso = c.id_curso
+            INNER JOIN usuarios u ON a.id_usuario = u.id_usuario
+            INNER JOIN grupos g ON c.id_grupo = g.id_grupo
+            WHERE s.fecha BETWEEN :f_inicio AND :f_fin
+            AND u.rol = 'alumno'
+            AND g.nombre = :grupo
+            GROUP BY u.id_usuario, u.nombre, u.apellido, u.matricula_escolar, u.telefono
+            HAVING pct_asistencia < 85 -- Filtramos solo los que tienen menos de 85% de asistencia
+            ORDER BY total_faltas DESC
+        ";
+
+        $stmt = $pdo->prepare($sql);
+        $stmt->bindParam(":f_inicio", $fecha_inicio, PDO::PARAM_STR);
+        $stmt->bindParam(":f_fin", $fecha_fin, PDO::PARAM_STR);
+        $stmt->bindParam(":grupo", $grupo, PDO::PARAM_STR);
+        $stmt->execute();
+        
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
 }
 ?>

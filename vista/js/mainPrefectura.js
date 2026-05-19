@@ -50,6 +50,20 @@ document.addEventListener('DOMContentLoaded', function () {
 
     async function loadSection(sectionName) {
         if (!sectionName) return;
+
+        // --- NUEVO: Actualizar visualmente el menú SUPERIOR ---
+        document.querySelectorAll('.header-nav .nav-item').forEach(item => {
+            if (item.getAttribute('data-section') === sectionName) {
+                item.classList.add('active');
+            } else {
+                item.classList.remove('active');
+            }
+        });
+        // ------------------------------------------------------
+
+        const viewContainer = document.getElementById('view-container');
+
+        if (!sectionName) return;
         try {
             const response = await fetch('prefectura/' + sectionName + '.html?t=' + Date.now());
             if (!response.ok) throw new Error('No se encontró: ' + sectionName + '.html');
@@ -717,7 +731,7 @@ function initControlLogic() {
 
             document.getElementById('dias-semana-header').innerHTML = labelsSemana.map(label =>
                 `<th><span class="dia-header">${label.split(' ')[0]}</span><span class="fecha-dia">${label.split(' ')[1]}</span></th>`
-            ).join('') + '<th>Asist.</th><th>Faltas</th>';
+            ).join('');
 
             // Procesar datos
             const alumnosMap = {};
@@ -785,22 +799,278 @@ function initControlLogic() {
     window.descargarListaPDF = function () {
         var g = document.getElementById('export-grupo-asistencia').value, m = document.getElementById('export-materia-asistencia').value, s = document.getElementById('export-semana').value;
         if (!g || !m || !s) { Swal.fire({ title: 'Sin datos', icon: 'warning', confirmButtonColor: '#192A56' }); return; }
-        var th = document.getElementById('tabla-asistencia-previa').outerHTML, tit = document.getElementById('titulo-vista-previa').textContent, res = document.getElementById('resumen-asistencia').innerHTML;
-        var c = '<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Lista</title><style>body{font-family:sans-serif;padding:30px;}table{width:100%;border-collapse:collapse;}th{background:#192A56;color:#fff;padding:8px;}td{padding:6px 8px;border:1px solid #ddd;text-align:center;}.header{text-align:center;border-bottom:2px solid #D6A848;margin-bottom:20px;}</style></head><body><div class="header"><h2>Esc.Sec.Gral. Lic. "Benito Juarez"</h2><p>' + tit + '</p></div>' + th + '<div style="margin-top:15px;padding:12px;background:#FEF9F0;">' + res + '</div></body></html>';
-        var w = window.open('', '_blank'); w.document.write(c); w.document.close(); setTimeout(function () { w.print(); }, 500);
-        Swal.fire({ title: '¡PDF Generado!', icon: 'success', confirmButtonColor: '#192A56', timer: 1500 });
+
+        var th = document.getElementById('tabla-asistencia-previa').outerHTML;
+        var tit = document.getElementById('titulo-vista-previa').textContent;
+        var res = document.getElementById('resumen-asistencia').innerHTML;
+
+        var c = `<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Lista de Asistencia</title>
+        <style>
+            /* REGLA MAESTRA PARA FORZAR LA IMPRESIÓN DE COLORES Y FONDOS */
+            * {
+                -webkit-print-color-adjust: exact !important;
+                print-color-adjust: exact !important;
+            }
+            
+            body { font-family: 'Inter', sans-serif, Arial; padding: 20px; color: #1E293B; background: #fff; }
+            
+            /* Estilos de la tabla idénticos a la vista web */
+            table { width: 100%; border-collapse: collapse; margin-bottom: 20px; border: 1px solid #E2E8F0; }
+            th { 
+                background-color: #192A56 !important; 
+                color: #ffffff !important; 
+                padding: 10px 8px; 
+                font-size: 11px; 
+                text-transform: uppercase; 
+                border: 1px solid #334155; 
+            }
+            td { padding: 8px; border: 1px solid #E2E8F0; text-align: center; font-size: 12px; }
+            td:nth-child(2) { text-align: left; font-weight: 500; } /* Nombre del alumno a la izquierda */
+            
+            /* Colores de los íconos de asistencia */
+            .asistio { color: #10B981 !important; font-weight: bold; font-size: 14px; }
+            .falta { color: #EF4444 !important; font-weight: bold; font-size: 14px; }
+            .justificada { color: #F59E0B !important; font-weight: bold; font-size: 14px; }
+            
+            /* Encabezado del documento */
+            .header { text-align: center; border-bottom: 2px solid #D6A848; margin-bottom: 20px; padding-bottom: 10px; }
+            .header h2 { margin: 0 0 5px 0; color: #192A56; }
+            .header p { margin: 0; color: #64748B; font-size: 14px; }
+            
+            /* Contenedor de resumen */
+            .resumen-contenedor { display: flex; justify-content: center; gap: 25px; margin-top: 15px; padding: 12px; background-color: #FEF9F0 !important; border-radius: 8px; border: 1px solid #f3e8d6; }
+            .resumen-item { display: flex; align-items: center; gap: 8px; font-size: 13px; color: #1E293B; }
+            .resumen-icono { font-weight: bold; }
+            .resumen-icono.green { color: #10B981 !important; }
+            .resumen-icono.red { color: #EF4444 !important; }
+            .resumen-icono.warning { color: #F59E0B !important; }
+            
+            /* Ajustes exclusivos para el cuadro de impresión */
+            @media print {
+                body { padding: 0; margin: 0; }
+                @page { margin: 1cm; } /* Reduce los márgenes de impresión por defecto */
+            }
+        </style></head><body>
+        <div class="header">
+            <h2>Esc.Sec.Gral. Lic. "Benito Juarez"</h2>
+            <p>${tit}</p>
+        </div>
+        ${th}
+        <div class="resumen-contenedor">${res}</div>
+        </body></html>`;
+
+        Swal.fire({
+            title: 'Vista Previa del Documento',
+            html: `<iframe id="frame-impresion-pdf" style="width:100%; height:450px; border:1px solid #E2E8F0; border-radius:8px; background:#fff;"></iframe>`,
+            width: 850,
+            showCancelButton: true,
+            confirmButtonText: '<i class="fa-solid fa-print"></i> Imprimir / Guardar PDF',
+            cancelButtonText: 'Cerrar',
+            confirmButtonColor: '#10B981',
+            cancelButtonColor: '#64748B',
+            customClass: { popup: 'swal-solicitud-popup' },
+            didOpen: () => {
+                const iframe = document.getElementById('frame-impresion-pdf');
+                const doc = iframe.contentWindow.document;
+                doc.open();
+                doc.write(c);
+                doc.close();
+            }
+        }).then((result) => {
+            if (result.isConfirmed) {
+                const iframe = document.getElementById('frame-impresion-pdf');
+                iframe.contentWindow.focus();
+                iframe.contentWindow.print();
+            }
+        });
     };
 
     window.descargarListaExcel = function () {
-        var g = document.getElementById('export-grupo-asistencia').value, s = document.getElementById('export-semana').value;
-        if (!g || !s) { Swal.fire({ title: 'Sin datos', icon: 'warning', confirmButtonColor: '#192A56' }); return; }
-        var filas = document.querySelectorAll('#tabla-asistencia-previa tbody tr'), csv = '\uFEFFNo.,Alumno,';
-        document.querySelectorAll('#dias-semana-header th').forEach(function (th) { csv += '"' + ((th.querySelector('.dia-header') || {}).textContent || '') + ' ' + ((th.querySelector('.fecha-dia') || {}).textContent || '') + '",'; });
-        csv += 'Asistencias,Faltas\n';
-        filas.forEach(function (f) { var celdas = f.querySelectorAll('td'); celdas.forEach(function (c, i) { var v = c.textContent.trim(); if (c.classList.contains('asistio')) v = 'Asistió'; if (c.classList.contains('falta')) v = 'Falta'; if (c.classList.contains('justificada')) v = 'Justificada'; csv += '"' + v + '"'; if (i < celdas.length - 1) csv += ','; }); csv += '\n'; });
-        var blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' }), url = URL.createObjectURL(blob), a = document.createElement('a');
-        a.href = url; a.download = 'Lista_' + g + '_' + s + '.csv'; document.body.appendChild(a); a.click(); document.body.removeChild(a); URL.revokeObjectURL(url);
-        Swal.fire({ title: '¡Excel Generado!', icon: 'success', confirmButtonColor: '#192A56', timer: 1500 });
+        var g = document.getElementById('export-grupo-asistencia').value,
+            m = document.getElementById('export-materia-asistencia').value,
+            s = document.getElementById('export-semana').value;
+
+        if (!g || !m || !s) {
+            Swal.fire({ title: 'Sin datos', icon: 'warning', confirmButtonColor: '#192A56' });
+            return;
+        }
+
+        var tit = document.getElementById('titulo-vista-previa').textContent;
+        var tablaHTML = document.getElementById('tabla-asistencia-previa').outerHTML;
+
+        // 1. Limpiamos los IDs para evitar conflictos en el Excel
+        tablaHTML = tablaHTML.replace(/id="[^"]*"/g, '');
+
+        // 2. INYECTAMOS EL DISEÑO EN LÍNEA PARA QUE EXCEL NO LO IGNORE
+        // Forzamos el fondo azul marino y texto blanco en los encabezados <th>
+        tablaHTML = tablaHTML.replace(/<th\b([^>]*)>/gi, '<th$1 style="background-color: #192A56; color: #FFFFFF; font-weight: bold; border: 1px solid #000000; text-align: center; padding: 5px;">');
+
+        // Forzamos los bordes y el centrado en las celdas normales <td>
+        tablaHTML = tablaHTML.replace(/<td\b([^>]*)>/gi, '<td$1 style="border: 1px solid #DDDDDD; text-align: center; padding: 5px; vertical-align: middle;">');
+
+        Swal.fire({
+            title: 'Exportar a Excel',
+            html: `<p>Se generará un archivo Excel del grupo <strong>${g}</strong>.</p>`,
+            icon: 'info',
+            showCancelButton: true,
+            confirmButtonText: '<i class="fa-solid fa-file-excel"></i> Descargar Excel',
+            cancelButtonText: 'Cancelar',
+            confirmButtonColor: '#10B981',
+            cancelButtonColor: '#64748B',
+            customClass: { popup: 'swal-solicitud-popup' }
+        }).then((result) => {
+            if (result.isConfirmed) {
+
+                var html = `
+                    <html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel" xmlns="http://www.w3.org/TR/REC-html40">
+                    <head>
+                        <meta charset="UTF-8">
+                        <style>
+                            /* Mantenemos los colores de los textos (X y ✓) */
+                            .asistio { color: #10B981; font-weight: bold; }
+                            .falta { color: #EF4444; font-weight: bold; }
+                            .justificada { color: #F59E0B; font-weight: bold; }
+                            .alumno-nombre { text-align: left !important; }
+                        </style>
+                        </head>
+                    <body>
+                        <table>
+                            <tr>
+                                <th colspan="9" style="font-size: 18px; text-align:center; background-color:#ffffff; color:#192A56; border:none;">Esc.Sec.Gral. Lic. "Benito Juarez"</th>
+                            </tr>
+                            <tr>
+                                <th colspan="9" style="font-size: 14px; text-align:center; background-color:#ffffff; color:#64748B; border:none;">${tit}</th>
+                            </tr>
+                            <tr><td colspan="9" style="border:none;"></td></tr>
+                        </table>
+                        
+                        ${tablaHTML}
+                        
+                    </body>
+                    </html>
+                `;
+
+                var blob = new Blob([html], { type: 'application/vnd.ms-excel;charset=utf-8' });
+                var url = URL.createObjectURL(blob);
+                var a = document.createElement('a');
+                a.href = url;
+                a.download = `Asistencia_${g.replace(/\s/g, '')}_${s}.xls`;
+
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+
+                Swal.fire({ title: '¡Excel Descargado!', text: 'Revisa tu carpeta de descargas.', icon: 'success', confirmButtonColor: '#192A56', timer: 2000 });
+            }
+        });
+    };
+
+    // ==========================================
+    // FUNCIÓN GLOBAL: ABRIR EXPEDIENTE DE ALUMNO
+    // ==========================================
+    window.abrirExpedienteAlumno = async function (matricula, nombre, grupo, pctHtml) {
+        Swal.fire({
+            title: 'Cargando Expediente...',
+            allowOutsideClick: false,
+            didOpen: () => Swal.showLoading()
+        });
+
+        try {
+            const resFiltros = await apiPrefectura('obtener_filtros_exportar');
+            let optionsMateria = '<option value="">Todas las materias</option>';
+            if (resFiltros.asignaturas) {
+                resFiltros.asignaturas.forEach(m => {
+                    optionsMateria += `<option value="${prefecturaEscapeAttr(m.nombre)}">${prefecturaEscapeHTML(m.nombre)}</option>`;
+                });
+            }
+
+            function cargarTablaExpediente(f_inicio = '', f_fin = '', mat = '') {
+                const tbody = document.getElementById('tbody-expediente');
+                if (!tbody) return;
+
+                tbody.innerHTML = '<tr><td colspan="4" style="text-align:center; padding:20px;"><i class="fa-solid fa-spinner fa-spin"></i> Cargando...</td></tr>';
+
+                apiPrefectura('obtener_expediente_alumno', { query: { matricula: matricula, fecha_inicio: f_inicio, fecha_fin: f_fin, materia: mat } })
+                    .then(data => {
+                        let trs = '';
+                        if (data.historial.length === 0) {
+                            trs = '<tr><td colspan="4" style="text-align:center; padding: 20px; color:#64748B;">No hay registros para este filtro.</td></tr>';
+                        } else {
+                            data.historial.forEach(h => {
+                                let badge = '';
+                                if (h.estado_final === 'presente') badge = '<span class="badge success">Presente</span>';
+                                else if (h.estado_final === 'falta') badge = '<span class="badge danger">Falta</span>';
+                                else if (h.estado_final === 'retardo') badge = '<span class="badge warning">Retardo</span>';
+                                else badge = `<span class="badge info" style="text-transform: capitalize;">${h.estado_final}</span>`;
+
+                                trs += `<tr>
+                                        <td><i class="fa-regular fa-calendar" style="color:#64748B;"></i> ${h.fecha_fmt}</td>
+                                        <td><strong>${h.materia}</strong></td>
+                                        <td><i class="fa-regular fa-clock" style="color:#64748B;"></i> ${h.hora}</td>
+                                        <td>${badge}</td>
+                                    </tr>`;
+                            });
+                        }
+                        tbody.innerHTML = trs;
+                    })
+                    .catch(err => {
+                        tbody.innerHTML = '<tr><td colspan="4" style="text-align:center; color:red;">Error al cargar datos.</td></tr>';
+                    });
+            }
+
+            const modalHtml = `
+            <div class="expediente-header">
+                <div class="expediente-info">
+                    <img src="https://ui-avatars.com/api/?name=${encodeURIComponent(nombre)}&background=D6A848&color=192A56&size=54">
+                    <div>
+                        <h3>${nombre}</h3>
+                        <p>Grupo: <strong>${grupo}</strong> | Matrícula: <strong>${matricula}</strong></p>
+                    </div>
+                </div>
+                <div class="expediente-badge">${pctHtml}</div>
+            </div>
+            
+            <div class="expediente-filtros">
+                <div class="filtro-fecha">
+                    <label>Materia:</label>
+                    <select id="exp-materia">${optionsMateria}</select>
+                </div>
+                <div class="filtro-fecha"><label>Desde:</label><input type="date" id="exp-fecha-inicio"></div>
+                <div class="filtro-fecha"><label>Hasta:</label><input type="date" id="exp-fecha-fin"></div>
+                <button id="btn-filtrar-exp" class="btn-filtrar-mini"><i class="fa-solid fa-filter"></i> Filtrar</button>
+                <button id="btn-limpiar-exp" class="btn-limpiar-mini" title="Limpiar"><i class="fa-solid fa-rotate-right"></i></button>
+            </div>
+            
+            <h4 class="expediente-subtitle"><i class="fa-solid fa-list-check"></i> Registros de Asistencia</h4>
+            
+            <div class="expediente-table-container">
+                <table class="expediente-table">
+                    <thead><tr><th>Fecha</th><th>Materia</th><th>Hora</th><th>Estado</th></tr></thead>
+                    <tbody id="tbody-expediente"></tbody>
+                </table>
+            </div>
+        `;
+
+            Swal.fire({
+                title: '', html: modalHtml, width: 750, showCloseButton: true, confirmButtonText: '<i class="fa-solid fa-check"></i> Entendido', confirmButtonColor: '#192A56',
+                customClass: { popup: 'swal-solicitud-popup modal-expediente-fix', closeButton: 'btn-close-fix' },
+                didOpen: () => {
+                    cargarTablaExpediente();
+                    document.getElementById('btn-filtrar-exp').addEventListener('click', () => {
+                        cargarTablaExpediente(document.getElementById('exp-fecha-inicio').value, document.getElementById('exp-fecha-fin').value, document.getElementById('exp-materia').value);
+                    });
+                    document.getElementById('btn-limpiar-exp').addEventListener('click', () => {
+                        document.getElementById('exp-fecha-inicio').value = ''; document.getElementById('exp-fecha-fin').value = ''; document.getElementById('exp-materia').value = '';
+                        cargarTablaExpediente();
+                    });
+                }
+            });
+
+        } catch (error) {
+            console.error(error);
+            Swal.fire('Error', 'No se pudo cargar el expediente.', 'error');
+        }
     };
 
     function initHistorialLogic() {
@@ -856,13 +1126,178 @@ function initControlLogic() {
     if (selectTrimestre) selectTrimestre.addEventListener('change', cargarEstadisticas);
     if (selectAnio) selectAnio.addEventListener('change', cargarEstadisticas);
 
-    // Placeholder para la acción "Ver Detalle"
-    window.verDetalleEstadisticas = function (grupo, trimestre, anio) {
+    window.verDetalleEstadisticas = async function (grupo, trimestre, anio) {
+        // Mostrar modal de carga mientras buscamos en la BD
         Swal.fire({
-            title: `Estadísticas Grupo ${grupo}`,
-            text: `Mostrando detalles del T${trimestre} ${anio}. (Característica en desarrollo)`,
-            icon: 'info',
-            confirmButtonColor: '#192A56'
+            title: 'Analizando registros...',
+            allowOutsideClick: false,
+            didOpen: () => Swal.showLoading()
+        });
+
+        try {
+            // Petición real al backend
+            const data = await apiPrefectura('obtener_riesgo_grupo', {
+                query: { grupo: grupo, trimestre: trimestre, anio: anio }
+            });
+
+            let trs = '';
+
+            // Si no hay alumnos en riesgo (todos tienen más de 85%)
+            if (!data.alumnos || data.alumnos.length === 0) {
+                trs = `<tr><td colspan="4" style="text-align:center; padding:25px; color:#10B981; font-weight:bold;"><i class="fa-solid fa-check-circle"></i> ¡Excelente! No hay alumnos en riesgo crítico en este grupo.</td></tr>`;
+            } else {
+                // Dibujamos las filas dinámicamente con los datos de la BD
+                data.alumnos.forEach(a => {
+                    const pct = parseFloat(a.pct_asistencia);
+                    const colorPill = pct < 80 ? 'danger' : 'warning';
+                    const colorBg = pct < 80 ? 'background:#FEE2E2; color:#991B1B;' : 'background:#FEF3C7; color:#92400E;';
+
+                    trs += `
+                    <tr style="border-bottom: 1px solid #E2E8F0;">
+                        <td style="padding: 8px;">
+                            <strong>${prefecturaEscapeHTML(a.alumno)}</strong><br>
+                            <span style="color:#64748B; font-size:11px;">Tutor: ${prefecturaEscapeHTML(a.telefono_tutor || 'No registrado')}</span>
+                        </td>
+                        <td style="padding: 8px; text-align:center; color:#EF4444; font-weight:bold;">${a.total_faltas}</td>
+                        <td style="padding: 8px; text-align:center;">
+                            <span style="${colorBg} padding:2px 6px; border-radius:4px;">${pct}%</span>
+                        </td>
+                        <td style="padding: 8px; text-align:center;">
+                            <button onclick="abrirExpedienteAlumno('${a.matricula_escolar}', '${prefecturaEscapeAttr(a.alumno)}', '${grupo}', '<span class=\\'badge ${colorPill}\\'>${pct}%</span>')" class="btn-link" style="color:#192A56; text-decoration:underline; border:none; background:none; cursor:pointer;">
+                                Ver Expediente
+                            </button>
+                        </td>
+                    </tr>`;
+                });
+            }
+
+            const modalHtml = `
+                <div style="text-align: left;">
+                    <div style="background: #FEF9F0; border-left: 4px solid #F59E0B; padding: 15px; margin-bottom: 20px; border-radius: 4px;">
+                        <h4 style="margin:0 0 5px 0; color: #92400E; font-size:14px;"><i class="fa-solid fa-triangle-exclamation"></i> Alerta Académica</h4>
+                        <p style="margin:0; font-size:13px; color: #B45309;">
+                            Se muestran los alumnos con un porcentaje de asistencia inferior al 85% en el ${trimestre}º Trimestre.
+                        </p>
+                    </div>
+                    
+                    <h4 style="margin-bottom: 10px; color:#192A56;"><i class="fa-solid fa-users"></i> Alumnos en Riesgo</h4>
+                    
+                    <table style="width: 100%; border-collapse: collapse; text-align: left; font-size:13px;">
+                        <thead>
+                            <tr style="background: #192A56; color: white;">
+                                <th style="padding: 8px;">Alumno</th>
+                                <th style="padding: 8px; text-align:center;">Faltas</th>
+                                <th style="padding: 8px; text-align:center;">% Asist.</th>
+                                <th style="padding: 8px; text-align:center;">Acción</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${trs}
+                        </tbody>
+                    </table>
+                </div>
+            `;
+
+            Swal.fire({
+                title: `Análisis de Asistencia - ${grupo}`,
+                html: modalHtml,
+                width: 700,
+                showCloseButton: true,
+                confirmButtonText: 'Cerrar Panel',
+                confirmButtonColor: '#192A56',
+                customClass: { popup: 'swal-solicitud-popup' }
+            });
+
+        } catch (error) {
+            console.error("Error al obtener alumnos en riesgo:", error);
+            Swal.fire('Error', 'No se pudieron cargar los datos de riesgo.', 'error');
+        }
+    };
+
+    // =========================================================
+    // EXPORTAR ESTADÍSTICAS A PDF
+    // =========================================================
+    window.descargarReporteGeneral = function () {
+        const selectTrim = document.getElementById('filtro-trimestre');
+        const trimestreStr = selectTrim.options[selectTrim.selectedIndex].text;
+        const anio = document.getElementById('filtro-anio').value;
+        const tbody = document.querySelector('#tabla-estadisticas-grupos tbody');
+
+        if (!tbody || tbody.querySelectorAll('tr').length === 0 || tbody.innerText.includes('No hay registros')) {
+            Swal.fire({ title: 'Sin datos', text: 'No hay estadísticas para exportar en este periodo.', icon: 'warning', confirmButtonColor: '#192A56' });
+            return;
+        }
+
+        // 1. Clonar la tabla para manipularla sin alterar la vista original
+        const tablaClon = document.getElementById('tabla-estadisticas-grupos').cloneNode(true);
+
+        // 2. Limpiar la tabla clonada (quitar la última columna de "Acción")
+        const ths = tablaClon.querySelectorAll('th');
+        if (ths.length > 0) ths[ths.length - 1].remove(); // Quita el TH "Acción"
+
+        const trs = tablaClon.querySelectorAll('tr');
+        trs.forEach(tr => {
+            if (tr.children.length > 0) {
+                tr.removeChild(tr.lastElementChild); // Quita el TD del botón "Ver detalle"
+            }
+        });
+
+        const tablaHTML = tablaClon.outerHTML;
+
+        // 3. Crear el formato del documento de impresión
+        const c = `<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Reporte de Asistencia</title>
+        <style>
+            * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+            body { font-family: 'Inter', sans-serif, Arial; padding: 20px; color: #1E293B; background: #fff; }
+            table { width: 100%; border-collapse: collapse; margin-top: 20px; border: 1px solid #E2E8F0; }
+            th { background-color: #192A56 !important; color: #ffffff !important; padding: 10px; font-size: 12px; text-transform: uppercase; border: 1px solid #334155; }
+            td { padding: 8px; border: 1px solid #E2E8F0; text-align: center; font-size: 12px; }
+            .header { text-align: center; border-bottom: 2px solid #D6A848; margin-bottom: 20px; padding-bottom: 10px; }
+            .header h2 { margin: 0 0 5px 0; color: #192A56; }
+            .header p { margin: 0; color: #64748B; font-size: 14px; font-weight: bold; }
+            .text-success { color: #10B981 !important; font-weight: bold; }
+            .text-danger { color: #EF4444 !important; font-weight: bold; }
+            .porcentaje.high { background-color: #D1FAE5 !important; color: #065F46 !important; padding: 2px 6px; border-radius: 4px; font-weight: bold; }
+            .porcentaje.medium { background-color: #FEF3C7 !important; color: #92400E !important; padding: 2px 6px; border-radius: 4px; font-weight: bold;}
+            .porcentaje.low { background-color: #FEE2E2 !important; color: #991B1B !important; padding: 2px 6px; border-radius: 4px; font-weight: bold;}
+            .text-muted-small { color: #94A3B8; font-size: 11px; }
+            @media print {
+                body { padding: 0; margin: 0; }
+                @page { margin: 1.5cm; }
+            }
+        </style></head><body>
+        <div class="header">
+            <h2>Esc.Sec.Gral. Lic. "Benito Juarez"</h2>
+            <p>Reporte Estadístico de Asistencia Escolar</p>
+            <p style="font-weight: normal; margin-top:5px;">Periodo evaluado: ${trimestreStr} del ${anio}</p>
+        </div>
+        ${tablaHTML}
+        </body></html>`;
+
+        // 4. Lanzar el modal de pre-visualización
+        Swal.fire({
+            title: 'Vista Previa del Reporte',
+            html: `<iframe id="frame-reporte-pdf" style="width:100%; height:450px; border:1px solid #E2E8F0; border-radius:8px; background:#fff;"></iframe>`,
+            width: 850,
+            showCancelButton: true,
+            confirmButtonText: '<i class="fa-solid fa-print"></i> Imprimir / Guardar PDF',
+            cancelButtonText: 'Cerrar',
+            confirmButtonColor: '#10B981',
+            cancelButtonColor: '#64748B',
+            customClass: { popup: 'swal-solicitud-popup' },
+            didOpen: () => {
+                const iframe = document.getElementById('frame-reporte-pdf');
+                const doc = iframe.contentWindow.document;
+                doc.open();
+                doc.write(c);
+                doc.close();
+            }
+        }).then((result) => {
+            if (result.isConfirmed) {
+                const iframe = document.getElementById('frame-reporte-pdf');
+                iframe.contentWindow.focus();
+                iframe.contentWindow.print();
+            }
         });
     };
 
@@ -1001,7 +1436,7 @@ function initPersonalLogic() {
                         : '<span class="badge warning">Inactivo</span>';
 
                     const filaHTML = `
-                        <tr data-tipo="docente" data-nombre="${nombreCompleto}" data-id="${p.clave_docente || p.id_usuario}">
+                        <tr data-tipo="docente" data-nombre="${nombreCompleto}" data-id="${p.clave_docente || p.id_usuario}" data-id-usuario="${p.id_usuario}">
                             <td>
                                 <div class="alumno-cell">
                                     <img src="https://ui-avatars.com/api/?name=${encodeURIComponent(nombreCompleto)}&background=192A56&color=fff&size=36">
@@ -1134,137 +1569,87 @@ function initPersonalLogic() {
             var grupo = fila.getAttribute('data-grupo');
             var pctHtml = fila.querySelector('td:nth-child(5)').innerHTML;
 
+            // ¡Mira qué limpio queda ahora! Llamamos a la función global
+            abrirExpedienteAlumno(matricula, nombre, grupo, pctHtml);
+        }
+
+        // (AQUÍ TERMINA EL IF DE btnExp QUE YA TIENES)
+
+        // --- NUEVO: Clic en el botón "Horario" del Docente ---
+        var btnHorario = e.target.closest('.btn-horario') || e.target.closest('.btn-ver-horario');
+        if (btnHorario) {
+            e.stopPropagation();
+            var fila = btnHorario.closest('tr');
+            var idDocente = fila.getAttribute('data-id-usuario');
+            var nombreDocente = fila.getAttribute('data-nombre');
+
             // Mostrar estado de carga
             Swal.fire({
-                title: 'Cargando Expediente...',
+                title: 'Cargando Horario...',
                 allowOutsideClick: false,
                 didOpen: () => Swal.showLoading()
             });
 
-            try {
-                // Extraer materias dinámicas para el select
-                const resFiltros = await apiPrefectura('obtener_filtros_exportar');
-                let optionsMateria = '<option value="">Todas las materias</option>';
-                if (resFiltros.asignaturas) {
-                    resFiltros.asignaturas.forEach(m => {
-                        optionsMateria += `<option value="${prefecturaEscapeAttr(m.nombre)}">${prefecturaEscapeHTML(m.nombre)}</option>`;
-                    });
-                }
-
-                function cargarTablaExpediente(f_inicio = '', f_fin = '', mat = '') {
-                    const tbody = document.getElementById('tbody-expediente');
-                    if (!tbody) return;
-
-                    tbody.innerHTML = '<tr><td colspan="4" style="text-align:center; padding:20px;"><i class="fa-solid fa-spinner fa-spin"></i> Cargando...</td></tr>';
-
-                    apiPrefectura('obtener_expediente_alumno', { query: { matricula: matricula, fecha_inicio: f_inicio, fecha_fin: f_fin, materia: mat } })
-                        .then(data => {
-                            let trs = '';
-                            if (data.historial.length === 0) {
-                                trs = '<tr><td colspan="4" style="text-align:center; padding: 20px; color:#64748B;">No hay registros para este filtro.</td></tr>';
-                            } else {
-                                data.historial.forEach(h => {
-                                    let badge = '';
-                                    if (h.estado_final === 'presente') badge = '<span class="badge success">Presente</span>';
-                                    else if (h.estado_final === 'falta') badge = '<span class="badge danger">Falta</span>';
-                                    else if (h.estado_final === 'retardo') badge = '<span class="badge warning">Retardo</span>';
-                                    else badge = `<span class="badge info" style="text-transform: capitalize;">${h.estado_final}</span>`;
-
-                                    trs += `
-                                        <tr>
-                                            <td><i class="fa-regular fa-calendar" style="color:#64748B;"></i> ${h.fecha_fmt}</td>
-                                            <td><strong>${h.materia}</strong></td>
-                                            <td><i class="fa-regular fa-clock" style="color:#64748B;"></i> ${h.hora}</td>
-                                            <td>${badge}</td>
-                                        </tr>
-                                    `;
-                                });
-                            }
-                            tbody.innerHTML = trs;
-                        })
-                        .catch(err => {
-                            tbody.innerHTML = '<tr><td colspan="4" style="text-align:center; color:red;">Error al cargar datos.</td></tr>';
+            apiPrefectura('obtener_horario_docente', { query: { id_docente: idDocente } })
+                .then(data => {
+                    let trs = '';
+                    if (!data.horario || data.horario.length === 0) {
+                        trs = '<tr><td colspan="4" style="text-align:center; padding: 20px; color:#64748B;">No hay clases asignadas para este docente.</td></tr>';
+                    } else {
+                        data.horario.forEach(h => {
+                            trs += `
+                            <tr>
+                                <td><strong><i class="fa-regular fa-calendar-days" style="color:#64748B;"></i> ${h.dia_semana}</strong></td>
+                                <td><i class="fa-regular fa-clock" style="color:#64748B;"></i> ${h.hora_inicio} - ${h.hora_fin}</td>
+                                <td>${h.asignatura}</td>
+                                <td><span class="badge info">Grupo ${h.grupo}</span></td>
+                            </tr>
+                        `;
                         });
-                }
+                    }
 
-                const modalHtml = `
+                    const modalHtml = `
                     <div class="expediente-header">
                         <div class="expediente-info">
-                            <img src="https://ui-avatars.com/api/?name=${encodeURIComponent(nombre)}&background=D6A848&color=192A56&size=54">
+                            <img src="https://ui-avatars.com/api/?name=${encodeURIComponent(nombreDocente)}&background=192A56&color=fff&size=54">
                             <div>
-                                <h3>${nombre}</h3>
-                                <p>Grupo: <strong>${grupo}</strong> | Matrícula: <strong>${matricula}</strong></p>
+                                <h3>${nombreDocente}</h3>
+                                <p>Horario de Clases Asignado</p>
                             </div>
                         </div>
-                        <div class="expediente-badge">${pctHtml}</div>
                     </div>
                     
-                    <div class="expediente-filtros">
-                        <div class="filtro-fecha">
-                            <label>Materia:</label>
-                            <select id="exp-materia">
-                                ${optionsMateria}
-                            </select>
-                        </div>
-                        <div class="filtro-fecha">
-                            <label>Desde:</label>
-                            <input type="date" id="exp-fecha-inicio">
-                        </div>
-                        <div class="filtro-fecha">
-                            <label>Hasta:</label>
-                            <input type="date" id="exp-fecha-fin">
-                        </div>
-                        <button id="btn-filtrar-exp" class="btn-filtrar-mini"><i class="fa-solid fa-filter"></i> Filtrar</button>
-                        <button id="btn-limpiar-exp" class="btn-limpiar-mini" title="Limpiar"><i class="fa-solid fa-rotate-right"></i></button>
-                    </div>
-                    
-                    <h4 class="expediente-subtitle"><i class="fa-solid fa-list-check"></i> Registros de Asistencia</h4>
+                    <h4 class="expediente-subtitle" style="margin-top: 15px;"><i class="fa-solid fa-list-check"></i> Materias Asignadas</h4>
                     
                     <div class="expediente-table-container">
                         <table class="expediente-table">
                             <thead>
-                                <tr><th>Fecha</th><th>Materia</th><th>Hora</th><th>Estado</th></tr>
+                                <tr><th>Día</th><th>Horario</th><th>Materia</th><th>Grupo</th></tr>
                             </thead>
-                            <tbody id="tbody-expediente">
+                            <tbody>
+                                ${trs}
                             </tbody>
                         </table>
                     </div>
                 `;
 
-                Swal.fire({
-                    title: '',
-                    html: modalHtml,
-                    width: 750,
-                    showCloseButton: true,
-                    confirmButtonText: '<i class="fa-solid fa-check"></i> Entendido',
-                    confirmButtonColor: '#192A56',
-                    customClass: {
-                        popup: 'swal-solicitud-popup modal-expediente-fix',
-                        closeButton: 'btn-close-fix'
-                    },
-                    didOpen: () => {
-                        cargarTablaExpediente(); // Llenado inicial sin filtros
-
-                        document.getElementById('btn-filtrar-exp').addEventListener('click', () => {
-                            const fi = document.getElementById('exp-fecha-inicio').value;
-                            const ff = document.getElementById('exp-fecha-fin').value;
-                            const mat = document.getElementById('exp-materia').value;
-                            cargarTablaExpediente(fi, ff, mat);
-                        });
-
-                        document.getElementById('btn-limpiar-exp').addEventListener('click', () => {
-                            document.getElementById('exp-fecha-inicio').value = '';
-                            document.getElementById('exp-fecha-fin').value = '';
-                            document.getElementById('exp-materia').value = '';
-                            cargarTablaExpediente();
-                        });
-                    }
+                    Swal.fire({
+                        title: '',
+                        html: modalHtml,
+                        width: 750,
+                        showCloseButton: true,
+                        confirmButtonText: '<i class="fa-solid fa-check"></i> Cerrar',
+                        confirmButtonColor: '#192A56',
+                        customClass: {
+                            popup: 'swal-solicitud-popup modal-expediente-fix',
+                            closeButton: 'btn-close-fix'
+                        }
+                    });
+                })
+                .catch(err => {
+                    console.error(err);
+                    Swal.fire('Error', 'No se pudo cargar el horario del docente.', 'error');
                 });
-
-            } catch (error) {
-                console.error(error);
-                Swal.fire('Error', 'No se pudo cargar el expediente.', 'error');
-            }
         }
     }
     if (tablaAlumnos) tablaAlumnos.addEventListener('click', clickEnTabla);
@@ -1293,3 +1678,17 @@ function initSistemaLogic() {
         });
     }
 }
+
+// ==========================================================
+// CONFIGURACIÓN DE LA NAVEGACIÓN SUPERIOR (PREFECTURA)
+// ==========================================================
+const navItemsTop = document.querySelectorAll('.header-nav .nav-item');
+navItemsTop.forEach(item => {
+    item.addEventListener('click', (e) => {
+        e.preventDefault(); // Evita saltos en la página
+        const seccion = item.getAttribute('data-section');
+        if (seccion) {
+            loadSection(seccion);
+        }
+    });
+});

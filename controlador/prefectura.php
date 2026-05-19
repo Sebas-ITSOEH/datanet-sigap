@@ -116,6 +116,27 @@ try {
             'historial' => ModeloPrefectura::mdlObtenerExpedienteAlumno($matricula, $fecha_inicio, $fecha_fin, $materia)
         ];
     }
+    elseif ($accion === 'obtener_horario_docente' && $metodo === 'GET') {
+        $id_docente = $_GET['id_docente'] ?? null;
+        if (!$id_docente) throw new Exception('No se proporcionó el ID del docente.');
+        
+        $respuesta = [
+            'ok' => true, 
+            'horario' => ModeloPrefectura::mdlObtenerHorarioDocente($id_docente)
+        ];
+    }
+    elseif ($accion === 'obtener_riesgo_grupo' && $metodo === 'GET') {
+        $trimestre = isset($_GET['trimestre']) ? (int)$_GET['trimestre'] : 2;
+        $anio = isset($_GET['anio']) ? (int)$_GET['anio'] : 2025;
+        $grupo = $_GET['grupo'] ?? '';
+
+        if (!$grupo) throw new Exception('No se especificó el grupo.');
+
+        $respuesta = [
+            'ok' => true,
+            'alumnos' => ModeloPrefectura::mdlObtenerRiesgoPorGrupo($trimestre, $anio, $grupo)
+        ];
+    }
     // AQUÍ ESTÁ LA NUEVA ACCIÓN DE CERRAR SESIÓN
     elseif ($accion === 'logout' && $metodo === 'POST') {
         session_unset();

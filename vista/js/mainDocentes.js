@@ -22,10 +22,23 @@ window.onclick = function (event) {
 
 // Lógica para cargar las vistas dinámicas
 async function loadSection(sectionName) {
+    if (!sectionName) return;
+
+    // --- NUEVO: Actualizar visualmente el menú superior ---
+    document.querySelectorAll('.header-nav .nav-item').forEach(item => {
+        if (item.getAttribute('data-section') === sectionName) {
+            item.classList.add('active');
+        } else {
+            item.classList.remove('active');
+        }
+    });
+    // ------------------------------------------------------
+
     const viewContainer = document.getElementById('view-container');
 
     try {
         const response = await fetch(`docente/${sectionName}.html`);
+        // ... (Aquí sigue el resto de tu código normal) ...
 
         if (!response.ok) {
             throw new Error(`No se encontró el archivo: ../vista/docente${sectionName}.html`);
@@ -1844,6 +1857,20 @@ function resetearAsistencia() {
         setTimeout(() => toast.remove(), 300);
     }, 2500);
 }
+
+// ==========================================================
+// CONFIGURACIÓN DE LA NAVEGACIÓN SUPERIOR (PEGAR AQUÍ)
+// ==========================================================
+const navItems = document.querySelectorAll('.header-nav .nav-item');
+navItems.forEach(item => {
+    item.addEventListener('click', (e) => {
+        e.preventDefault(); // Evita saltos en la página
+        const seccion = item.getAttribute('data-section');
+        if (seccion) {
+            loadSection(seccion);
+        }
+    });
+});
 
 /**
  * Sobrescribe marcarAsistencia para incluir actualización de resumen

@@ -2,11 +2,12 @@
 <html lang="es">
 
 <head>
-     <head>
-    <title>Secundaria Lic. Benito Juárez - Inicio</title>
 
-   <link rel="icon" type="image/png" href="Imagenes/logoSQ.png">
-    
+    <head>
+        <title>Secundaria Lic. Benito Juárez - Inicio</title>
+
+        <link rel="icon" type="image/png" href="Imagenes/logoSQ.png">
+
     </head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -23,52 +24,51 @@
 
 <body>
 
-<header class="main-header">
-    <div class="header-container">
+    <header class="main-header">
+        <div class="header-container">
 
-        <div class="header-left">
-            <div style="display: flex; align-items: center; gap: 16px; cursor: pointer;"
-                onclick="window.location.href='indexDocente.html'">
-                
-                <div class="logo-container">
-                    <img src="./Imagenes/logoSQ.png" 
-                         alt="Logo" 
-                         style="height: 45px; width: auto; object-fit: contain; display: block;">
+            <div class="header-left">
+                <div style="display: flex; align-items: center; gap: 16px; cursor: pointer;"
+                    onclick="window.location.href='indexDocente.html'">
+
+                    <div class="logo-container">
+                        <img src="./Imagenes/logoSQ.png" alt="Logo"
+                            style="height: 45px; width: auto; object-fit: contain; display: block;">
+                    </div>
+
+                    <div class="header-titles">
+                        <h1>Esc. Sec. Gral. "Benito Juárez"</h1>
+                        <span class="sub-title">D.A.T.A.N.E.T.</span>
+                    </div>
                 </div>
+            </div>
 
-                 <div class="header-titles">
-                <h1>Esc. Sec. Gral. "Benito Juárez"</h1>
-                <span class="sub-title">D.A.T.A.N.E.T.</span>
+            <nav class="header-nav">
+                <button class="nav-item" data-section="misClases">
+                    <i class="fa-solid fa-users-rectangle"></i> <span>Mis Clases</span>
+                </button>
+                <button class="nav-item" data-section="lista">
+                    <i class="fa-solid fa-list-check"></i> <span>Pase de Lista</span>
+                </button>
+            </nav>
+
+            <div class="header-right">
+                <div class="user-profile">
+                    <div class="user-info">
+                        <span class="user-name" id="docente-nombre-header">Docente</span>
+                        <span class="user-role">Docente</span>
+                    </div>
+                    <div class="user-avatar-circle">
+                        <span id="docente-iniciales-header">DC</span>
+                    </div>
+                </div>
+                <button id="btn-logout" class="btn-icon" title="Cerrar Sesión" style="margin-left: 15px;">
+                    <i class="fa-solid fa-power-off"></i>
+                </button>
             </div>
-            </div>
+
         </div>
-
-        <nav class="header-nav">
-            <button class="nav-item" onclick="loadSection('misClases')">
-                <i class="fa-solid fa-users-rectangle"></i> <span>Mis Clases</span>
-            </button>
-            <button class="nav-item" onclick="loadSection('lista')">
-                <i class="fa-solid fa-list-check"></i> <span>Pase de Lista</span>
-            </button>
-        </nav>
-
-        <div class="header-right">
-            <div class="user-profile">
-                <div class="user-info">
-                    <span class="user-name" id="docente-nombre-header">Docente</span>
-                    <span class="user-role">Docente</span>
-                </div>
-                <div class="user-avatar-circle">
-                    <span id="docente-iniciales-header">DC</span>
-                </div>
-            </div>
-            <button id="btn-logout" class="btn-icon" title="Cerrar Sesión" style="margin-left: 15px;">
-                <i class="fa-solid fa-power-off"></i>
-            </button>
-        </div>
-
-    </div>
-</header>
+    </header>
 
     <main id="view-container">
         <div class="dashboard-container fade-in" style="padding: 2rem;">
@@ -141,59 +141,59 @@
         </div>
     </main>
 
- <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 
 
- <div class="container-principal" style="padding: 50px 0; min-height: 30vh;">
+    <div class="container-principal" style="padding: 50px 0; min-height: 30vh;">
     </div>
 
 
 
 
-<footer class="creative-footer">
-    <div class="footer-content">
-        <div class="footer-top">
-            <div class="footer-brand">
-                <h3>Diseño Avanzado de Telecomunicaciones y Arquitectura de Networking</h3>
-                <p>Desarrollada por estudiantes de ISIC del Tecnológico Nacional de México Campus ITSOEH</p>
-            </div>
-            
-            <div class="footer-contact">
-                <div class="contact-item">
-                    <i class="fas fa-user-tie contact-icon"></i>
-                    
-                        <strong>Director:</strong> 
+    <footer class="creative-footer">
+        <div class="footer-content">
+            <div class="footer-top">
+                <div class="footer-brand">
+                    <h3>Diseño Avanzado de Telecomunicaciones y Arquitectura de Networking</h3>
+                    <p>Desarrollada por estudiantes de ISIC del Tecnológico Nacional de México Campus ITSOEH</p>
+                </div>
+
+                <div class="footer-contact">
+                    <div class="contact-item">
+                        <i class="fas fa-user-tie contact-icon"></i>
+
+                        <strong>Director:</strong>
                         <span>Prof. Gustavo Eleazar Viveros Niño</span>
-                    
+
+                    </div>
+                    <div class="contact-item">
+                        <i class="fas fa-school contact-icon"></i>
+                        <span>Esc. Sec. Gral. "Benito Juárez"</span>
+                    </div>
+                    <div class="contact-item">
+                        <i class="fas fa-map-marker-alt contact-icon"></i>
+                        <span>Miguel Hidalgo 14, Educación, 42952 Tlaxcoapan, Hgo.</span>
+                    </div>
+                    <div class="contact-item">
+                        <i class="fas fa-phone-alt contact-icon"></i>
+                        <span>+52 778 737 0111</span>
+                    </div>
                 </div>
-                <div class="contact-item">
-                    <i class="fas fa-school contact-icon"></i>
-                    <span>Esc. Sec. Gral. "Benito Juárez"</span>
-                </div>
-                <div class="contact-item">
-                    <i class="fas fa-map-marker-alt contact-icon"></i>
-                    <span>Miguel Hidalgo 14, Educación, 42952 Tlaxcoapan, Hgo.</span>
-                </div>
-                <div class="contact-item">
-                    <i class="fas fa-phone-alt contact-icon"></i>
-                    <span>+52 778 737 0111</span>
+
+                <div class="footer-status">
+                    <span class="status-indicator">
+                        <span class="dot"></span> Sistema en línea
+                    </span>
                 </div>
             </div>
 
-            <div class="footer-status">
-                <span class="status-indicator">
-                    <span class="dot"></span> Sistema en línea
-                </span>
+            <hr class="footer-divider">
+
+            <div class="footer-bottom">
+                <p>&copy; 2026 Secundaria General "Lic. Benito Juárez". Todos los derechos reservados.</p>
             </div>
         </div>
-        
-        <hr class="footer-divider">
-        
-        <div class="footer-bottom">
-            <p>&copy; 2026 Secundaria General "Lic. Benito Juárez". Todos los derechos reservados.</p>
-        </div>
-    </div>
-</footer>
+    </footer>
 
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
@@ -201,4 +201,5 @@
 
     <script src="js/mainDocentes.js?v=9"></script>
 </body>
+
 </html>

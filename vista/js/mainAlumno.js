@@ -166,6 +166,16 @@ async function loadSection(sectionName) {
     if (estaCargando) return;
     estaCargando = true;
 
+    // --- NUEVO: Actualizar visualmente el menú superior ---
+    document.querySelectorAll('.nav-item').forEach(item => {
+        if (item.getAttribute('data-section') === sectionName) {
+            item.classList.add('active');
+        } else {
+            item.classList.remove('active');
+        }
+    });
+    // ------------------------------------------------------
+
     const viewContainer = document.getElementById('view-container');
 
     try {
@@ -519,13 +529,13 @@ async function escanearQrAlumno() {
 
     let stream = null;
     let isScanning = true;
-    
+
     try {
         if (status) status.textContent = 'Abriendo cámara para leer el QR...';
-        stream = await navigator.mediaDevices.getUserMedia({ 
-            video: { facingMode: 'environment' } 
+        stream = await navigator.mediaDevices.getUserMedia({
+            video: { facingMode: 'environment' }
         });
-        
+
         const video = document.createElement('video');
         video.srcObject = stream;
         video.setAttribute('playsinline', 'true');
@@ -537,14 +547,14 @@ async function escanearQrAlumno() {
         const ctx = canvas.getContext('2d');
         canvas.width = video.videoWidth || 320;
         canvas.height = video.videoHeight || 240;
-        
+
         const inicio = Date.now();
         const timeout = 30000; // 30 segundos de escaneo
 
         // Función de escaneo recursiva
         const scan = () => {
             if (!isScanning) return;
-            
+
             // Verificar timeout
             if (Date.now() - inicio > timeout) {
                 if (status) status.textContent = 'No se detectó un QR en 30 segundos. Intenta de nuevo o pega el token.';
@@ -557,11 +567,11 @@ async function escanearQrAlumno() {
                 canvas.width = video.videoWidth;
                 canvas.height = video.videoHeight;
                 ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-                
+
                 try {
                     const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
                     const code = jsQR(imageData.data, imageData.width, imageData.height);
-                    
+
                     if (code) {
                         const token = code.data.trim();
                         if (input) input.value = token;
@@ -573,13 +583,13 @@ async function escanearQrAlumno() {
                     console.warn('Error al procesar QR:', err);
                 }
             }
-            
+
             // Continuar escaneando
             requestAnimationFrame(scan);
         };
-        
+
         scan();
-        
+
     } catch (error) {
         if (status) status.textContent = `Error al acceder a la cámara: ${error.message}`;
         console.error('Error de cámara:', error);
@@ -619,7 +629,7 @@ async function detectarBeaconAlumno(idCurso) {
         console.log('✅ Beacon detectado por manufacturer data');
     } catch (error1) {
         console.warn('⚠️ No se encontró por manufacturer data:', error1.message);
-        
+
         try {
             // Intento 2: Escaneo más abierto - cualquier dispositivo BLE
             console.log('Intento 2: Escaneo abierto (cualquier dispositivo BLE)...');
@@ -2080,9 +2090,8 @@ document.addEventListener('DOMContentLoaded', () => {
     // Configurar navegación
     const navItems = document.querySelectorAll('.nav-item');
     navItems.forEach(item => {
-        item.addEventListener('click', () => {
-            navItems.forEach(i => i.classList.remove('active'));
-            item.classList.add('active');
+        item.addEventListener('click', (e) => {
+            e.preventDefault(); // Evita que la página salte hacia arriba
             loadSection(item.getAttribute('data-section'));
         });
     });

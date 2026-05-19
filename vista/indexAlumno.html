@@ -1,18 +1,22 @@
 <!DOCTYPE html>
 <html lang="es">
-<head>
-     <head>
-    <title>Secundaria Lic. Benito Juárez - Inicio</title>
 
-   <link rel="icon" type="image/png" href="Imagenes/logoSQ.png">
-    
+<head>
+
+    <head>
+        <title>Secundaria Lic. Benito Juárez - Inicio</title>
+
+        <link rel="icon" type="image/png" href="Imagenes/logoSQ.png">
+
     </head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>SIGAP - Portal Alumno</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Nunito:wght@600;700;800&display=swap" rel="stylesheet">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Nunito:wght@600;700;800&display=swap"
+        rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    
+
     <link rel="stylesheet" href="css/alumno/styleAlumno.css">
     <link rel="stylesheet" href="css/alumno/resumen.css">
     <link rel="stylesheet" href="css/alumno/historial.css">
@@ -20,116 +24,117 @@
     <link rel="stylesheet" href="css/alumno/materias.css">
     <link rel="stylesheet" href="css/alumno/justificantes.css">
 </head>
+
 <body>
 
     <header class="encabezado-principal alumno-header">
-    <nav class="contenedor-navegacion nav-alumno">
-        
-        <div class="logotipo" style="display: flex; align-items: center; gap: 12px;">
-            <img src="./Imagenes/logoSQ.png" 
-                 alt="Logo" 
-                 style="height: 45px; width: auto; object-fit: contain; display: block;">
-            
-            <div class="brand-text">
-                <span class="main-title">Sec. Gral. Benito Juárez</span>
-                <span class="sub-title">D.A.T.A.N.E.T.</span>
-            </div>
-        </div>
+        <nav class="contenedor-navegacion nav-alumno">
 
-        <ul class="menu-enlaces menu-alumno">
-            <li>
-                <a href="#" class="nav-item active" onclick="loadSection('materias')">
-                    <i class="fa-solid fa-book-bookmark"></i> Materias
-                </a>
-            </li>
-            <li>
-                <a href="#" class="nav-item" onclick="loadSection('historial')">
-                    <i class="fa-solid fa-clock-rotate-left"></i> Historial
-                </a>
-            </li>
-            <li>
-                <a href="#" class="nav-item" onclick="loadSection('justificantes')">
-                    <i class="fa-solid fa-file-signature"></i> Justificantes
-                </a>
-            </li>
-        </ul>
+            <div class="logotipo" style="display: flex; align-items: center; gap: 12px;">
+                <img src="./Imagenes/logoSQ.png" alt="Logo"
+                    style="height: 45px; width: auto; object-fit: contain; display: block;">
 
-        <div class="acciones-usuario-portal">
-
-            <div class="perfil-header user-profile" onclick="loadSection('perfil')" style="cursor: pointer;">
-                <div class="user-text">
-                    <span class="name" id="alumno-nombre-header">Alumno</span>
-                    <span class="role" id="alumno-rol-header">Alumno</span>
+                <div class="brand-text">
+                    <span class="main-title">Sec. Gral. Benito Juárez</span>
+                    <span class="sub-title">D.A.T.A.N.E.T.</span>
                 </div>
-                <img src="https://ui-avatars.com/api/?name=Alumno&background=C7A03D&color=fff" alt="Avatar" class="user-avatar" id="alumno-avatar-header">
             </div>
 
-            <button class="btn-icon btn-logout" title="Cerrar Sesión">
-                <i class="fa-solid fa-power-off"></i>
-            </button>
-        </div>
+            <ul class="menu-enlaces menu-alumno">
+                <li>
+                    <a href="#" class="nav-item" data-section="materias">
+                        <i class="fa-solid fa-book-bookmark"></i> Materias
+                    </a>
+                </li>
+                <li>
+                    <a href="#" class="nav-item" data-section="historial">
+                        <i class="fa-solid fa-clock-rotate-left"></i> Historial
+                    </a>
+                </li>
+                <li>
+                    <a href="#" class="nav-item" data-section="justificantes">
+                        <i class="fa-solid fa-file-signature"></i> Justificantes
+                    </a>
+                </li>
+            </ul>
 
-    </nav>
-</header>
+            <div class="acciones-usuario-portal">
+
+                <div class="perfil-header user-profile" onclick="loadSection('perfil')" style="cursor: pointer;">
+                    <div class="user-text">
+                        <span class="name" id="alumno-nombre-header">Alumno</span>
+                        <span class="role" id="alumno-rol-header">Alumno</span>
+                    </div>
+                    <img src="https://ui-avatars.com/api/?name=Alumno&background=C7A03D&color=fff" alt="Avatar"
+                        class="user-avatar" id="alumno-avatar-header">
+                </div>
+
+                <button class="btn-icon btn-logout" title="Cerrar Sesión">
+                    <i class="fa-solid fa-power-off"></i>
+                </button>
+            </div>
+
+        </nav>
+    </header>
 
     <main id="view-container">
-        </main>
+    </main>
 
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 
 
 
-<div class="container-principal" style="padding: 50px 0; min-height: 10vh;">
+    <div class="container-principal" style="padding: 50px 0; min-height: 10vh;">
     </div>
 
 
 
 
 
-<footer class="creative-footer">
-    <div class="footer-content">
-        <div class="footer-top">
-            <div class="footer-brand">
-                <h3>Diseño Avanzado de Telecomunicaciones y Arquitectura de Networking</h3>
-                <p>Desarrollada por estudiantes de ISIC del Tecnológico Nacional de México Campus ITSOEH</p>
-            </div>
-            
-            <div class="footer-contact">
-                <div class="contact-item">
-                    <i class="fas fa-user-tie contact-icon"></i>
-                    
-                        <strong>Director:</strong> 
+    <footer class="creative-footer">
+        <div class="footer-content">
+            <div class="footer-top">
+                <div class="footer-brand">
+                    <h3>Diseño Avanzado de Telecomunicaciones y Arquitectura de Networking</h3>
+                    <p>Desarrollada por estudiantes de ISIC del Tecnológico Nacional de México Campus ITSOEH</p>
+                </div>
+
+                <div class="footer-contact">
+                    <div class="contact-item">
+                        <i class="fas fa-user-tie contact-icon"></i>
+
+                        <strong>Director:</strong>
                         <span>Prof. Gustavo Eleazar Viveros Niño</span>
-                    
+
+                    </div>
+                    <div class="contact-item">
+                        <i class="fas fa-school contact-icon"></i>
+                        <span>Esc. Sec. Gral. "Benito Juárez"</span>
+                    </div>
+                    <div class="contact-item">
+                        <i class="fas fa-map-marker-alt contact-icon"></i>
+                        <span>Miguel Hidalgo 14, Educación, 42952 Tlaxcoapan, Hgo.</span>
+                    </div>
+                    <div class="contact-item">
+                        <i class="fas fa-phone-alt contact-icon"></i>
+                        <span>+52 778 737 0111</span>
+                    </div>
                 </div>
-                <div class="contact-item">
-                    <i class="fas fa-school contact-icon"></i>
-                    <span>Esc. Sec. Gral. "Benito Juárez"</span>
-                </div>
-                <div class="contact-item">
-                    <i class="fas fa-map-marker-alt contact-icon"></i>
-                    <span>Miguel Hidalgo 14, Educación, 42952 Tlaxcoapan, Hgo.</span>
-                </div>
-                <div class="contact-item">
-                    <i class="fas fa-phone-alt contact-icon"></i>
-                    <span>+52 778 737 0111</span>
+
+                <div class="footer-status">
+                    <span class="status-indicator">
+                        <span class="dot"></span> Sistema en línea
+                    </span>
                 </div>
             </div>
 
-            <div class="footer-status">
-                <span class="status-indicator">
-                    <span class="dot"></span> Sistema en línea
-                </span>
+            <hr class="footer-divider">
+
+            <div class="footer-bottom">
+                <p>&copy; 2026 Secundaria General "Lic. Benito Juárez". Todos los derechos reservados.</p>
             </div>
         </div>
-        
-        <hr class="footer-divider">
-        
-        <div class="footer-bottom">
-            <p>&copy; 2026 Secundaria General "Lic. Benito Juárez". Todos los derechos reservados.</p>
-        </div>
-    </div>
-</footer>
+    </footer>
 
     <div class="modal-logout-overlay hidden" id="modal-logout">
         <div class="modal-logout-content fade-in">
@@ -154,4 +159,5 @@
     <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.min.js"></script>
     <script src="js/mainAlumno.js"></script>
 </body>
+
 </html>
