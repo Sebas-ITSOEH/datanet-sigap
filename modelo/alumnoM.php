@@ -1229,61 +1229,37 @@ public function materiasPorDia(array $usuario, $fecha)
         ];
     }
 
+    /**
+     * Este método ya no crea ni modifica tablas.
+     *
+     * Las tablas auxiliares (solicitudes_inscripcion, qr_tokens y padre_hijo)
+     * deben existir previamente en la base de datos mediante el script SQL de instalación.
+     *
+     * Se conserva únicamente como validación opcional para detectar si falta alguna
+     * tabla y lanzar un error claro al iniciar la aplicación.
+     */
     private function asegurarTablasAuxiliares()
     {
-        $this->db->exec(
-            'CREATE TABLE IF NOT EXISTS solicitudes_inscripcion (
-                id_solicitud INT AUTO_INCREMENT PRIMARY KEY,
-                id_curso INT NOT NULL,
-                id_alumno INT NOT NULL,
-                estado ENUM("pendiente","aceptada","rechazada") DEFAULT "pendiente",
-                fecha_solicitud TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                FOREIGN KEY (id_curso) REFERENCES cursos(id_curso) ON DELETE CASCADE,
-                FOREIGN KEY (id_alumno) REFERENCES usuarios(id_usuario) ON DELETE CASCADE,
-                UNIQUE KEY uq_solicitud_curso_alumno (id_curso, id_alumno, estado)
-            )'
-        );
+        $tablasRequeridas = [
+            'solicitudes_inscripcion',
+            'qr_tokens',
+        ];
 
-        // Agregar columna pin_tutor si no existe
-        try {
-            $this->db->exec(
-                'ALTER TABLE usuarios ADD COLUMN pin_tutor VARCHAR(255) NULL AFTER password'
+        foreach ($tablasRequeridas as $tabla) {
+            $stmt = $this->db->prepare(
+                'SELECT COUNT(*)
+             FROM information_schema.tables
+             WHERE table_schema = DATABASE()
+               AND table_name = :tabla'
             );
-        } catch (Throwable $e) {
-            // La columna ya existe
-        }
+            $stmt->execute([':tabla' => $tabla]);
 
-        // Crear tabla padre_hijo si no existe
-        $this->db->exec(
-            'CREATE TABLE IF NOT EXISTS padre_hijo (
-                id_padre INT NOT NULL,
-                id_hijo INT NOT NULL,
-                PRIMARY KEY (id_padre, id_hijo),
-                FOREIGN KEY (id_padre) REFERENCES usuarios(id_usuario) ON DELETE CASCADE,
-                FOREIGN KEY (id_hijo) REFERENCES usuarios(id_usuario) ON DELETE CASCADE
-            )'
-        );
-
-        $this->db->exec(
-            'CREATE TABLE IF NOT EXISTS qr_tokens (
-                id_qr_token INT AUTO_INCREMENT PRIMARY KEY,
-                token VARCHAR(64) NOT NULL UNIQUE,
-                id_sesion INT NOT NULL,
-                fecha_generacion TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-                fecha_expiracion TIMESTAMP NOT NULL,
-                activo BOOLEAN NOT NULL DEFAULT TRUE,
-                usado BOOLEAN NOT NULL DEFAULT FALSE,
-                FOREIGN KEY (id_sesion) REFERENCES sesiones(id_sesion) ON DELETE CASCADE,
-                INDEX idx_qr_token_token (token),
-                INDEX idx_qr_token_sesion (id_sesion),
-                INDEX idx_qr_token_expiracion (fecha_expiracion)
-            )'
-        );
-
-        try {
-            $this->db->exec('DROP TRIGGER IF EXISTS tr_qr_tokens_desactivar_expirados');
-        } catch (Throwable $e) {
-            // El procedimiento sp_generar_qr_token ya desactiva los tokens anteriores.
+            if ((int) $stmt->fetchColumn() === 0) {
+                throw new RuntimeException(
+                    "La tabla requerida '{$tabla}' no existe en la base de datos. " .
+                        "Ejecuta el script database_limpio.sql para crear la estructura completa."
+                );
+            }
         }
     }
 
