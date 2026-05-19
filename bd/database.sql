@@ -1,6 +1,25 @@
+-- ==========================================================
+-- SCRIPT MAESTRO - DATANET
+-- Estructura:
+--   1. Base de datos y usuario de aplicación
+--   2. Tablas
+--   3. Procedimientos almacenados
+--   4. Vistas
+--   5. Datos de ejemplo
+-- ==========================================================
+
 DROP DATABASE IF EXISTS datanet;
 CREATE DATABASE IF NOT EXISTS datanet;
 USE datanet;
+
+-- =========================================
+-- 🔐 USUARIO DE APLICACIÓN
+-- =========================================
+DROP USER IF EXISTS 'datanet_app'@'localhost';
+CREATE USER 'datanet_app'@'localhost' IDENTIFIED BY 'DatanetApp2026!';
+GRANT SELECT, INSERT, UPDATE, DELETE, EXECUTE ON datanet.* TO 'datanet_app'@'localhost';
+FLUSH PRIVILEGES;
+
 
 -- =========================================
 -- 👤 USUARIOS (SOLO 3 ROLES)
@@ -172,13 +191,210 @@ CREATE TABLE IF NOT EXISTS solicitudes_inscripcion (
     UNIQUE KEY uq_solicitud_curso_alumno (id_curso, id_alumno, estado)
 );
 
+-- ==========================================================
+-- 🔐 MÓDULO DE TOKENS QR DINÁMICOS
+-- Agregar este bloque al final de tu script actual.
+-- No rompe ninguna funcionalidad existente.
+-- ==========================================================
+
+-- 📌 TABLA DE TOKENS QR
+CREATE TABLE IF NOT EXISTS qr_tokens (
+    id_qr_token INT AUTO_INCREMENT PRIMARY KEY,
+    token VARCHAR(64) NOT NULL UNIQUE,
+    id_sesion INT NOT NULL,
+    fecha_generacion TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    fecha_expiracion TIMESTAMP NOT NULL,
+    activo BOOLEAN NOT NULL DEFAULT TRUE,
+    usado BOOLEAN NOT NULL DEFAULT FALSE,
+
+    FOREIGN KEY (id_sesion)
+        REFERENCES sesiones(id_sesion)
+        ON DELETE CASCADE,
+
+    INDEX idx_qr_token_token (token),
+    INDEX idx_qr_token_sesion (id_sesion),
+    INDEX idx_qr_token_expiracion (fecha_expiracion)
+);
+
+-- ==========================================================
+-- 🧹 TOKENS EXPIRADOS
+-- No se usa trigger sobre qr_tokens porque MySQL no permite
+-- modificar la misma tabla desde su propio trigger.
+-- sp_generar_qr_token desactiva tokens anteriores y
+-- sp_limpiar_qr_tokens_expirados elimina caducados.
+-- ==========================================================
+
+DROP TRIGGER IF EXISTS tr_qr_tokens_desactivar_expirados;
+
+-- ==========================================================
+-- ⚙️ PROCEDIMIENTO: GENERAR TOKEN QR
+-- Genera un token aleatorio con vigencia configurable.
+-- ==========================================================
+
+DELIMITER $$
+
+CREATE PROCEDURE sp_generar_qr_token(
+    IN p_id_sesion INT,
+    IN p_segundos_vigencia INT
+)
+BEGIN
+    DECLARE v_token VARCHAR(64);
+
+    -- Token aleatorio usando SHA2
+    SET v_token = SHA2(
+        CONCAT(
+            UUID(),
+            p_id_sesion,
+            NOW(),
+            RAND()
+        ),
+        256
+    );
+
+    -- Desactivar tokens activos anteriores de la misma sesión
+    UPDATE qr_tokens
+    SET activo = FALSE
+    WHERE id_sesion = p_id_sesion
+      AND activo = TRUE;
+
+    -- Insertar nuevo token
+    INSERT INTO qr_tokens (
+        token,
+        id_sesion,
+        fecha_expiracion
+    )
+    VALUES (
+        v_token,
+        p_id_sesion,
+        DATE_ADD(NOW(), INTERVAL p_segundos_vigencia SECOND)
+    );
+
+    -- Devolver token generado
+    SELECT
+        token,
+        id_sesion,
+        fecha_generacion,
+        fecha_expiracion
+    FROM qr_tokens
+    WHERE id_qr_token = LAST_INSERT_ID();
+END$$
+
+DELIMITER ;
+
+-- ==========================================================
+-- ✅ PROCEDIMIENTO: VALIDAR TOKEN QR
+-- Verifica existencia, vigencia y estado.
+-- ==========================================================
+
+DELIMITER $$
+
+CREATE PROCEDURE sp_validar_qr_token(
+    IN p_token VARCHAR(64)
+)
+BEGIN
+    SELECT
+        qt.id_qr_token,
+        qt.id_sesion,
+        qt.token,
+        qt.activo,
+        qt.usado,
+        qt.fecha_generacion,
+        qt.fecha_expiracion,
+        CASE
+            WHEN qt.activo = TRUE
+             AND qt.usado = FALSE
+             AND qt.fecha_expiracion >= NOW()
+            THEN TRUE
+            ELSE FALSE
+        END AS token_valido
+    FROM qr_tokens qt
+    WHERE qt.token = p_token
+    LIMIT 1;
+END$$
+
+DELIMITER ;
+
+-- ==========================================================
+-- ♻️ PROCEDIMIENTO: MARCAR TOKEN COMO USADO
+-- Opcional. Úsalo si quieres un solo uso por token.
+-- ==========================================================
+
+DELIMITER $$
+
+CREATE PROCEDURE sp_marcar_qr_token_usado(
+    IN p_token VARCHAR(64)
+)
+BEGIN
+    UPDATE qr_tokens
+    SET usado = TRUE,
+        activo = FALSE
+    WHERE token = p_token;
+END$$
+
+DELIMITER ;
+
+-- ==========================================================
+-- 🧹 PROCEDIMIENTO: LIMPIAR TOKENS CADUCADOS
+-- Recomendado ejecutar periódicamente.
+-- ==========================================================
+
+DELIMITER $$
+
+CREATE PROCEDURE sp_limpiar_qr_tokens_expirados()
+BEGIN
+    DELETE FROM qr_tokens
+    WHERE fecha_expiracion < DATE_SUB(NOW(), INTERVAL 1 DAY);
+END$$
+
+DELIMITER ;
+
+-- ==========================================================
+-- 👁️ VISTA: TOKEN ACTIVO POR SESIÓN
+-- ==========================================================
+
+CREATE OR REPLACE VIEW vw_qr_token_activo AS
+SELECT
+    qt.id_qr_token,
+    qt.token,
+    qt.id_sesion,
+    qt.fecha_generacion,
+    qt.fecha_expiracion,
+    s.id_curso,
+    s.fecha,
+    s.hora_inicio,
+    s.hora_fin
+FROM qr_tokens qt
+INNER JOIN sesiones s
+    ON qt.id_sesion = s.id_sesion
+WHERE qt.activo = TRUE
+  AND qt.fecha_expiracion >= NOW();
+
+-- ==========================================================
+-- 📝 EJEMPLO DE USO
+-- ==========================================================
+
+-- Generar un token con vigencia de 30 segundos:
+-- CALL sp_generar_qr_token(1, 30);
+
+-- Validar un token:
+-- CALL sp_validar_qr_token('TOKEN_AQUI');
+
+-- Marcar token como usado (opcional):
+-- CALL sp_marcar_qr_token_usado('TOKEN_AQUI');
+
+-- Limpiar tokens expirados:
+-- CALL sp_limpiar_qr_tokens_expirados();
+
+-- Ver token activo:
+-- SELECT * FROM vw_qr_token_activo;
+
 -- =========================================
 -- 📥 DATOS DE EJEMPLO (SHA2)
 -- =========================================
 
 -- 👤 ADMIN (PREFECTO) - ID 1
 INSERT INTO usuarios (nombre, apellido, correo, password, rol, curp, clave_docente, nss, rfc, estado) VALUES
-('Director', 'Sistema', 'admin@secgralbj.edu.mx', SHA2('admin123', 256), 'admin', 
+('Administrador', 'Prefectura', 'prefectura@secgralbj.edu.mx', SHA2('Prefectura2024!', 256), 'admin', 
  'DISA800101HDFRZN01', 'DSMX', '12345678901', 'DISA800101HDF', TRUE);
 
 -- 👩‍🏫 DOCENTES - IDs 2 al 6
@@ -618,7 +834,7 @@ WHERE u.rol = 'alumno';
 
 -- ===========================================================
 
--- Actualizar el ENUM para que acepte nuestra nueva etiqueta (sin romper nada)
+-- Actualizar ENUM para incluir falta_retardo
 ALTER TABLE asistencias MODIFY COLUMN estado_final ENUM('presente','falta','retardo','dudoso','falta_retardo') DEFAULT 'falta';
 
 -- 1. Creamos las 5 sesiones de la semana para Educación Física (id_curso = 9)
@@ -647,338 +863,5 @@ ON DUPLICATE KEY UPDATE
     estado_final = VALUES(estado_final),
     validado_docente = TRUE;
 
--- Borrar las asistencias ligadas a esas 5 sesiones de prueba
-DELETE FROM asistencias 
-WHERE id_sesion IN (
-    SELECT id_sesion FROM sesiones 
-    WHERE codigo_actual IN ('EDF-20260504', 'EDF-20260505', 'EDF-20260506', 'EDF-20260507', 'EDF-20260508')
-);
-
--- Borrar las sesiones del 4, 5, 6, 7 y 8 de mayo de Educación Física
-DELETE FROM sesiones 
-WHERE codigo_actual IN ('EDF-20260504', 'EDF-20260505', 'EDF-20260506', 'EDF-20260507', 'EDF-20260508');
-
 -- ===========================================================
 
--- ==========================================================
--- 🔐 MÓDULO DE TOKENS QR DINÁMICOS
--- Agregar este bloque al final de tu script actual.
--- No rompe ninguna funcionalidad existente.
--- ==========================================================
-
--- 📌 TABLA DE TOKENS QR
-CREATE TABLE IF NOT EXISTS qr_tokens (
-    id_qr_token INT AUTO_INCREMENT PRIMARY KEY,
-    token VARCHAR(64) NOT NULL UNIQUE,
-    id_sesion INT NOT NULL,
-    fecha_generacion TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    fecha_expiracion TIMESTAMP NOT NULL,
-    activo BOOLEAN NOT NULL DEFAULT TRUE,
-    usado BOOLEAN NOT NULL DEFAULT FALSE,
-
-    FOREIGN KEY (id_sesion)
-        REFERENCES sesiones(id_sesion)
-        ON DELETE CASCADE,
-
-    INDEX idx_qr_token_token (token),
-    INDEX idx_qr_token_sesion (id_sesion),
-    INDEX idx_qr_token_expiracion (fecha_expiracion)
-);
-
--- ==========================================================
--- 🧹 TOKENS EXPIRADOS
--- No se usa trigger sobre qr_tokens porque MySQL no permite
--- modificar la misma tabla desde su propio trigger.
--- sp_generar_qr_token desactiva tokens anteriores y
--- sp_limpiar_qr_tokens_expirados elimina caducados.
--- ==========================================================
-
-DROP TRIGGER IF EXISTS tr_qr_tokens_desactivar_expirados;
-
--- ==========================================================
--- ⚙️ PROCEDIMIENTO: GENERAR TOKEN QR
--- Genera un token aleatorio con vigencia configurable.
--- ==========================================================
-
-DELIMITER $$
-
-CREATE PROCEDURE sp_generar_qr_token(
-    IN p_id_sesion INT,
-    IN p_segundos_vigencia INT
-)
-BEGIN
-    DECLARE v_token VARCHAR(64);
-
-    -- Token aleatorio usando SHA2
-    SET v_token = SHA2(
-        CONCAT(
-            UUID(),
-            p_id_sesion,
-            NOW(),
-            RAND()
-        ),
-        256
-    );
-
-    -- Desactivar tokens activos anteriores de la misma sesión
-    UPDATE qr_tokens
-    SET activo = FALSE
-    WHERE id_sesion = p_id_sesion
-      AND activo = TRUE;
-
-    -- Insertar nuevo token
-    INSERT INTO qr_tokens (
-        token,
-        id_sesion,
-        fecha_expiracion
-    )
-    VALUES (
-        v_token,
-        p_id_sesion,
-        DATE_ADD(NOW(), INTERVAL p_segundos_vigencia SECOND)
-    );
-
-    -- Devolver token generado
-    SELECT
-        token,
-        id_sesion,
-        fecha_generacion,
-        fecha_expiracion
-    FROM qr_tokens
-    WHERE id_qr_token = LAST_INSERT_ID();
-END$$
-
-DELIMITER ;
-
--- ==========================================================
--- ✅ PROCEDIMIENTO: VALIDAR TOKEN QR
--- Verifica existencia, vigencia y estado.
--- ==========================================================
-
-DELIMITER $$
-
-CREATE PROCEDURE sp_validar_qr_token(
-    IN p_token VARCHAR(64)
-)
-BEGIN
-    SELECT
-        qt.id_qr_token,
-        qt.id_sesion,
-        qt.token,
-        qt.activo,
-        qt.usado,
-        qt.fecha_generacion,
-        qt.fecha_expiracion,
-        CASE
-            WHEN qt.activo = TRUE
-             AND qt.usado = FALSE
-             AND qt.fecha_expiracion >= NOW()
-            THEN TRUE
-            ELSE FALSE
-        END AS token_valido
-    FROM qr_tokens qt
-    WHERE qt.token = p_token
-    LIMIT 1;
-END$$
-
-DELIMITER ;
-
--- ==========================================================
--- ♻️ PROCEDIMIENTO: MARCAR TOKEN COMO USADO
--- Opcional. Úsalo si quieres un solo uso por token.
--- ==========================================================
-
-DELIMITER $$
-
-CREATE PROCEDURE sp_marcar_qr_token_usado(
-    IN p_token VARCHAR(64)
-)
-BEGIN
-    UPDATE qr_tokens
-    SET usado = TRUE,
-        activo = FALSE
-    WHERE token = p_token;
-END$$
-
-DELIMITER ;
-
--- ==========================================================
--- 🧹 PROCEDIMIENTO: LIMPIAR TOKENS CADUCADOS
--- Recomendado ejecutar periódicamente.
--- ==========================================================
-
-DELIMITER $$
-
-CREATE PROCEDURE sp_limpiar_qr_tokens_expirados()
-BEGIN
-    DELETE FROM qr_tokens
-    WHERE fecha_expiracion < DATE_SUB(NOW(), INTERVAL 1 DAY);
-END$$
-
-DELIMITER ;
-
--- ==========================================================
--- 👁️ VISTA: TOKEN ACTIVO POR SESIÓN
--- ==========================================================
-
-CREATE OR REPLACE VIEW vw_qr_token_activo AS
-SELECT
-    qt.id_qr_token,
-    qt.token,
-    qt.id_sesion,
-    qt.fecha_generacion,
-    qt.fecha_expiracion,
-    s.id_curso,
-    s.fecha,
-    s.hora_inicio,
-    s.hora_fin
-FROM qr_tokens qt
-INNER JOIN sesiones s
-    ON qt.id_sesion = s.id_sesion
-WHERE qt.activo = TRUE
-  AND qt.fecha_expiracion >= NOW();
-
--- ==========================================================
--- 📝 EJEMPLO DE USO
--- ==========================================================
-
--- Generar un token con vigencia de 30 segundos:
--- CALL sp_generar_qr_token(1, 30);
-
--- Validar un token:
--- CALL sp_validar_qr_token('TOKEN_AQUI');
-
--- Marcar token como usado (opcional):
--- CALL sp_marcar_qr_token_usado('TOKEN_AQUI');
-
--- Limpiar tokens expirados:
--- CALL sp_limpiar_qr_tokens_expirados();
-
--- Ver token activo:
--- SELECT * FROM vw_qr_token_activo;
-
-
-
--- ===========================================================
--- REGISTROS DE ASISTENCIA DE PRUEBA
--- Ajustados para que al menos un alumno tenga 3 retardos
--- en una misma semana y clase.
--- ===========================================================
-
--- Actualizar el ENUM para aceptar falta_retardo
-ALTER TABLE asistencias
-MODIFY COLUMN estado_final ENUM(
-    'presente',
-    'falta',
-    'retardo',
-    'dudoso',
-    'falta_retardo'
-) DEFAULT 'falta';
-
--- ===========================================================
--- 1. SESIONES DE PRUEBA (SEMANA DEL 4 AL 8 DE MAYO DE 2026)
--- Curso: Educación Física (id_curso = 9)
--- Docente: Ana María Rodríguez
--- ===========================================================
-INSERT IGNORE INTO sesiones (
-    id_curso,
-    fecha,
-    hora_inicio,
-    hora_fin,
-    codigo_actual
-) VALUES
-(9, '2026-05-04', '14:00:00', '15:00:00', 'EDF-20260504'),
-(9, '2026-05-05', '14:00:00', '15:00:00', 'EDF-20260505'),
-(9, '2026-05-06', '14:00:00', '15:00:00', 'EDF-20260506'),
-(9, '2026-05-07', '14:00:00', '15:00:00', 'EDF-20260507'),
-(9, '2026-05-08', '14:00:00', '15:00:00', 'EDF-20260508');
-
--- Obtener IDs de sesiones
-SET @sesion_4 = (SELECT id_sesion FROM sesiones WHERE codigo_actual = 'EDF-20260504');
-SET @sesion_5 = (SELECT id_sesion FROM sesiones WHERE codigo_actual = 'EDF-20260505');
-SET @sesion_6 = (SELECT id_sesion FROM sesiones WHERE codigo_actual = 'EDF-20260506');
-SET @sesion_7 = (SELECT id_sesion FROM sesiones WHERE codigo_actual = 'EDF-20260507');
-SET @sesion_8 = (SELECT id_sesion FROM sesiones WHERE codigo_actual = 'EDF-20260508');
-
--- ===========================================================
--- 2. REGISTROS DE ASISTENCIA
--- Alumno Juan Carlos Hernández López (id_usuario = 7)
--- Tiene 3 retardos durante la semana.
--- ===========================================================
-INSERT INTO asistencias (
-    id_sesion,
-    id_usuario,
-    qr_valido,
-    bluetooth_valido,
-    validado_docente,
-    estado_final
-) VALUES
--- Lunes -> Retardo 1
-(@sesion_4, 7, TRUE, TRUE, TRUE, 'retardo'),
-
--- Martes -> Retardo 2
-(@sesion_5, 7, TRUE, TRUE, TRUE, 'retardo'),
-
--- Miércoles -> Retardo 3
-(@sesion_6, 7, TRUE, TRUE, TRUE, 'retardo'),
-
--- Jueves -> Se convierte en falta por acumulación
-(@sesion_7, 7, TRUE, TRUE, TRUE, 'falta_retardo'),
-
--- Viernes -> Asistencia normal
-(@sesion_8, 7, TRUE, TRUE, TRUE, 'presente')
-
-ON DUPLICATE KEY UPDATE
-    qr_valido = VALUES(qr_valido),
-    bluetooth_valido = VALUES(bluetooth_valido),
-    validado_docente = VALUES(validado_docente),
-    estado_final = VALUES(estado_final);
-
--- ===========================================================
--- 3. REGISTROS NORMALES DE OTROS ALUMNOS
--- ===========================================================
-INSERT INTO asistencias (
-    id_sesion,
-    id_usuario,
-    qr_valido,
-    bluetooth_valido,
-    validado_docente,
-    estado_final
-) VALUES
-(@sesion_4, 8, TRUE, TRUE, TRUE, 'presente'),
-(@sesion_5, 8, TRUE, TRUE, TRUE, 'presente'),
-(@sesion_6, 8, TRUE, TRUE, TRUE, 'presente'),
-(@sesion_7, 8, TRUE, TRUE, TRUE, 'presente'),
-(@sesion_8, 8, TRUE, TRUE, TRUE, 'presente'),
-
-(@sesion_4, 9, TRUE, TRUE, TRUE, 'presente'),
-(@sesion_5, 9, TRUE, TRUE, TRUE, 'presente'),
-(@sesion_6, 9, TRUE, TRUE, TRUE, 'presente'),
-(@sesion_7, 9, TRUE, TRUE, TRUE, 'presente'),
-(@sesion_8, 9, TRUE, TRUE, TRUE, 'presente')
-
-ON DUPLICATE KEY UPDATE
-    qr_valido = VALUES(qr_valido),
-    bluetooth_valido = VALUES(bluetooth_valido),
-    validado_docente = VALUES(validado_docente),
-    estado_final = VALUES(estado_final);
-
--- ===========================================================
--- CONSULTA DE VERIFICACIÓN
--- ===========================================================
-SELECT
-    CONCAT(u.nombre, ' ', u.apellido) AS alumno,
-    s.fecha,
-    a.estado_final
-FROM asistencias a
-INNER JOIN usuarios u ON a.id_usuario = u.id_usuario
-INNER JOIN sesiones s ON a.id_sesion = s.id_sesion
-WHERE a.id_usuario = 7
-  AND s.id_sesion IN (
-        @sesion_4,
-        @sesion_5,
-        @sesion_6,
-        @sesion_7,
-        @sesion_8
-    )
-ORDER BY s.fecha;

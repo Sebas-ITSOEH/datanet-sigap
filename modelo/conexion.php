@@ -4,8 +4,8 @@ class Conexion
 {
     private const HOST = 'localhost';
     private const DB_NAME = 'datanet';
-    private const USER = '';
-    private const PASSWORD = '';
+    private const USER = 'datanet_app';
+    private const PASSWORD = 'DatanetApp2026!';
     private const CHARSET = 'utf8mb4';
 
     private static $conexion = null;
