@@ -45,6 +45,33 @@ function prefecturaUrlArchivo(url) {
 // ===================================
 
 document.addEventListener('DOMContentLoaded', function () {
+
+    async function cargarDatosHeader() {
+        try {
+            const data = await apiPrefectura('obtener_prefecto');
+            if (data && data.prefecto) {
+                const prefecto = data.prefecto;
+                const nombreCompleto = `${prefecto.nombre} ${prefecto.apellido}`;
+
+                const elNombreTop = document.getElementById('top-user-name');
+                const elRolTop = document.getElementById('top-user-role');
+                const elAvatarTop = document.getElementById('top-user-avatar');
+
+                if (elNombreTop) elNombreTop.textContent = nombreCompleto;
+                if (elRolTop) elRolTop.textContent = prefecto.rol || 'Administrador';
+
+                if (elAvatarTop) {
+                    elAvatarTop.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(nombreCompleto)}&background=D6A848&color=192A56&bold=true`;
+                }
+            }
+        } catch (error) {
+            console.error("Error al cargar usuario del header:", error);
+        }
+    }
+
+    cargarDatosHeader(); // Se ejecuta de inmediato al abrir la página
+    // -------------------------------------------------------------
+
     const navItems = document.querySelectorAll('.nav-item');
     const viewContainer = document.getElementById('view-container');
 
@@ -212,6 +239,34 @@ function initBienvenidaLogic() {
 // ==========================================
 function initControlLogic() {
     console.log('✔ Panel de Control inicializado');
+
+    async function cargarDatosSidebar() {
+        try {
+            const data = await apiPrefectura('obtener_prefecto');
+            if (data && data.prefecto) {
+                const prefecto = data.prefecto;
+                const nombreCompleto = `${prefecto.nombre} ${prefecto.apellido}`;
+
+                const elNombre = document.getElementById('sidebar-user-name');
+                const elRol = document.getElementById('sidebar-user-role');
+                const elAvatar = document.getElementById('sidebar-user-avatar');
+
+                if (elNombre) elNombre.textContent = nombreCompleto;
+                if (elRol) elRol.textContent = prefecto.rol || 'Administrador';
+
+                // Actualizamos también el avatar dinámico con las iniciales del usuario
+                if (elAvatar) {
+                    elAvatar.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(nombreCompleto)}&background=D6A848&color=192A56&size=32`;
+                }
+            }
+        } catch (error) {
+            console.error("Error al cargar usuario del sidebar:", error);
+        }
+    }
+
+    // Ejecutamos la función inmediatamente al cargar la vista
+    cargarDatosSidebar();
+    // -------------------------------------------------------------
 
     var subNavItems = document.querySelectorAll('.sub-nav-item');
     var sections = document.querySelectorAll('.control-view');
@@ -1366,6 +1421,231 @@ function initPersonalLogic() {
     var tablaDocentes = document.getElementById('tabla-docentes');
     var isRiesgoFilter = false; // Variable para saber si estamos viendo solo riesgos
 
+    // --- NUEVO CÓDIGO: Cargar grupos dinámicamente y Gestionarlos ---
+    async function cargarGruposSidebar() {
+        try {
+            const data = await apiPrefectura('listar_grupos');
+            const listaGrupos = document.getElementById('filtro-grupos');
+
+            if (listaGrupos && data && data.grupos) {
+                // Guardamos el botón de "Todos los grupos" (el primero)
+                const todosLi = listaGrupos.firstElementChild.outerHTML;
+
+                // --- NUEVA LÓGICA DE ORDENAMIENTO ---
+                // Normalizamos los símbolos (º y °) en el aire para que JS los ordene perfectamente
+                const gruposOrdenados = data.grupos.sort((a, b) => {
+                    const nombreA = a.nombre.replace(/º/g, '°').toLowerCase().trim();
+                    const nombreB = b.nombre.replace(/º/g, '°').toLowerCase().trim();
+                    return nombreA.localeCompare(nombreB);
+                });
+
+                // Generamos los botones <li> usando el arreglo ya ordenado
+                const gruposHTML = gruposOrdenados.map(g => {
+                    const grupoLimpio = prefecturaEscapeHTML(g.nombre);
+                    const idGrupo = g.id_grupo;
+                    return `
+                    <li style="display: flex; align-items: center; justify-content: space-between; padding-right: 5px;">
+                        <a href="#" data-group="${prefecturaEscapeAttr(g.nombre)}" class="filter-link" style="flex: 1;">Grupo ${grupoLimpio}</a>
+                        <button class="btn-eliminar-grupo" data-id="${idGrupo}" data-nombre="${grupoLimpio}" title="Eliminar Grupo" style="background: none; border: none; color: #EF4444; cursor: pointer; padding: 5px; opacity: 0.7; transition: 0.2s;">
+                            <i class="fa-solid fa-trash-can"></i>
+                        </button>
+                    </li>`;
+                }).join('');
+
+                // Botón para crear un nuevo grupo
+                const btnAgregarHTML = `
+                    <li style="margin-top: 15px; padding: 0 10px;">
+                        <button id="btn-agregar-grupo" style="background: #D6A848; color: #192A56; border: none; padding: 8px; border-radius: 6px; cursor: pointer; font-size: 0.8rem; font-weight: 700; width: 100%; transition: all 0.2s;">
+                            <i class="fa-solid fa-plus"></i> Nuevo Grupo
+                        </button>
+                    </li>
+                `;
+
+                // Insertamos todo en el UL
+                listaGrupos.innerHTML = todosLi + gruposHTML + btnAgregarHTML;
+
+                // Asignamos los eventos
+                asignarEventosFiltrosGrupos();
+                asignarEventosGestionGrupos();
+            }
+        } catch (error) {
+            console.error("Error al cargar grupos en el sidebar:", error);
+        }
+    }
+
+    // --- FUNCIÓN PARA AGREGAR Y ELIMINAR GRUPOS ---
+    function asignarEventosGestionGrupos() {
+        // Evento: Crear Grupo
+        const btnAgregar = document.getElementById('btn-agregar-grupo');
+        if (btnAgregar) {
+            btnAgregar.addEventListener('click', async function (e) {
+                e.preventDefault();
+                const { value: nombreGrupo } = await Swal.fire({
+                    title: 'Crear Nuevo Grupo',
+                    input: 'text',
+                    inputLabel: 'Nombre del grupo (Ej. 1º C)',
+                    inputPlaceholder: 'Escribe el nombre...',
+                    showCancelButton: true,
+                    confirmButtonText: 'Crear Grupo',
+                    cancelButtonText: 'Cancelar',
+                    confirmButtonColor: '#192A56',
+                    cancelButtonColor: '#64748B',
+                    customClass: { popup: 'swal-solicitud-popup' },
+                    inputValidator: (value) => {
+                        if (!value) return 'El nombre no puede estar vacío';
+                    }
+                });
+
+                if (nombreGrupo) {
+                    try {
+                        await apiPrefectura('crear_grupo', { method: 'POST', body: { nombre: nombreGrupo } });
+                        Swal.fire({ title: '¡Creado!', text: 'El grupo fue añadido exitosamente.', icon: 'success', confirmButtonColor: '#192A56', timer: 1500 });
+                        cargarGruposSidebar(); // Refrescar la lista
+                        cargarFiltrosExportacion(); // Refrescar filtros en Exportar
+                    } catch (error) {
+                        Swal.fire({ title: 'Error', text: error.message, icon: 'error', confirmButtonColor: '#192A56' });
+                    }
+                }
+            });
+        }
+
+        // Eventos: Eliminar Grupo
+        const btnsEliminar = document.querySelectorAll('.btn-eliminar-grupo');
+        btnsEliminar.forEach(btn => {
+            // Efecto hover sutil
+            btn.addEventListener('mouseenter', function () { this.style.opacity = '1'; this.style.transform = 'scale(1.1)'; });
+            btn.addEventListener('mouseleave', function () { this.style.opacity = '0.7'; this.style.transform = 'scale(1)'; });
+
+            btn.addEventListener('click', function (e) {
+                e.stopPropagation(); // Evita que se seleccione el filtro del grupo
+                const idGrupo = this.getAttribute('data-id');
+                const nombreGrupo = this.getAttribute('data-nombre');
+
+                Swal.fire({
+                    title: '¿Eliminar Grupo?',
+                    text: `Estás a punto de eliminar el Grupo ${nombreGrupo}. Esta acción no se puede deshacer.`,
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonColor: '#EF4444',
+                    cancelButtonColor: '#64748B',
+                    confirmButtonText: '<i class="fa-solid fa-trash"></i> Sí, eliminar',
+                    cancelButtonText: 'Cancelar',
+                    customClass: { popup: 'swal-solicitud-popup' }
+                }).then(async (result) => {
+                    if (result.isConfirmed) {
+                        try {
+                            await apiPrefectura('eliminar_grupo', { method: 'POST', body: { id_grupo: idGrupo } });
+                            Swal.fire({ title: '¡Eliminado!', text: 'El grupo ha sido borrado.', icon: 'success', confirmButtonColor: '#192A56', timer: 1500 });
+
+                            // Si el grupo eliminado era el que estaba activo, volvemos a "Todos los grupos"
+                            const linkActivo = document.querySelector('.filter-link.active');
+                            if (linkActivo && linkActivo.getAttribute('data-group') === nombreGrupo) {
+                                document.querySelector('.filter-link[data-group="all"]').click();
+                            }
+
+                            cargarGruposSidebar(); // Refrescar la lista
+                            cargarFiltrosExportacion(); // Refrescar filtros en Exportar
+                        } catch (error) {
+                            Swal.fire({ title: 'No se puede eliminar', text: error.message, icon: 'error', confirmButtonColor: '#192A56' });
+                        }
+                    }
+                });
+            });
+        });
+    }
+
+    // --- FUNCIÓN PARA AGREGAR Y ELIMINAR GRUPOS ---
+    function asignarEventosGestionGrupos() {
+        // Evento: Crear Grupo
+        const btnAgregar = document.getElementById('btn-agregar-grupo');
+        if (btnAgregar) {
+            btnAgregar.addEventListener('click', async function (e) {
+                e.preventDefault();
+                const { value: nombreGrupo } = await Swal.fire({
+                    title: 'Crear Nuevo Grupo',
+                    input: 'text',
+                    inputLabel: 'Nombre del grupo (Ej. 1º C)',
+                    inputPlaceholder: 'Escribe el nombre...',
+                    showCancelButton: true,
+                    confirmButtonText: 'Crear Grupo',
+                    cancelButtonText: 'Cancelar',
+                    confirmButtonColor: '#192A56',
+                    cancelButtonColor: '#64748B',
+                    customClass: { popup: 'swal-solicitud-popup' },
+                    inputValidator: (value) => {
+                        if (!value) return 'El nombre no puede estar vacío';
+                    }
+                });
+
+                if (nombreGrupo) {
+                    try {
+                        await apiPrefectura('crear_grupo', { method: 'POST', body: { nombre: nombreGrupo } });
+                        Swal.fire({ title: '¡Creado!', text: 'El grupo fue añadido exitosamente.', icon: 'success', confirmButtonColor: '#192A56', timer: 1500 });
+
+                        cargarGruposSidebar(); // Refrescar la lista de grupos lateral
+
+                        // Vaciar la lista de Exportar para obligar a que se recargue cuando el usuario vaya allá
+                        const exportGrupos = document.getElementById('lista-grupos-exportar');
+                        if (exportGrupos) exportGrupos.innerHTML = '';
+
+                    } catch (error) {
+                        Swal.fire({ title: 'Error', text: error.message, icon: 'error', confirmButtonColor: '#192A56' });
+                    }
+                }
+            });
+        }
+
+        // Eventos: Eliminar Grupo
+        const btnsEliminar = document.querySelectorAll('.btn-eliminar-grupo');
+        btnsEliminar.forEach(btn => {
+            // Efecto hover sutil
+            btn.addEventListener('mouseenter', function () { this.style.opacity = '1'; this.style.transform = 'scale(1.1)'; });
+            btn.addEventListener('mouseleave', function () { this.style.opacity = '0.7'; this.style.transform = 'scale(1)'; });
+
+            btn.addEventListener('click', function (e) {
+                e.stopPropagation(); // Evita que se seleccione el filtro del grupo
+                const idGrupo = this.getAttribute('data-id');
+                const nombreGrupo = this.getAttribute('data-nombre');
+
+                Swal.fire({
+                    title: '¿Eliminar Grupo?',
+                    text: `Estás a punto de eliminar el Grupo ${nombreGrupo}. Esta acción no se puede deshacer.`,
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonColor: '#EF4444',
+                    cancelButtonColor: '#64748B',
+                    confirmButtonText: '<i class="fa-solid fa-trash"></i> Sí, eliminar',
+                    cancelButtonText: 'Cancelar',
+                    customClass: { popup: 'swal-solicitud-popup' }
+                }).then(async (result) => {
+                    if (result.isConfirmed) {
+                        try {
+                            await apiPrefectura('eliminar_grupo', { method: 'POST', body: { id_grupo: idGrupo } });
+                            Swal.fire({ title: '¡Eliminado!', text: 'El grupo ha sido borrado.', icon: 'success', confirmButtonColor: '#192A56', timer: 1500 });
+
+                            // Si el grupo eliminado era el que estaba activo, volvemos a "Todos los grupos"
+                            const linkActivo = document.querySelector('.filter-link.active');
+                            if (linkActivo && linkActivo.getAttribute('data-group') === nombreGrupo) {
+                                document.querySelector('.filter-link[data-group="all"]').click();
+                            }
+
+                            cargarGruposSidebar(); // Refrescar la lista de grupos lateral
+
+                            // Vaciar la lista de Exportar para obligar a que se recargue
+                            const exportGrupos = document.getElementById('lista-grupos-exportar');
+                            if (exportGrupos) exportGrupos.innerHTML = '';
+
+                        } catch (error) {
+                            Swal.fire({ title: 'No se puede eliminar', text: error.message, icon: 'error', confirmButtonColor: '#192A56' });
+                        }
+                    }
+                });
+            });
+        });
+    }
+
+    cargarGruposSidebar();
+
     // === CARGAR PERSONAL DESDE LA BD ===
     async function cargarPersonal() {
         try {
@@ -1527,18 +1807,30 @@ function initPersonalLogic() {
         });
     });
 
-    // Clic en Grupos Laterales
-    filterLinks.forEach(function (link) {
-        link.addEventListener('click', function (e) {
-            e.preventDefault();
-            isRiesgoFilter = false; // Apagar filtro de riesgo
-            if (btnRiesgo) btnRiesgo.classList.remove('active-danger'); // Quitar estilo rojo al botón de riesgo
+    // --- Clic en Grupos Laterales (Dinámicos) ---
+    function asignarEventosFiltrosGrupos() {
+        const filterLinksList = document.querySelectorAll('.filter-link');
 
-            filterLinks.forEach(function (l) { l.classList.remove('active'); });
-            link.classList.add('active');
-            filterTable();
+        filterLinksList.forEach(function (link) {
+            // Clona y reemplaza para limpiar eventos viejos y evitar duplicados
+            link.replaceWith(link.cloneNode(true));
         });
-    });
+
+        // Seleccionamos los nuevos links ya limpios
+        const nuevosLinks = document.querySelectorAll('.filter-link');
+
+        nuevosLinks.forEach(function (link) {
+            link.addEventListener('click', function (e) {
+                e.preventDefault();
+                isRiesgoFilter = false; // Apagar filtro de riesgo
+                if (btnRiesgo) btnRiesgo.classList.remove('active-danger');
+
+                nuevosLinks.forEach(function (l) { l.classList.remove('active'); });
+                this.classList.add('active');
+                filterTable();
+            });
+        });
+    }
 
     // Clic en "Alumnos en Riesgo"
     if (btnRiesgo) {
@@ -1662,20 +1954,61 @@ function initPersonalLogic() {
 function initSistemaLogic() {
     console.log('✔ Configuración del Sistema inicializada');
 
-    window.guardarConfiguracionSistema = function () {
-        var limiteDias = document.getElementById('limite-dias') ? document.getElementById('limite-dias').value : '3';
-        var cicloActivo = document.getElementById('ciclo-activo') ? document.getElementById('ciclo-activo').value : '2025-2026';
+    // 1. Cargar configuración actual al abrir la pestaña
+    async function cargarConfiguracion() {
+        try {
+            const data = await apiPrefectura('obtener_configuracion');
+            if (data && data.configuracion) {
+                const conf = data.configuracion;
+                if (document.getElementById('limite-dias')) document.getElementById('limite-dias').value = conf.limite_justificacion_dias;
+                if (document.getElementById('ciclo-activo')) document.getElementById('ciclo-activo').value = conf.ciclo_activo;
 
-        Swal.fire({
-            title: '¡Configuración Guardada!',
-            html: '<div style="text-align:left;font-size:0.85rem;line-height:1.6;">' +
-                '<p><strong>• Plazo para justificar:</strong> ' + limiteDias + ' días hábiles</p>' +
-                '<p><strong>• Ciclo escolar:</strong> ' + cicloActivo + '</p>' +
-                '<p style="color:#10B981;margin-top:10px;">✔ Los cambios se guardaron correctamente.</p></div>',
-            icon: 'success',
-            confirmButtonText: 'Entendido',
-            confirmButtonColor: '#192A56'
-        });
+                if (document.getElementById('trim1-inicio')) document.getElementById('trim1-inicio').value = conf.trim1_inicio;
+                if (document.getElementById('trim1-fin')) document.getElementById('trim1-fin').value = conf.trim1_fin;
+                if (document.getElementById('trim2-inicio')) document.getElementById('trim2-inicio').value = conf.trim2_inicio;
+                if (document.getElementById('trim2-fin')) document.getElementById('trim2-fin').value = conf.trim2_fin;
+                if (document.getElementById('trim3-inicio')) document.getElementById('trim3-inicio').value = conf.trim3_inicio;
+                if (document.getElementById('trim3-fin')) document.getElementById('trim3-fin').value = conf.trim3_fin;
+            }
+        } catch (error) {
+            console.error("Error al cargar configuración:", error);
+        }
+    }
+
+    cargarConfiguracion();
+
+    // 2. Guardar la configuración en la base de datos
+    window.guardarConfiguracionSistema = async function () {
+        const datos = {
+            limite_dias: document.getElementById('limite-dias') ? document.getElementById('limite-dias').value : '3',
+            ciclo_activo: document.getElementById('ciclo-activo') ? document.getElementById('ciclo-activo').value : '2025-2026',
+            trim1_inicio: document.getElementById('trim1-inicio') ? document.getElementById('trim1-inicio').value : '',
+            trim1_fin: document.getElementById('trim1-fin') ? document.getElementById('trim1-fin').value : '',
+            trim2_inicio: document.getElementById('trim2-inicio') ? document.getElementById('trim2-inicio').value : '',
+            trim2_fin: document.getElementById('trim2-fin') ? document.getElementById('trim2-fin').value : '',
+            trim3_inicio: document.getElementById('trim3-inicio') ? document.getElementById('trim3-inicio').value : '',
+            trim3_fin: document.getElementById('trim3-fin') ? document.getElementById('trim3-fin').value : ''
+        };
+
+        try {
+            Swal.fire({
+                title: 'Guardando...',
+                allowOutsideClick: false,
+                didOpen: () => Swal.showLoading()
+            });
+
+            await apiPrefectura('actualizar_configuracion', { method: 'POST', body: datos });
+
+            Swal.fire({
+                title: '¡Configuración Guardada!',
+                text: 'Los cambios se han aplicado exitosamente en la base de datos.',
+                icon: 'success',
+                confirmButtonText: 'Entendido',
+                confirmButtonColor: '#192A56'
+            });
+        } catch (error) {
+            Swal.fire('Error', error.message, 'error');
+        }
     }
 }
 

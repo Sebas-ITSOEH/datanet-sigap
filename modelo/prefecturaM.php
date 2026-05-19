@@ -194,10 +194,44 @@ class ModeloPrefectura {
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
+    // ============================================================
+    // GESTIÓN DE GRUPOS
+    // ============================================================
     public static function mdlListarGrupos() {
-        $stmt = Conexion::conectar()->prepare("SELECT DISTINCT g.id_grupo, g.nombre FROM grupos g INNER JOIN cursos c ON g.id_grupo = c.id_grupo INNER JOIN inscripciones i ON c.id_curso = i.id_curso ORDER BY g.nombre");
+        // Modificado para que traiga TODOS los grupos, incluso los vacíos
+        $stmt = Conexion::conectar()->prepare("SELECT id_grupo, nombre FROM grupos ORDER BY nombre ASC");
         $stmt->execute();
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+    public static function mdlCrearGrupo($nombre) {
+        $pdo = Conexion::conectar();
+        // Verificar si ya existe
+        $stmtCheck = $pdo->prepare("SELECT COUNT(*) FROM grupos WHERE nombre = :nombre");
+        $stmtCheck->bindParam(":nombre", $nombre, PDO::PARAM_STR);
+        $stmtCheck->execute();
+        if($stmtCheck->fetchColumn() > 0) {
+            return "existe";
+        }
+        
+        $stmt = $pdo->prepare("INSERT INTO grupos (nombre) VALUES (:nombre)");
+        $stmt->bindParam(":nombre", $nombre, PDO::PARAM_STR);
+        return $stmt->execute() ? "ok" : "error";
+    }
+
+    public static function mdlEliminarGrupo($id_grupo) {
+        $pdo = Conexion::conectar();
+        try {
+            $stmt = $pdo->prepare("DELETE FROM grupos WHERE id_grupo = :id_grupo");
+            $stmt->bindParam(":id_grupo", $id_grupo, PDO::PARAM_INT);
+            return $stmt->execute() ? "ok" : "error";
+        } catch (PDOException $e) {
+            // El código 23000 indica violación de llave foránea (el grupo tiene alumnos o materias)
+            if ($e->getCode() == '23000') {
+                return "en_uso";
+            }
+            return "error";
+        }
     }
 
     public static function mdlCrearUsuario($datos) {
@@ -214,7 +248,8 @@ class ModeloPrefectura {
     }
 
     public static function mdlObtenerPrefecto($id_admin) {
-        $stmt = Conexion::conectar()->prepare("SELECT nombre, apellido, correo FROM usuarios WHERE id_usuario = :id");
+        // Se agregó "rol" a la consulta SELECT
+        $stmt = Conexion::conectar()->prepare("SELECT nombre, apellido, correo, rol FROM usuarios WHERE id_usuario = :id");
         $stmt->bindParam(":id", $id_admin, PDO::PARAM_INT);
         $stmt->execute();
         return $stmt->fetch(PDO::FETCH_ASSOC);
@@ -407,6 +442,37 @@ class ModeloPrefectura {
         $stmt->execute();
         
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+    // ============================================================
+    // CONFIGURACIÓN DEL SISTEMA
+    // ============================================================
+    public static function mdlObtenerConfiguracion() {
+        $stmt = Conexion::conectar()->prepare("SELECT * FROM configuracion_sistema WHERE id = 1");
+        $stmt->execute();
+        return $stmt->fetch(PDO::FETCH_ASSOC);
+    }
+
+    public static function mdlActualizarConfiguracion($datos) {
+        $pdo = Conexion::conectar();
+        $stmt = $pdo->prepare("UPDATE configuracion_sistema SET 
+            limite_justificacion_dias = :limite, 
+            ciclo_activo = :ciclo, 
+            trim1_inicio = :t1_ini, trim1_fin = :t1_fin, 
+            trim2_inicio = :t2_ini, trim2_fin = :t2_fin, 
+            trim3_inicio = :t3_ini, trim3_fin = :t3_fin 
+            WHERE id = 1");
+        
+        $stmt->bindParam(":limite", $datos['limite_dias'], PDO::PARAM_INT);
+        $stmt->bindParam(":ciclo", $datos['ciclo_activo'], PDO::PARAM_STR);
+        $stmt->bindParam(":t1_ini", $datos['trim1_inicio'], PDO::PARAM_STR);
+        $stmt->bindParam(":t1_fin", $datos['trim1_fin'], PDO::PARAM_STR);
+        $stmt->bindParam(":t2_ini", $datos['trim2_inicio'], PDO::PARAM_STR);
+        $stmt->bindParam(":t2_fin", $datos['trim2_fin'], PDO::PARAM_STR);
+        $stmt->bindParam(":t3_ini", $datos['trim3_inicio'], PDO::PARAM_STR);
+        $stmt->bindParam(":t3_fin", $datos['trim3_fin'], PDO::PARAM_STR);
+        
+        return $stmt->execute() ? "ok" : "error";
     }
 }
 ?>

@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
     <meta charset="UTF-8">
     <title>Panel de Prefectura - Catálogo de Personal</title>
@@ -7,9 +8,10 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 </head>
+
 <body>
     <div class="dashboard-container">
-        
+
         <!-- SIDEBAR -->
         <aside class="sidebar-vertical">
             <div class="sidebar-header">
@@ -20,17 +22,12 @@
                     <div class="menu-title"><i class="fa-solid fa-user-graduate"></i> Alumnos</div>
                     <ul class="submenu-grupos" id="filtro-grupos">
                         <li><a href="#" data-group="all" class="filter-link active">Todos los grupos</a></li>
-                        <li><a href="#" data-group="1°A" class="filter-link">Grupo 1°A</a></li>
-                        <li><a href="#" data-group="1°B" class="filter-link">Grupo 1°B</a></li>
-                        <li><a href="#" data-group="2°A" class="filter-link">Grupo 2°A</a></li>
-                        <li><a href="#" data-group="2°B" class="filter-link">Grupo 2°B</a></li>
-                        <li><a href="#" data-group="3°A" class="filter-link">Grupo 3°A</a></li>
-                        <li><a href="#" data-group="3°B" class="filter-link">Grupo 3°B</a></li>
                     </ul>
                 </li>
                 <hr class="separator">
                 <li class="menu-item">
-                    <a href="#" id="menu-alumnos-riesgo" class="menu-link"><i class="fa-solid fa-triangle-exclamation"></i> Alumnos en Riesgo</a>
+                    <a href="#" id="menu-alumnos-riesgo" class="menu-link"><i
+                            class="fa-solid fa-triangle-exclamation"></i> Alumnos en Riesgo</a>
                 </li>
             </ul>
         </aside>
@@ -39,23 +36,25 @@
         <main class="main-content">
             <div class="personal-layout fade-in">
                 <div class="list-container">
-                    
+
                     <!-- CABECERA -->
                     <div class="list-header">
                         <h3><i class="fa-solid fa-users-gear"></i> Catálogo de Personal</h3>
                         <div class="tabs-personal">
-                            <button class="tab-btn active" data-role="alumno"><i class="fa-solid fa-user-graduate"></i> Alumnos</button>
-                            <button class="tab-btn" data-role="docente"><i class="fa-solid fa-chalkboard-user"></i> Docentes</button>
+                            <button class="tab-btn active" data-role="alumno"><i class="fa-solid fa-user-graduate"></i>
+                                Alumnos</button>
+                            <button class="tab-btn" data-role="docente"><i class="fa-solid fa-chalkboard-user"></i>
+                                Docentes</button>
                         </div>
                     </div>
-                    
+
                     <!-- BARRA DE BÚSQUEDA -->
                     <div class="personal-toolbar">
                         <div class="search-box">
                             <i class="fa-solid fa-magnifying-glass"></i>
                             <input type="text" id="searchPersona" placeholder="Buscar por nombre o matrícula...">
                         </div>
-                     <!--    <button class="btn-nuevo" onclick="nuevoRegistro()"><i class="fa-solid fa-plus"></i> Nuevo Registro</button>-->
+                        <!--    <button class="btn-nuevo" onclick="nuevoRegistro()"><i class="fa-solid fa-plus"></i> Nuevo Registro</button>-->
                     </div>
 
                     <!-- TABLA DE ALUMNOS -->
@@ -72,83 +71,119 @@
                                 </tr>
                             </thead>
                             <tbody>
-                                <tr data-tipo="alumno" data-grupo="1°A" data-nombre="Juan Pérez Martínez" data-matricula="2024001" data-turno="Matutino" data-tutor="Roberto Pérez López" data-tel-tutor="55-1111-2222" data-curp="PEMJ080515HDFRNS09" data-grado="1°" data-estado="riesgo">
+                                <tr data-tipo="alumno" data-grupo="1°A" data-nombre="Juan Pérez Martínez"
+                                    data-matricula="2024001" data-turno="Matutino" data-tutor="Roberto Pérez López"
+                                    data-tel-tutor="55-1111-2222" data-curp="PEMJ080515HDFRNS09" data-grado="1°"
+                                    data-estado="riesgo">
                                     <td>
                                         <div class="alumno-cell">
-                                            <img src="https://ui-avatars.com/api/?name=Juan+Perez&background=D6A848&color=192A56&size=36" alt="Juan Pérez">
+                                            <img src="https://ui-avatars.com/api/?name=Juan+Perez&background=D6A848&color=192A56&size=36"
+                                                alt="Juan Pérez">
                                             <div><span class="alumno-name">Juan Pérez Martínez</span></div>
                                         </div>
                                     </td>
                                     <td>2024001</td>
                                     <td>1°A</td>
                                     <td><span class="badge info">Matutino</span></td>
-                                    <td><span class="badge warning"><i class="fa-solid fa-triangle-exclamation"></i> Riesgo</span></td>
-                                    <td><button class="btn-expediente btn-ver-expediente"><i class="fa-solid fa-folder-open"></i> Expediente</button></td>
+                                    <td><span class="badge warning"><i class="fa-solid fa-triangle-exclamation"></i>
+                                            Riesgo</span></td>
+                                    <td><button class="btn-expediente btn-ver-expediente"><i
+                                                class="fa-solid fa-folder-open"></i> Expediente</button></td>
                                 </tr>
-                                <tr data-tipo="alumno" data-grupo="1°A" data-nombre="María Gómez Cruz" data-matricula="2024002" data-turno="Matutino" data-tutor="Carmen Cruz Sánchez" data-tel-tutor="55-2222-3333" data-curp="GOCM080416MDFRRS02" data-grado="1°" data-estado="regular">
+                                <tr data-tipo="alumno" data-grupo="1°A" data-nombre="María Gómez Cruz"
+                                    data-matricula="2024002" data-turno="Matutino" data-tutor="Carmen Cruz Sánchez"
+                                    data-tel-tutor="55-2222-3333" data-curp="GOCM080416MDFRRS02" data-grado="1°"
+                                    data-estado="regular">
                                     <td>
                                         <div class="alumno-cell">
-                                            <img src="https://ui-avatars.com/api/?name=Maria+Gomez&background=10B981&color=fff&size=36" alt="María Gómez">
+                                            <img src="https://ui-avatars.com/api/?name=Maria+Gomez&background=10B981&color=fff&size=36"
+                                                alt="María Gómez">
                                             <div><span class="alumno-name">María Gómez Cruz</span></div>
                                         </div>
                                     </td>
                                     <td>2024002</td>
                                     <td>1°A</td>
                                     <td><span class="badge info">Matutino</span></td>
-                                    <td><span class="badge success"><i class="fa-solid fa-check"></i> Regular</span></td>
-                                    <td><button class="btn-expediente btn-ver-expediente"><i class="fa-solid fa-folder-open"></i> Expediente</button></td>
+                                    <td><span class="badge success"><i class="fa-solid fa-check"></i> Regular</span>
+                                    </td>
+                                    <td><button class="btn-expediente btn-ver-expediente"><i
+                                                class="fa-solid fa-folder-open"></i> Expediente</button></td>
                                 </tr>
-                                <tr data-tipo="alumno" data-grupo="1°B" data-nombre="Pedro Soto Luna" data-matricula="2024003" data-turno="Vespertino" data-tutor="José Soto Ramírez" data-tel-tutor="55-3333-4444" data-curp="SOLP080715HDFTND03" data-grado="1°" data-estado="regular">
+                                <tr data-tipo="alumno" data-grupo="1°B" data-nombre="Pedro Soto Luna"
+                                    data-matricula="2024003" data-turno="Vespertino" data-tutor="José Soto Ramírez"
+                                    data-tel-tutor="55-3333-4444" data-curp="SOLP080715HDFTND03" data-grado="1°"
+                                    data-estado="regular">
                                     <td>
                                         <div class="alumno-cell">
-                                            <img src="https://ui-avatars.com/api/?name=Pedro+Soto&background=3B82F6&color=fff&size=36" alt="Pedro Soto">
+                                            <img src="https://ui-avatars.com/api/?name=Pedro+Soto&background=3B82F6&color=fff&size=36"
+                                                alt="Pedro Soto">
                                             <div><span class="alumno-name">Pedro Soto Luna</span></div>
                                         </div>
                                     </td>
                                     <td>2024003</td>
                                     <td>1°B</td>
                                     <td><span class="badge warning">Vespertino</span></td>
-                                    <td><span class="badge success"><i class="fa-solid fa-check"></i> Regular</span></td>
-                                    <td><button class="btn-expediente btn-ver-expediente"><i class="fa-solid fa-folder-open"></i> Expediente</button></td>
+                                    <td><span class="badge success"><i class="fa-solid fa-check"></i> Regular</span>
+                                    </td>
+                                    <td><button class="btn-expediente btn-ver-expediente"><i
+                                                class="fa-solid fa-folder-open"></i> Expediente</button></td>
                                 </tr>
-                                <tr data-tipo="alumno" data-grupo="2°A" data-nombre="Ana López García" data-matricula="20241001" data-turno="Matutino" data-tutor="María García Hernández" data-tel-tutor="55-1234-5678" data-curp="LOGA080612MDFPRN01" data-grado="2°" data-estado="riesgo">
+                                <tr data-tipo="alumno" data-grupo="2°A" data-nombre="Ana López García"
+                                    data-matricula="20241001" data-turno="Matutino" data-tutor="María García Hernández"
+                                    data-tel-tutor="55-1234-5678" data-curp="LOGA080612MDFPRN01" data-grado="2°"
+                                    data-estado="riesgo">
                                     <td>
                                         <div class="alumno-cell">
-                                            <img src="https://ui-avatars.com/api/?name=Ana+Lopez&background=EF4444&color=fff&size=36" alt="Ana López">
+                                            <img src="https://ui-avatars.com/api/?name=Ana+Lopez&background=EF4444&color=fff&size=36"
+                                                alt="Ana López">
                                             <div><span class="alumno-name">Ana López García</span></div>
                                         </div>
                                     </td>
                                     <td>20241001</td>
                                     <td>2°A</td>
                                     <td><span class="badge info">Matutino</span></td>
-                                    <td><span class="badge warning"><i class="fa-solid fa-triangle-exclamation"></i> 3 Faltas</span></td>
-                                    <td><button class="btn-expediente btn-ver-expediente"><i class="fa-solid fa-folder-open"></i> Expediente</button></td>
+                                    <td><span class="badge warning"><i class="fa-solid fa-triangle-exclamation"></i> 3
+                                            Faltas</span></td>
+                                    <td><button class="btn-expediente btn-ver-expediente"><i
+                                                class="fa-solid fa-folder-open"></i> Expediente</button></td>
                                 </tr>
-                                <tr data-tipo="alumno" data-grupo="2°B" data-nombre="Carlos Ruiz Méndez" data-matricula="20241015" data-turno="Matutino" data-tutor="José Ruiz Martínez" data-tel-tutor="55-9876-5432" data-curp="RUMC080813HDFZNR04" data-grado="2°" data-estado="regular">
+                                <tr data-tipo="alumno" data-grupo="2°B" data-nombre="Carlos Ruiz Méndez"
+                                    data-matricula="20241015" data-turno="Matutino" data-tutor="José Ruiz Martínez"
+                                    data-tel-tutor="55-9876-5432" data-curp="RUMC080813HDFZNR04" data-grado="2°"
+                                    data-estado="regular">
                                     <td>
                                         <div class="alumno-cell">
-                                            <img src="https://ui-avatars.com/api/?name=Carlos+Ruiz&background=8B5CF6&color=fff&size=36" alt="Carlos Ruiz">
+                                            <img src="https://ui-avatars.com/api/?name=Carlos+Ruiz&background=8B5CF6&color=fff&size=36"
+                                                alt="Carlos Ruiz">
                                             <div><span class="alumno-name">Carlos Ruiz Méndez</span></div>
                                         </div>
                                     </td>
                                     <td>20241015</td>
                                     <td>2°B</td>
                                     <td><span class="badge info">Matutino</span></td>
-                                    <td><span class="badge success"><i class="fa-solid fa-check"></i> Regular</span></td>
-                                    <td><button class="btn-expediente btn-ver-expediente"><i class="fa-solid fa-folder-open"></i> Expediente</button></td>
+                                    <td><span class="badge success"><i class="fa-solid fa-check"></i> Regular</span>
+                                    </td>
+                                    <td><button class="btn-expediente btn-ver-expediente"><i
+                                                class="fa-solid fa-folder-open"></i> Expediente</button></td>
                                 </tr>
-                                <tr data-tipo="alumno" data-grupo="3°A" data-nombre="María Fernanda Torres" data-matricula="20241008" data-turno="Vespertino" data-tutor="Laura Torres Sánchez" data-tel-tutor="55-4567-8901" data-curp="TOFM080914MDFRRN05" data-grado="3°" data-estado="regular">
+                                <tr data-tipo="alumno" data-grupo="3°A" data-nombre="María Fernanda Torres"
+                                    data-matricula="20241008" data-turno="Vespertino" data-tutor="Laura Torres Sánchez"
+                                    data-tel-tutor="55-4567-8901" data-curp="TOFM080914MDFRRN05" data-grado="3°"
+                                    data-estado="regular">
                                     <td>
                                         <div class="alumno-cell">
-                                            <img src="https://ui-avatars.com/api/?name=Maria+Torres&background=F59E0B&color=fff&size=36" alt="María Torres">
+                                            <img src="https://ui-avatars.com/api/?name=Maria+Torres&background=F59E0B&color=fff&size=36"
+                                                alt="María Torres">
                                             <div><span class="alumno-name">María Fernanda Torres</span></div>
                                         </div>
                                     </td>
                                     <td>20241008</td>
                                     <td>3°A</td>
                                     <td><span class="badge warning">Vespertino</span></td>
-                                    <td><span class="badge success"><i class="fa-solid fa-check"></i> Regular</span></td>
-                                    <td><button class="btn-expediente btn-ver-expediente"><i class="fa-solid fa-folder-open"></i> Expediente</button></td>
+                                    <td><span class="badge success"><i class="fa-solid fa-check"></i> Regular</span>
+                                    </td>
+                                    <td><button class="btn-expediente btn-ver-expediente"><i
+                                                class="fa-solid fa-folder-open"></i> Expediente</button></td>
                                 </tr>
                             </tbody>
                         </table>
@@ -168,10 +203,13 @@
                                 </tr>
                             </thead>
                             <tbody>
-                                <tr data-tipo="docente" data-nombre="Dra. Elena Rivas" data-id="DOC-4412" data-turno="Matutino" data-materias="Ciencias, Biología, Química" data-estado="activo">
+                                <tr data-tipo="docente" data-nombre="Dra. Elena Rivas" data-id="DOC-4412"
+                                    data-turno="Matutino" data-materias="Ciencias, Biología, Química"
+                                    data-estado="activo">
                                     <td>
                                         <div class="alumno-cell">
-                                            <img src="https://ui-avatars.com/api/?name=Dra+Elena&background=192A56&color=fff&size=36" alt="Dra Elena">
+                                            <img src="https://ui-avatars.com/api/?name=Dra+Elena&background=192A56&color=fff&size=36"
+                                                alt="Dra Elena">
                                             <div><span class="alumno-name">Dra. Elena Rivas</span></div>
                                         </div>
                                     </td>
@@ -179,12 +217,16 @@
                                     <td>Ciencias, Biología, Química</td>
                                     <td><span class="badge info">Matutino</span></td>
                                     <td><span class="badge success">Activo</span></td>
-                                    <td><button class="btn-horario btn-ver-horario"><i class="fa-solid fa-calendar-days"></i> Horario</button></td>
+                                    <td><button class="btn-horario btn-ver-horario"><i
+                                                class="fa-solid fa-calendar-days"></i> Horario</button></td>
                                 </tr>
-                                <tr data-tipo="docente" data-nombre="Prof. Ricardo Mendoza" data-id="DOC-9920" data-turno="Matutino" data-materias="Matemáticas, Física, Cálculo" data-estado="activo">
+                                <tr data-tipo="docente" data-nombre="Prof. Ricardo Mendoza" data-id="DOC-9920"
+                                    data-turno="Matutino" data-materias="Matemáticas, Física, Cálculo"
+                                    data-estado="activo">
                                     <td>
                                         <div class="alumno-cell">
-                                            <img src="https://ui-avatars.com/api/?name=Prof+Ricardo&background=D6A848&color=192A56&size=36" alt="Prof Ricardo">
+                                            <img src="https://ui-avatars.com/api/?name=Prof+Ricardo&background=D6A848&color=192A56&size=36"
+                                                alt="Prof Ricardo">
                                             <div><span class="alumno-name">Prof. Ricardo Mendoza</span></div>
                                         </div>
                                     </td>
@@ -192,12 +234,16 @@
                                     <td>Matemáticas, Física, Cálculo</td>
                                     <td><span class="badge info">Matutino</span></td>
                                     <td><span class="badge success">Activo</span></td>
-                                    <td><button class="btn-horario btn-ver-horario"><i class="fa-solid fa-calendar-days"></i> Horario</button></td>
+                                    <td><button class="btn-horario btn-ver-horario"><i
+                                                class="fa-solid fa-calendar-days"></i> Horario</button></td>
                                 </tr>
-                                <tr data-tipo="docente" data-nombre="Profa. Patricia Luna" data-id="DOC-5510" data-turno="Vespertino" data-materias="Historia, Civismo, Filosofía" data-estado="activo">
+                                <tr data-tipo="docente" data-nombre="Profa. Patricia Luna" data-id="DOC-5510"
+                                    data-turno="Vespertino" data-materias="Historia, Civismo, Filosofía"
+                                    data-estado="activo">
                                     <td>
                                         <div class="alumno-cell">
-                                            <img src="https://ui-avatars.com/api/?name=Profa+Patricia&background=A1232E&color=fff&size=36" alt="Profa Patricia">
+                                            <img src="https://ui-avatars.com/api/?name=Profa+Patricia&background=A1232E&color=fff&size=36"
+                                                alt="Profa Patricia">
                                             <div><span class="alumno-name">Profa. Patricia Luna</span></div>
                                         </div>
                                     </td>
@@ -205,7 +251,8 @@
                                     <td>Historia, Civismo, Filosofía</td>
                                     <td><span class="badge warning">Vespertino</span></td>
                                     <td><span class="badge success">Activo</span></td>
-                                    <td><button class="btn-horario btn-ver-horario"><i class="fa-solid fa-calendar-days"></i> Horario</button></td>
+                                    <td><button class="btn-horario btn-ver-horario"><i
+                                                class="fa-solid fa-calendar-days"></i> Horario</button></td>
                                 </tr>
                             </tbody>
                         </table>
@@ -214,8 +261,9 @@
             </div>
         </main>
     </div>
-    
+
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script src="mainPrefectura.js"></script>
 </body>
+
 </html>

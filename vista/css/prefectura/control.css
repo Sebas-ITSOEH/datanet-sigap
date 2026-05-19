@@ -221,12 +221,13 @@
     display: block;
     font-size: 0.82rem;
     font-weight: 600;
-    color: #000000;
+    color: #FFFFFF; /* Cambiado a blanco */
 }
 
 .footer-role {
     font-size: 0.7rem;
-    color: rgb(0, 0, 0);
+    color: rgba(255, 255, 255, 0.8); /* Blanco ligeramente transparente para diferenciar */
+    text-transform: capitalize; /* Para que la primera letra del rol sea mayúscula */
 }
 
 /* ==========================================

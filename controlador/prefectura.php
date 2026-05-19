@@ -137,6 +137,45 @@ try {
             'alumnos' => ModeloPrefectura::mdlObtenerRiesgoPorGrupo($trimestre, $anio, $grupo)
         ];
     }
+    elseif ($accion === 'crear_grupo' && $metodo === 'POST') {
+        $input = json_decode(file_get_contents('php://input'), true);
+        $nombre = trim($input['nombre'] ?? '');
+        if (empty($nombre)) throw new Exception('El nombre del grupo es obligatorio.');
+        
+        $res = ModeloPrefectura::mdlCrearGrupo($nombre);
+        if ($res === "ok") {
+            $respuesta = ['ok' => true, 'mensaje' => "Grupo creado exitosamente."];
+        } elseif ($res === "existe") {
+            throw new Exception('Ese grupo ya existe en la base de datos.');
+        } else {
+            throw new Exception('Error al crear el grupo.');
+        }
+    }
+    elseif ($accion === 'eliminar_grupo' && $metodo === 'POST') {
+        $input = json_decode(file_get_contents('php://input'), true);
+        $id_grupo = $input['id_grupo'] ?? null;
+        if (!$id_grupo) throw new Exception('ID de grupo no proporcionado.');
+        
+        $res = ModeloPrefectura::mdlEliminarGrupo($id_grupo);
+        if ($res === "ok") {
+            $respuesta = ['ok' => true, 'mensaje' => "Grupo eliminado exitosamente."];
+        } elseif ($res === "en_uso") {
+            throw new Exception('No puedes eliminar este grupo porque tiene alumnos, cursos o asistencias registradas.');
+        } else {
+            throw new Exception('Error al eliminar el grupo.');
+        }
+    }
+    elseif ($accion === 'obtener_configuracion' && $metodo === 'GET') {
+        $respuesta = ['ok' => true, 'configuracion' => ModeloPrefectura::mdlObtenerConfiguracion()];
+    }
+    elseif ($accion === 'actualizar_configuracion' && $metodo === 'POST') {
+        $input = json_decode(file_get_contents('php://input'), true);
+        if (ModeloPrefectura::mdlActualizarConfiguracion($input) === "ok") {
+            $respuesta = ['ok' => true, 'mensaje' => "Configuración del sistema actualizada correctamente."];
+        } else {
+            throw new Exception('Error al actualizar la configuración en la base de datos.');
+        }
+    }
     // AQUÍ ESTÁ LA NUEVA ACCIÓN DE CERRAR SESIÓN
     elseif ($accion === 'logout' && $metodo === 'POST') {
         session_unset();
