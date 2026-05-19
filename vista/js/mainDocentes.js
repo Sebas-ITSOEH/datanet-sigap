@@ -10,7 +10,104 @@ function toggleModal(modalId) {
         modal.style.display = "none";
     } else {
         modal.style.display = "block";
+        // Cargar grupos dinámicamente si es el modal de crear clase
+        if (modalId === 'modal-crear') {
+            cargarGruposEnModal();
+        }
     }
+}
+
+// Función para cargar los grupos desde la BD y llenar los selects
+async function cargarGruposEnModal() {
+    try {
+        const data = await apiDocente('obtener_grupos');
+        if (data && data.grupos) {
+            const grupos = data.grupos;
+            
+            // Crear un mapa de grado -> [grupos disponibles]
+            const gruposXGrado = {};
+            const gradosSet = new Set();
+            
+            grupos.forEach(g => {
+                const partes = separarGradoGrupo(g.nombre);
+                const grado = partes.grado;
+                const grupo = partes.grupo;
+                
+                gradosSet.add(grado);
+                
+                if (!gruposXGrado[grado]) {
+                    gruposXGrado[grado] = [];
+                }
+                if (!gruposXGrado[grado].includes(grupo)) {
+                    gruposXGrado[grado].push(grupo);
+                }
+            });
+            
+            // Guardar en variable global para usarla en el listener
+            window.gruposXGrado = gruposXGrado;
+            
+            // Llenar select de grado
+            const selectGrado = document.getElementById('gradoClase');
+            if (selectGrado) {
+                const gradosOrdenados = Array.from(gradosSet).sort((a, b) => parseInt(a) - parseInt(b));
+                selectGrado.innerHTML = '<option value="">Seleccionar...</option>';
+                gradosOrdenados.forEach(grado => {
+                    const option = document.createElement('option');
+                    option.value = grado;
+                    option.textContent = grado + '°';
+                    selectGrado.appendChild(option);
+                });
+                
+                // Agregar listener para actualizar grupos cuando cambia el grado
+                selectGrado.removeEventListener('change', actualizarGruposDisponibles);
+                selectGrado.addEventListener('change', actualizarGruposDisponibles);
+            }
+            
+            // Inicializar select de grupo vacío
+            const selectGrupo = document.getElementById('grupoClase');
+            if (selectGrupo) {
+                selectGrupo.innerHTML = '<option value="">Seleccionar...</option>';
+            }
+        }
+    } catch (error) {
+        console.error('Error al cargar grupos:', error);
+        mostrarToast('Error al cargar los grupos disponibles', 'error');
+    }
+}
+
+// Función para actualizar los grupos disponibles según el grado seleccionado
+function actualizarGruposDisponibles() {
+    const selectGrado = document.getElementById('gradoClase');
+    const selectGrupo = document.getElementById('grupoClase');
+    
+    if (!selectGrado || !selectGrupo || !window.gruposXGrado) return;
+    
+    const gradoSeleccionado = selectGrado.value;
+    
+    if (!gradoSeleccionado) {
+        selectGrupo.innerHTML = '<option value="">Seleccionar...</option>';
+        return;
+    }
+    
+    const gruposDisponibles = window.gruposXGrado[gradoSeleccionado] || [];
+    const gruposOrdenados = gruposDisponibles.sort();
+    
+    selectGrupo.innerHTML = '<option value="">Seleccionar...</option>';
+    gruposOrdenados.forEach(grupo => {
+        const option = document.createElement('option');
+        option.value = grupo;
+        option.textContent = grupo;
+        selectGrupo.appendChild(option);
+    });
+}
+
+// Función para separar grado y grupo del nombre (ej: "2° A" -> {grado: "2", grupo: "A"})
+function separarGradoGrupo(grupoNombre) {
+    const match = grupoNombre.match(/(\d+).*?([A-ZÁÉÍÓÚÑ])$/u);
+    if (match) {
+        return { grado: match[1], grupo: match[2] };
+    }
+    return { grado: '', grupo: grupoNombre };
 }
 
 // Cerrar modal si se hace clic fuera de él

@@ -35,6 +35,12 @@ try {
             ]);
             break;
 
+        case 'obtener_grupos':
+            responder([
+                'grupos' => $modelo->obtenerGrupos(),
+            ]);
+            break;
+
         case 'crear_curso':
             requerirPost();
             validarCampos($input, ['nombre', 'grado', 'grupo', 'codigo']);

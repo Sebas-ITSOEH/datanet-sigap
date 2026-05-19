@@ -102,15 +102,22 @@ class Docente
         return null;
     }
 
+    public function obtenerGrupos()
+    {
+        $stmt = $this->db->prepare('SELECT id_grupo, nombre FROM grupos ORDER BY nombre ASC');
+        $stmt->execute();
+        return $stmt->fetchAll();
+    }
+
     // ============================================================
     // CORREGIDO: SIN u.direccion, SIN LEFT JOIN tutor
     // ============================================================
-  public function listarAlumnosCurso($idDocente, $idCurso)
-{
-    $this->validarCursoDocente($idDocente, $idCurso);
+    public function listarAlumnosCurso($idDocente, $idCurso)
+    {
+        $this->validarCursoDocente($idDocente, $idCurso);
 
-    $stmt = $this->db->prepare(
-        'SELECT
+        $stmt = $this->db->prepare(
+            'SELECT
             u.id_usuario AS id,
             CONCAT(u.nombre, " ", u.apellido) AS nombre,
             u.nombre AS nombre_simple,
@@ -125,21 +132,21 @@ class Docente
          INNER JOIN usuarios u ON i.id_alumno = u.id_usuario
          WHERE i.id_curso = :id_curso AND u.rol = "alumno" AND u.estado = TRUE
          ORDER BY u.apellido, u.nombre'
-    );
-    $stmt->execute([':id_curso' => $idCurso]);
+        );
+        $stmt->execute([':id_curso' => $idCurso]);
 
-    return $stmt->fetchAll();
-}
+        return $stmt->fetchAll();
+    }
 
     // ============================================================
     // CORREGIDO: SIN LEFT JOIN tutor
     // ============================================================
     public function listarAlumnosDisponibles($idDocente, $idCurso)
-{
-    $this->validarCursoDocente($idDocente, $idCurso);
+    {
+        $this->validarCursoDocente($idDocente, $idCurso);
 
-    $stmt = $this->db->prepare(
-        'SELECT
+        $stmt = $this->db->prepare(
+            'SELECT
             u.id_usuario AS id,
             CONCAT(u.nombre, " ", u.apellido) AS nombre,
             u.nombre AS nombre_simple,
@@ -158,21 +165,21 @@ class Docente
             WHERE i.id_curso = :id_curso AND i.id_alumno = u.id_usuario
          )
          ORDER BY u.apellido, u.nombre'
-    );
-    $stmt->execute([':id_curso' => $idCurso]);
+        );
+        $stmt->execute([':id_curso' => $idCurso]);
 
-    return $stmt->fetchAll();
-}
+        return $stmt->fetchAll();
+    }
 
     // ============================================================
     // CORREGIDO: SIN LEFT JOIN tutor
     // ============================================================
     public function buscarAlumnoPorMatricula($idDocente, $idCurso, $matricula)
-{
-    $this->validarCursoDocente($idDocente, $idCurso);
+    {
+        $this->validarCursoDocente($idDocente, $idCurso);
 
-    $stmt = $this->db->prepare(
-        'SELECT
+        $stmt = $this->db->prepare(
+            'SELECT
             u.id_usuario AS id,
             CONCAT(u.nombre, " ", u.apellido) AS nombre,
             u.nombre AS nombre_simple,
@@ -190,18 +197,18 @@ class Docente
          FROM usuarios u
          WHERE u.rol = "alumno" AND u.estado = TRUE AND u.matricula_escolar = :matricula
          LIMIT 1'
-    );
-    $stmt->execute([
-        ':id_curso' => $idCurso,
-        ':matricula' => $matricula,
-    ]);
+        );
+        $stmt->execute([
+            ':id_curso' => $idCurso,
+            ':matricula' => $matricula,
+        ]);
 
-    $resultado = $stmt->fetch();
-    
-    // Si no se encuentra por matrícula exacta, buscar por coincidencia parcial
-    if (!$resultado) {
-        $stmt2 = $this->db->prepare(
-            'SELECT
+        $resultado = $stmt->fetch();
+
+        // Si no se encuentra por matrícula exacta, buscar por coincidencia parcial
+        if (!$resultado) {
+            $stmt2 = $this->db->prepare(
+                'SELECT
                 u.id_usuario AS id,
                 CONCAT(u.nombre, " ", u.apellido) AS nombre,
                 u.nombre AS nombre_simple,
@@ -221,17 +228,17 @@ class Docente
              AND (u.matricula_escolar LIKE :matricula_like 
                   OR CONCAT(u.nombre, " ", u.apellido) LIKE :nombre_like)
              LIMIT 1'
-        );
-        $stmt2->execute([
-            ':id_curso' => $idCurso,
-            ':matricula_like' => '%' . $matricula . '%',
-            ':nombre_like' => '%' . $matricula . '%',
-        ]);
-        $resultado = $stmt2->fetch();
-    }
+            );
+            $stmt2->execute([
+                ':id_curso' => $idCurso,
+                ':matricula_like' => '%' . $matricula . '%',
+                ':nombre_like' => '%' . $matricula . '%',
+            ]);
+            $resultado = $stmt2->fetch();
+        }
 
-    return $resultado;
-}
+        return $resultado;
+    }
 
     public function agregarAlumno($idDocente, $idCurso, $idAlumno)
     {
@@ -278,13 +285,13 @@ class Docente
         }, $cursos);
     }
 
-public function obtenerListaAsistencia($idDocente, $idCurso, $fecha)
-{
-    $this->validarCursoDocente($idDocente, $idCurso);
-    $idSesion = $this->obtenerOCrearSesion($idCurso, $fecha);
+    public function obtenerListaAsistencia($idDocente, $idCurso, $fecha)
+    {
+        $this->validarCursoDocente($idDocente, $idCurso);
+        $idSesion = $this->obtenerOCrearSesion($idCurso, $fecha);
 
-    $stmt = $this->db->prepare(
-        'SELECT
+        $stmt = $this->db->prepare(
+            'SELECT
             u.id_usuario AS id,
             CONCAT(u.apellido, ", ", u.nombre) AS nombre,
             u.matricula_escolar AS matricula,
@@ -301,18 +308,18 @@ public function obtenerListaAsistencia($idDocente, $idCurso, $fecha)
             AND :fecha BETWEEN j.fecha_inicio AND j.fecha_fin
          WHERE i.id_curso = :id_curso AND u.estado = TRUE
          ORDER BY u.apellido, u.nombre'
-    );
-    $stmt->execute([
-        ':id_sesion' => $idSesion,
-        ':fecha' => $fecha,
-        ':id_curso' => $idCurso,
-    ]);
+        );
+        $stmt->execute([
+            ':id_sesion' => $idSesion,
+            ':fecha' => $fecha,
+            ':id_curso' => $idCurso,
+        ]);
 
-    return [
-        'id_sesion' => $idSesion,
-        'alumnos' => $stmt->fetchAll(),
-    ];
-}
+        return [
+            'id_sesion' => $idSesion,
+            'alumnos' => $stmt->fetchAll(),
+        ];
+    }
 
     public function generarQrToken($idDocente, $idCurso, $fecha, $segundosVigencia = 30)
     {
@@ -506,53 +513,38 @@ public function obtenerListaAsistencia($idDocente, $idCurso, $fecha)
         return $this->listarSolicitudes($idDocente);
     }
 
+    /**
+     * Este método ya no crea ni modifica tablas.
+     *
+     * Las tablas auxiliares (horarios_cursos, solicitudes_inscripcion y qr_tokens)
+     * deben existir previamente en la base de datos mediante el script SQL de instalación.
+     *
+     * Se conserva únicamente como validación opcional para detectar si falta alguna
+     * tabla y lanzar un error claro al iniciar la aplicación.
+     */
     private function asegurarTablasAuxiliares()
     {
-        $this->db->exec(
-            'CREATE TABLE IF NOT EXISTS horarios_cursos (
-                id_horario INT AUTO_INCREMENT PRIMARY KEY,
-                id_curso INT NOT NULL,
-                dia_semana VARCHAR(20) NOT NULL,
-                hora_inicio TIME NOT NULL,
-                hora_fin TIME NOT NULL,
-                FOREIGN KEY (id_curso) REFERENCES cursos(id_curso) ON DELETE CASCADE,
-                UNIQUE KEY uq_horario_curso (id_curso, dia_semana, hora_inicio, hora_fin)
-            )'
-        );
+        $tablasRequeridas = [
+            'horarios_cursos',
+            'solicitudes_inscripcion',
+            'qr_tokens'
+        ];
 
-        $this->db->exec(
-            'CREATE TABLE IF NOT EXISTS solicitudes_inscripcion (
-                id_solicitud INT AUTO_INCREMENT PRIMARY KEY,
-                id_curso INT NOT NULL,
-                id_alumno INT NOT NULL,
-                estado ENUM("pendiente","aceptada","rechazada") DEFAULT "pendiente",
-                fecha_solicitud TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                FOREIGN KEY (id_curso) REFERENCES cursos(id_curso) ON DELETE CASCADE,
-                FOREIGN KEY (id_alumno) REFERENCES usuarios(id_usuario) ON DELETE CASCADE,
-                UNIQUE KEY uq_solicitud_curso_alumno (id_curso, id_alumno, estado)
-            )'
-        );
+        foreach ($tablasRequeridas as $tabla) {
+            $stmt = $this->db->prepare(
+                'SELECT COUNT(*)
+             FROM information_schema.tables
+             WHERE table_schema = DATABASE()
+               AND table_name = :tabla'
+            );
+            $stmt->execute([':tabla' => $tabla]);
 
-        $this->db->exec(
-            'CREATE TABLE IF NOT EXISTS qr_tokens (
-                id_qr_token INT AUTO_INCREMENT PRIMARY KEY,
-                token VARCHAR(64) NOT NULL UNIQUE,
-                id_sesion INT NOT NULL,
-                fecha_generacion TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-                fecha_expiracion TIMESTAMP NOT NULL,
-                activo BOOLEAN NOT NULL DEFAULT TRUE,
-                usado BOOLEAN NOT NULL DEFAULT FALSE,
-                FOREIGN KEY (id_sesion) REFERENCES sesiones(id_sesion) ON DELETE CASCADE,
-                INDEX idx_qr_token_token (token),
-                INDEX idx_qr_token_sesion (id_sesion),
-                INDEX idx_qr_token_expiracion (fecha_expiracion)
-            )'
-        );
-
-        try {
-            $this->db->exec('DROP TRIGGER IF EXISTS tr_qr_tokens_desactivar_expirados');
-        } catch (Throwable $e) {
-            // El procedimiento sp_generar_qr_token ya desactiva los tokens anteriores.
+            if ((int) $stmt->fetchColumn() === 0) {
+                throw new RuntimeException(
+                    "La tabla requerida '{$tabla}' no existe en la base de datos. " .
+                        "Ejecuta el script database_limpio.sql para crear la estructura completa."
+                );
+            }
         }
     }
 
@@ -623,11 +615,15 @@ public function obtenerListaAsistencia($idDocente, $idCurso, $fecha)
         $stmt = $this->db->prepare('SELECT id_grupo FROM grupos WHERE nombre = :nombre LIMIT 1');
         $stmt->execute([':nombre' => $nombre]);
         $id = $stmt->fetchColumn();
-        if ($id) return (int) $id;
-
-        $insert = $this->db->prepare('INSERT INTO grupos (nombre) VALUES (:nombre)');
-        $insert->execute([':nombre' => $nombre]);
-        return (int) $this->db->lastInsertId();
+        
+        if ($id) {
+            return (int) $id;
+        }
+        
+        // Si el grupo no existe, lanzar error (los grupos deben ser creados por prefectura)
+        throw new RuntimeException(
+            "El grupo '{$nombre}' no existe. Por favor, verifica que el grado y grupo sean válidos."
+        );
     }
 
     private function validarCursoDocente($idDocente, $idCurso)
@@ -654,8 +650,10 @@ public function obtenerListaAsistencia($idDocente, $idCurso, $fecha)
              VALUES (:id_curso, :fecha, :inicio, :fin, :codigo)'
         );
         $insert->execute([
-            ':id_curso' => $idCurso, ':fecha' => $fecha,
-            ':inicio' => $horario['inicio'], ':fin' => $horario['fin'],
+            ':id_curso' => $idCurso,
+            ':fecha' => $fecha,
+            ':inicio' => $horario['inicio'],
+            ':fin' => $horario['fin'],
             ':codigo' => 'SES-' . $idCurso . '-' . str_replace('-', '', $fecha),
         ]);
         return (int) $this->db->lastInsertId();
@@ -674,9 +672,15 @@ public function obtenerListaAsistencia($idDocente, $idCurso, $fecha)
 
     private function mapearEstadoAsistencia($estado)
     {
-        $mapa = ['asistencia' => 'presente', 'presente' => 'presente', 'retardo' => 'retardo',
-                 'falta' => 'falta', 'dudoso' => 'dudoso', 'pendiente' => 'falta', 
-                 'falta_retardo' => 'falta_retardo']; // <--- NUEVO
+        $mapa = [
+            'asistencia' => 'presente',
+            'presente' => 'presente',
+            'retardo' => 'retardo',
+            'falta' => 'falta',
+            'dudoso' => 'dudoso',
+            'pendiente' => 'falta',
+            'falta_retardo' => 'falta_retardo'
+        ]; // <--- NUEVO
         return $mapa[$estado] ?? 'falta';
     }
 
