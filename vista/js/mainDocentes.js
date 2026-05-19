@@ -223,89 +223,134 @@ function guardarAsistencia() {
    FUNCIONES DE EXPORTACIÓN (EXCEL / PDF)
 ========================================= */
 
-function exportarExcelLista() {
+window.exportarExcelLista = function () {
     const grupo = document.getElementById('grupo-select');
     const grupoNombre = grupo ? grupo.options[grupo.selectedIndex]?.text : '';
 
     if (!grupo || !grupo.value) {
-        alert("Por favor, seleccione un grupo antes de exportar.");
+        Swal.fire({ title: 'Sin datos', text: 'Por favor, seleccione un grupo antes de exportar.', icon: 'warning', confirmButtonColor: '#192A56' });
         return;
     }
 
-    // Obtener datos de la tabla
     const filas = document.querySelectorAll('#lista-alumnos-body tr');
-
     if (filas.length === 0) {
-        alert("No hay alumnos en la lista para exportar.");
+        Swal.fire({ title: 'Sin datos', text: 'No hay alumnos en la lista para exportar.', icon: 'warning', confirmButtonColor: '#192A56' });
         return;
     }
 
-    // Obtener fecha actual
     const fecha = document.getElementById('current-date-display')?.innerText || new Date().toLocaleDateString('es-ES');
     const trimestre = document.getElementById('trimestre-activo')?.value || '';
 
-    // Construir contenido CSV
-    let contenido = '\uFEFF'; // BOM para UTF-8
-    contenido += `CONTROL DE ASISTENCIA\n`;
-    contenido += `Grupo: "${grupoNombre}"\n`;
-    contenido += `Fecha: "${fecha}"\n`;
-    contenido += `Periodo: "${trimestre}"\n\n`;
-    contenido += `No.,Alumno,Matrícula,Estado\n`;
+    // 1. CLONAR LA TABLA PARA LIMPIARLA SIN AFECTAR LA PANTALLA
+    const tablaOriginal = document.querySelector('.tabla-moderna');
+    const tablaClon = tablaOriginal.cloneNode(true);
 
-    let contador = 1;
-    filas.forEach(fila => {
-        const nombre = fila.querySelector('b')?.innerText || '';
-        const matricula = fila.querySelector('small')?.innerText?.replace('Matrícula: ', '') || '';
-        const badge = fila.querySelector('.badge');
-        let estado = 'Sin registro';
+    // 2. ELIMINAR LA COLUMNA DE "ACCIONES" (BOTONES) Y LAS IMÁGENES (AVATARES)
+    const ths = tablaClon.querySelectorAll('th');
+    if (ths.length > 0) ths[ths.length - 1].remove(); // Quita encabezado de Acciones
 
-        if (badge) {
-            if (badge.classList.contains('badge-asistencia')) estado = 'Presente';
-            else if (badge.classList.contains('badge-retardo')) estado = 'Retardo';
-            else if (badge.classList.contains('badge-falta')) estado = 'Falta';
-            else if (badge.classList.contains('badge-permiso')) estado = 'Permiso Justificado';
-            else if (badge.classList.contains('badge-pendiente')) estado = 'Sin registro';
+    const trs = tablaClon.querySelectorAll('tbody tr');
+    trs.forEach(tr => {
+        if (tr.children.length > 0) {
+            tr.removeChild(tr.lastElementChild); // Quita botones de asistencia
         }
-
-        contenido += `${contador},"${nombre}","${matricula}","${estado}"\n`;
-        contador++;
+        const img = tr.querySelector('img');
+        if (img) img.remove(); // Quita imagen para no romper el Excel
     });
 
-    // Agregar resumen
-    const presentes = document.getElementById('contador-presentes')?.textContent || '0';
-    const retardos = document.getElementById('contador-retardos')?.textContent || '0';
-    const faltas = document.getElementById('contador-faltas')?.textContent || '0';
-    const justificados = document.getElementById('contador-justificados')?.textContent || '0';
+    let tablaHTML = tablaClon.outerHTML;
+    const resumenHTML = document.getElementById('resumen-asistencia').innerHTML;
 
-    contenido += `\n`;
-    contenido += `RESUMEN\n`;
-    contenido += `"Presentes","${presentes}"\n`;
-    contenido += `"Retardos","${retardos}"\n`;
-    contenido += `"Faltas","${faltas}"\n`;
-    contenido += `"Justificados","${justificados}"\n`;
-    contenido += `\n`;
-    contenido += `"Documento generado el","${new Date().toLocaleDateString('es-ES')}"\n`;
-    contenido += `"Hora","${new Date().toLocaleTimeString('es-ES')}"\n`;
+    // 3. LIMPIEZA DE IDs
+    tablaHTML = tablaHTML.replace(/id="[^"]*"/g, '');
 
-    // Crear y descargar archivo
-    const blob = new Blob([contenido], { type: 'text/csv;charset=utf-8;' });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    link.href = url;
+    // 4. INYECCIÓN DE ESTILOS INSTITUCIONALES EN LÍNEA
+    // Encabezados
+    tablaHTML = tablaHTML.replace(/<th\b([^>]*)>/gi, '<th$1 style="background-color: #192A56; color: #FFFFFF; font-weight: bold; border: 1px solid #334155; text-align: center; padding: 8px; font-size: 10pt; text-transform: uppercase;">');
 
-    // Nombre del archivo con fecha
-    const fechaArchivo = new Date().toISOString().split('T')[0];
-    const nombreGrupo = grupo.value.replace(/[^a-zA-Z0-9]/g, '_');
-    link.download = `Lista_Asistencia_${nombreGrupo}_${fechaArchivo}.csv`;
+    // Celdas normales
+    tablaHTML = tablaHTML.replace(/<td\b([^>]*)>/gi, '<td$1 style="border: 1px solid #E2E8F0; text-align: center; padding: 7px; font-size: 10pt; vertical-align: middle; color: #1E293B;">');
 
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    URL.revokeObjectURL(url);
+    // Forzar alineación a la izquierda para los nombres
+    tablaHTML = tablaHTML.replace(/<div class="student-info-table">/gi, '<div style="text-align: left; padding-left: 5px;">');
 
-    // Mostrar toast de confirmación
-    mostrarToast('✅ Archivo Excel descargado exitosamente', 'success');
-}
+    // 5. TRADUCCIÓN DE CLASES CSS A COLORES HEXADECIMALES PARA EXCEL
+    tablaHTML = tablaHTML.replace(/class="[^"]*badge-asistencia[^"]*"/gi, 'style="color: #10B981; font-weight: bold; font-size: 11pt;"');
+    tablaHTML = tablaHTML.replace(/class="[^"]*badge-retardo[^"]*"/gi, 'style="color: #D97706; font-weight: bold; font-size: 11pt;"');
+    tablaHTML = tablaHTML.replace(/class="[^"]*badge-falta[^"]*"/gi, 'style="color: #EF4444; font-weight: bold; font-size: 11pt;"');
+    tablaHTML = tablaHTML.replace(/class="[^"]*badge-permiso[^"]*"/gi, 'style="color: #192A56; font-weight: bold; font-size: 11pt;"');
+    tablaHTML = tablaHTML.replace(/class="[^"]*badge-pendiente[^"]*"/gi, 'style="color: #94A3B8; font-size: 10pt;"');
+
+    // 6. FORMATO DEL RESUMEN FINAL
+    const resumenFormateado = `
+        <table>
+            <tr><td colspan="2" style="border: none; height: 12px;"></td></tr>
+            <tr>
+                <td colspan="2" style="background-color: #FEF9F0; border: 1px solid #F3E8D6; padding: 12px; text-align: center; font-size: 10.5pt; color: #1E293B; border-radius: 6px;">
+                    ${resumenHTML
+            .replace(/<span\b([^>]*)>/gi, '<span style="margin: 0 15px;">')
+            .replace(/<strong\b([^>]*)>/gi, '<strong style="color: #192A56; font-size:12pt; margin-left: 5px;">')}
+                </td>
+            </tr>
+        </table>
+    `;
+
+    // 7. LANZAR MODAL DE CONFIRMACIÓN
+    Swal.fire({
+        title: 'Exportar a Excel',
+        html: `<p>Se generará el archivo de la clase <strong>${grupoNombre}</strong>.</p>
+               <p style="font-size:0.85rem; color:#64748B;">Se ha optimizado el diseño para coincidir con la impresión en PDF.</p>`,
+        icon: 'info',
+        showCancelButton: true,
+        confirmButtonText: '<i class="fa-solid fa-file-excel"></i> Descargar',
+        cancelButtonText: 'Cancelar',
+        confirmButtonColor: '#10B981',
+        cancelButtonColor: '#64748B',
+        customClass: { popup: 'swal-solicitud-popup' }
+    }).then((result) => {
+        if (result.isConfirmed) {
+
+            const htmlCompleto = `
+                <html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel" xmlns="http://www.w3.org/TR/REC-html40">
+                <head>
+                    <meta charset="UTF-8">
+                    </head>
+                <body style="font-family: 'Segoe UI', Arial, sans-serif;">
+                    <table>
+                        <tr>
+                            <th colspan="2" style="font-size: 16pt; text-align: center; background-color: #ffffff; color: #192A56; font-weight: bold; border: none; padding-top: 10px;">Esc.Sec.Gral. Lic. "Benito Juarez"</th>
+                        </tr>
+                        <tr>
+                            <th colspan="2" style="font-size: 11pt; text-align: center; background-color: #ffffff; color: #64748B; font-weight: normal; border: none;">Clase: ${grupoNombre} | Fecha: ${fecha} | ${trimestre}</th>
+                        </tr>
+                        <tr><td colspan="2" style="border: none; height: 10px;"></td></tr>
+                    </table>
+                    ${tablaHTML}
+                    ${resumenFormateado}
+                </body>
+                </html>
+            `;
+
+            const blob = new Blob([htmlCompleto], { type: 'application/vnd.ms-excel;charset=utf-8' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+
+            // Generar nombre de archivo limpio
+            const fechaArchivo = new Date().toISOString().split('T')[0];
+            const nombreLimpio = grupoNombre.replace(/[^a-zA-Z0-9]/g, '_');
+            a.download = `Asistencia_${nombreLimpio}_${fechaArchivo}.xls`;
+
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+
+            // Notificación de éxito usando tu función existente
+            mostrarToast('✅ Archivo Excel descargado exitosamente', 'success');
+        }
+    });
+};
 
 
 function exportarPDFLista() {
