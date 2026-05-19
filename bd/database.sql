@@ -191,6 +191,21 @@ CREATE TABLE IF NOT EXISTS solicitudes_inscripcion (
     UNIQUE KEY uq_solicitud_curso_alumno (id_curso, id_alumno, estado)
 );
 
+CREATE TABLE IF NOT EXISTS configuracion_sistema (
+    id INT PRIMARY KEY DEFAULT 1,
+    limite_justificacion_dias INT NOT NULL DEFAULT 3,
+    ciclo_activo VARCHAR(20) NOT NULL DEFAULT '2025-2026',
+    trim1_inicio DATE NOT NULL,
+    trim1_fin DATE NOT NULL,
+    trim2_inicio DATE NOT NULL,
+    trim2_fin DATE NOT NULL,
+    trim3_inicio DATE NOT NULL,
+    trim3_fin DATE NOT NULL,
+    nombre_director VARCHAR(120) NOT NULL DEFAULT 'Prof. Gustavo Eleazar Viveros Niño',
+    fecha_actualizacion TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    CONSTRAINT chk_configuracion_sistema_unica CHECK (id = 1)
+);
+
 -- ==========================================================
 -- 🔐 MÓDULO DE TOKENS QR DINÁMICOS
 -- Agregar este bloque al final de tu script actual.
@@ -392,6 +407,39 @@ WHERE qt.activo = TRUE
 -- 📥 DATOS DE EJEMPLO (SHA2)
 -- =========================================
 
+INSERT INTO configuracion_sistema (
+    id,
+    limite_justificacion_dias,
+    ciclo_activo,
+    trim1_inicio,
+    trim1_fin,
+    trim2_inicio,
+    trim2_fin,
+    trim3_inicio,
+    trim3_fin,
+    nombre_director
+) VALUES (
+    1,
+    3,
+    '2025-2026',
+    '2025-08-28',
+    '2025-11-20',
+    '2025-11-21',
+    '2026-03-10',
+    '2026-03-11',
+    '2026-07-15',
+    'Prof. Gustavo Eleazar Viveros Niño'
+) ON DUPLICATE KEY UPDATE
+    limite_justificacion_dias = VALUES(limite_justificacion_dias),
+    ciclo_activo = VALUES(ciclo_activo),
+    trim1_inicio = VALUES(trim1_inicio),
+    trim1_fin = VALUES(trim1_fin),
+    trim2_inicio = VALUES(trim2_inicio),
+    trim2_fin = VALUES(trim2_fin),
+    trim3_inicio = VALUES(trim3_inicio),
+    trim3_fin = VALUES(trim3_fin),
+    nombre_director = VALUES(nombre_director);
+
 -- 👤 ADMIN (PREFECTO) - ID 1
 INSERT INTO usuarios (nombre, apellido, correo, password, rol, curp, clave_docente, nss, rfc, estado) VALUES
 ('Administrador', 'Prefectura', 'prefectura@secgralbj.edu.mx', SHA2('Prefectura2024!', 256), 'admin', 
@@ -460,16 +508,16 @@ INSERT INTO asignaturas (nombre) VALUES
 
 -- 🎯 CURSOS
 INSERT INTO cursos (id_asignatura, id_docente, id_grupo, codigo_clase, periodo) VALUES
-(3, 3, 1, 'HIST-101', '2024-2025'),
-(1, 4, 1, 'MAT-202', '2024-2025'),
-(4, 5, 1, 'FIS-301', '2024-2025'),
-(2, 3, 1, 'ESP-101', '2024-2025'),
-(1, 4, 2, 'MAT-103', '2024-2025'),
-(2, 3, 2, 'ESP-102', '2024-2025'),
-(3, 2, 3, 'HIST-201', '2024-2025'),
-(4, 6, 3, 'FIS-202', '2024-2025'),
-(5, 2, 1, 'EDF-101', '2024-2025'),
-(6, 5, 2, 'ART-102', '2024-2025');
+(3, 3, 1, 'HIST-101', '2025-2026'),
+(1, 4, 1, 'MAT-202', '2025-2026'),
+(4, 5, 1, 'FIS-301', '2025-2026'),
+(2, 3, 1, 'ESP-101', '2025-2026'),
+(1, 4, 2, 'MAT-103', '2025-2026'),
+(2, 3, 2, 'ESP-102', '2025-2026'),
+(3, 2, 3, 'HIST-201', '2025-2026'),
+(4, 6, 3, 'FIS-202', '2025-2026'),
+(5, 2, 1, 'EDF-101', '2025-2026'),
+(6, 5, 2, 'ART-102', '2025-2026');
 
 -- 🧾 INSCRIPCIONES
 INSERT INTO inscripciones (id_curso, id_alumno) VALUES
@@ -589,10 +637,9 @@ BEGIN
     DECLARE v_fecha_fin DATE;
     
     CASE p_trimestre
-        WHEN 1 THEN SET v_fecha_inicio = CONCAT(p_anio, '-01-01'), v_fecha_fin = CONCAT(p_anio, '-03-31');
-        WHEN 2 THEN SET v_fecha_inicio = CONCAT(p_anio, '-04-01'), v_fecha_fin = CONCAT(p_anio, '-06-30');
-        WHEN 3 THEN SET v_fecha_inicio = CONCAT(p_anio, '-07-01'), v_fecha_fin = CONCAT(p_anio, '-09-30');
-        WHEN 4 THEN SET v_fecha_inicio = CONCAT(p_anio, '-10-01'), v_fecha_fin = CONCAT(p_anio, '-12-31');
+        WHEN 1 THEN SELECT trim1_inicio, trim1_fin INTO v_fecha_inicio, v_fecha_fin FROM configuracion_sistema WHERE id = 1;
+        WHEN 2 THEN SELECT trim2_inicio, trim2_fin INTO v_fecha_inicio, v_fecha_fin FROM configuracion_sistema WHERE id = 1;
+        WHEN 3 THEN SELECT trim3_inicio, trim3_fin INTO v_fecha_inicio, v_fecha_fin FROM configuracion_sistema WHERE id = 1;
         ELSE SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Trimestre inválido.';
     END CASE;
     
@@ -623,10 +670,9 @@ BEGIN
     DECLARE v_fecha_fin DATE;
     
     CASE p_trimestre
-        WHEN 1 THEN SET v_fecha_inicio = CONCAT(p_anio, '-01-01'), v_fecha_fin = CONCAT(p_anio, '-03-31');
-        WHEN 2 THEN SET v_fecha_inicio = CONCAT(p_anio, '-04-01'), v_fecha_fin = CONCAT(p_anio, '-06-30');
-        WHEN 3 THEN SET v_fecha_inicio = CONCAT(p_anio, '-07-01'), v_fecha_fin = CONCAT(p_anio, '-09-30');
-        WHEN 4 THEN SET v_fecha_inicio = CONCAT(p_anio, '-10-01'), v_fecha_fin = CONCAT(p_anio, '-12-31');
+        WHEN 1 THEN SELECT trim1_inicio, trim1_fin INTO v_fecha_inicio, v_fecha_fin FROM configuracion_sistema WHERE id = 1;
+        WHEN 2 THEN SELECT trim2_inicio, trim2_fin INTO v_fecha_inicio, v_fecha_fin FROM configuracion_sistema WHERE id = 1;
+        WHEN 3 THEN SELECT trim3_inicio, trim3_fin INTO v_fecha_inicio, v_fecha_fin FROM configuracion_sistema WHERE id = 1;
         ELSE SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Trimestre inválido.';
     END CASE;
     
@@ -661,10 +707,9 @@ BEGIN
     DECLARE v_fecha_fin DATE;
     
     CASE p_trimestre
-        WHEN 1 THEN SET v_fecha_inicio = CONCAT(p_anio, '-01-01'), v_fecha_fin = CONCAT(p_anio, '-03-31');
-        WHEN 2 THEN SET v_fecha_inicio = CONCAT(p_anio, '-04-01'), v_fecha_fin = CONCAT(p_anio, '-06-30');
-        WHEN 3 THEN SET v_fecha_inicio = CONCAT(p_anio, '-07-01'), v_fecha_fin = CONCAT(p_anio, '-09-30');
-        WHEN 4 THEN SET v_fecha_inicio = CONCAT(p_anio, '-10-01'), v_fecha_fin = CONCAT(p_anio, '-12-31');
+        WHEN 1 THEN SELECT trim1_inicio, trim1_fin INTO v_fecha_inicio, v_fecha_fin FROM configuracion_sistema WHERE id = 1;
+        WHEN 2 THEN SELECT trim2_inicio, trim2_fin INTO v_fecha_inicio, v_fecha_fin FROM configuracion_sistema WHERE id = 1;
+        WHEN 3 THEN SELECT trim3_inicio, trim3_fin INTO v_fecha_inicio, v_fecha_fin FROM configuracion_sistema WHERE id = 1;
         ELSE SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Trimestre inválido.';
     END CASE;
     
@@ -701,10 +746,9 @@ BEGIN
     DECLARE v_fecha_fin DATE;
     
     CASE p_trimestre
-        WHEN 1 THEN SET v_fecha_inicio = CONCAT(p_anio, '-01-01'), v_fecha_fin = CONCAT(p_anio, '-03-31');
-        WHEN 2 THEN SET v_fecha_inicio = CONCAT(p_anio, '-04-01'), v_fecha_fin = CONCAT(p_anio, '-06-30');
-        WHEN 3 THEN SET v_fecha_inicio = CONCAT(p_anio, '-07-01'), v_fecha_fin = CONCAT(p_anio, '-09-30');
-        WHEN 4 THEN SET v_fecha_inicio = CONCAT(p_anio, '-10-01'), v_fecha_fin = CONCAT(p_anio, '-12-31');
+        WHEN 1 THEN SELECT trim1_inicio, trim1_fin INTO v_fecha_inicio, v_fecha_fin FROM configuracion_sistema WHERE id = 1;
+        WHEN 2 THEN SELECT trim2_inicio, trim2_fin INTO v_fecha_inicio, v_fecha_fin FROM configuracion_sistema WHERE id = 1;
+        WHEN 3 THEN SELECT trim3_inicio, trim3_fin INTO v_fecha_inicio, v_fecha_fin FROM configuracion_sistema WHERE id = 1;
         ELSE SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Trimestre inválido.';
     END CASE;
     
@@ -745,7 +789,7 @@ BEGIN
     INNER JOIN asignaturas a ON c.id_asignatura = a.id_asignatura
     INNER JOIN usuarios u ON c.id_docente = u.id_usuario
     INNER JOIN grupos g ON c.id_grupo = g.id_grupo
-    WHERE c.periodo = (SELECT MAX(periodo) FROM cursos)
+    WHERE c.periodo = (SELECT ciclo_activo FROM configuracion_sistema WHERE id = 1)
     ORDER BY c.codigo_clase;
 END$$
 DELIMITER ;

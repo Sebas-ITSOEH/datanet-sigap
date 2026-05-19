@@ -192,6 +192,9 @@ async function loadSection(sectionName) {
 
         if (viewContainer) {
             viewContainer.innerHTML = await response.text();
+            if (typeof window.aplicarConfiguracionSistema === 'function') {
+                window.aplicarConfiguracionSistema(await window.obtenerConfiguracionSistema());
+            }
             viewContainer.classList.remove('fade-in');
             void viewContainer.offsetWidth;
             viewContainer.classList.add('fade-in');
@@ -729,8 +732,11 @@ async function verificarCodigo() {
             `${claseEncontradaActual.materia} (${claseEncontradaActual.grupo})`;
         document.getElementById('confirm-docente-clase').innerText =
             `Prof. ${claseEncontradaActual.docente}`;
+        const configSistema = typeof window.obtenerConfiguracionSistema === 'function'
+            ? await window.obtenerConfiguracionSistema()
+            : {};
         document.getElementById('confirm-ciclo-clase').innerText =
-            claseEncontradaActual.periodo || 'Actual';
+            claseEncontradaActual.periodo || configSistema.ciclo_activo || 'Actual';
         document.getElementById('step-1-codigo').style.display = 'none';
 
         const step2 = document.getElementById('step-2-confirmacion');

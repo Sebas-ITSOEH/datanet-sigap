@@ -447,30 +447,79 @@ class ModeloPrefectura {
     // ============================================================
     // CONFIGURACIÓN DEL SISTEMA
     // ============================================================
+    private static function configuracionPorDefecto() {
+        return [
+            'id' => 1,
+            'limite_justificacion_dias' => 3,
+            'ciclo_activo' => '2025-2026',
+            'trim1_inicio' => '2025-08-28',
+            'trim1_fin' => '2025-11-20',
+            'trim2_inicio' => '2025-11-21',
+            'trim2_fin' => '2026-03-10',
+            'trim3_inicio' => '2026-03-11',
+            'trim3_fin' => '2026-07-15',
+            'nombre_director' => 'Prof. Gustavo Eleazar Viveros Niño'
+        ];
+    }
+
     public static function mdlObtenerConfiguracion() {
-        $stmt = Conexion::conectar()->prepare("SELECT * FROM configuracion_sistema WHERE id = 1");
-        $stmt->execute();
-        return $stmt->fetch(PDO::FETCH_ASSOC);
+        try {
+            $stmt = Conexion::conectar()->prepare("SELECT * FROM configuracion_sistema WHERE id = 1");
+            $stmt->execute();
+            $config = $stmt->fetch(PDO::FETCH_ASSOC);
+            return $config ?: self::configuracionPorDefecto();
+        } catch (PDOException $e) {
+            return self::configuracionPorDefecto();
+        }
     }
 
     public static function mdlActualizarConfiguracion($datos) {
         $pdo = Conexion::conectar();
-        $stmt = $pdo->prepare("UPDATE configuracion_sistema SET 
-            limite_justificacion_dias = :limite, 
-            ciclo_activo = :ciclo, 
-            trim1_inicio = :t1_ini, trim1_fin = :t1_fin, 
-            trim2_inicio = :t2_ini, trim2_fin = :t2_fin, 
-            trim3_inicio = :t3_ini, trim3_fin = :t3_fin 
-            WHERE id = 1");
+        $config = array_merge(self::configuracionPorDefecto(), is_array($datos) ? $datos : []);
+        $stmt = $pdo->prepare("INSERT INTO configuracion_sistema (
+                id,
+                limite_justificacion_dias,
+                ciclo_activo,
+                trim1_inicio,
+                trim1_fin,
+                trim2_inicio,
+                trim2_fin,
+                trim3_inicio,
+                trim3_fin,
+                nombre_director
+            ) VALUES (
+                1,
+                :limite,
+                :ciclo,
+                :t1_ini,
+                :t1_fin,
+                :t2_ini,
+                :t2_fin,
+                :t3_ini,
+                :t3_fin,
+                :director
+            )
+            ON DUPLICATE KEY UPDATE
+                limite_justificacion_dias = VALUES(limite_justificacion_dias),
+                ciclo_activo = VALUES(ciclo_activo),
+                trim1_inicio = VALUES(trim1_inicio),
+                trim1_fin = VALUES(trim1_fin),
+                trim2_inicio = VALUES(trim2_inicio),
+                trim2_fin = VALUES(trim2_fin),
+                trim3_inicio = VALUES(trim3_inicio),
+                trim3_fin = VALUES(trim3_fin),
+                nombre_director = VALUES(nombre_director)");
         
-        $stmt->bindParam(":limite", $datos['limite_dias'], PDO::PARAM_INT);
-        $stmt->bindParam(":ciclo", $datos['ciclo_activo'], PDO::PARAM_STR);
-        $stmt->bindParam(":t1_ini", $datos['trim1_inicio'], PDO::PARAM_STR);
-        $stmt->bindParam(":t1_fin", $datos['trim1_fin'], PDO::PARAM_STR);
-        $stmt->bindParam(":t2_ini", $datos['trim2_inicio'], PDO::PARAM_STR);
-        $stmt->bindParam(":t2_fin", $datos['trim2_fin'], PDO::PARAM_STR);
-        $stmt->bindParam(":t3_ini", $datos['trim3_inicio'], PDO::PARAM_STR);
-        $stmt->bindParam(":t3_fin", $datos['trim3_fin'], PDO::PARAM_STR);
+        $limite = (int)($config['limite_dias'] ?? $config['limite_justificacion_dias']);
+        $stmt->bindParam(":limite", $limite, PDO::PARAM_INT);
+        $stmt->bindParam(":ciclo", $config['ciclo_activo'], PDO::PARAM_STR);
+        $stmt->bindParam(":t1_ini", $config['trim1_inicio'], PDO::PARAM_STR);
+        $stmt->bindParam(":t1_fin", $config['trim1_fin'], PDO::PARAM_STR);
+        $stmt->bindParam(":t2_ini", $config['trim2_inicio'], PDO::PARAM_STR);
+        $stmt->bindParam(":t2_fin", $config['trim2_fin'], PDO::PARAM_STR);
+        $stmt->bindParam(":t3_ini", $config['trim3_inicio'], PDO::PARAM_STR);
+        $stmt->bindParam(":t3_fin", $config['trim3_fin'], PDO::PARAM_STR);
+        $stmt->bindParam(":director", $config['nombre_director'], PDO::PARAM_STR);
         
         return $stmt->execute() ? "ok" : "error";
     }

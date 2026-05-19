@@ -143,6 +143,9 @@ async function loadSection(sectionName) {
 
         const html = await response.text();
         viewContainer.innerHTML = html;
+        if (typeof window.aplicarConfiguracionSistema === 'function') {
+            window.aplicarConfiguracionSistema(await window.obtenerConfiguracionSistema());
+        }
 
         // Reiniciar animación para que se vea el cambio suave
         viewContainer.classList.remove('fade-in');
@@ -195,9 +198,23 @@ function inicializarPaseLista() {
 
 function obtenerTrimestreActual() {
     const fecha = new Date();
+    const config = window.configuracionSistemaActual || {};
+    const fechaISO = fecha.toISOString().slice(0, 10);
+
+    if (config.trim1_inicio && config.trim1_fin && fechaISO >= config.trim1_inicio && fechaISO <= config.trim1_fin) {
+        return "1er Trimestre";
+    }
+
+    if (config.trim2_inicio && config.trim2_fin && fechaISO >= config.trim2_inicio && fechaISO <= config.trim2_fin) {
+        return "2do Trimestre";
+    }
+
+    if (config.trim3_inicio && config.trim3_fin && fechaISO >= config.trim3_inicio && fechaISO <= config.trim3_fin) {
+        return "3er Trimestre";
+    }
+
     const mes = fecha.getMonth() + 1;
     const dia = fecha.getDate();
-
     if ((mes === 9 && dia >= 1) || (mes === 10) || (mes === 11 && dia <= 21)) {
         return "1er Trimestre";
     }
@@ -1035,7 +1052,7 @@ function cargarClasesActivas() {
     container.innerHTML = clasesData.map(clase => `
         <div class="clase-card">
             <div class="clase-banner">
-                <span class="ciclo-tag">2025-2026</span>
+                <span class="ciclo-tag" data-config="ciclo_activo">${window.configuracionSistemaActual?.ciclo_activo || '2025-2026'}</span>
                 <div class="clase-icon">
                     <i class="fa-solid ${clase.icono}"></i>
                 </div>

@@ -711,6 +711,16 @@ class Docente
 
     private function periodoActual()
     {
+        try {
+            $stmt = $this->db->query('SELECT ciclo_activo FROM configuracion_sistema WHERE id = 1 LIMIT 1');
+            $ciclo = $stmt->fetchColumn();
+            if ($ciclo) {
+                return $ciclo;
+            }
+        } catch (PDOException $e) {
+            // Permite que instalaciones sin la migración sigan calculando el periodo.
+        }
+
         $anio = (int) date('Y');
         $mes = (int) date('n');
         return $mes >= 8 ? $anio . '-' . ($anio + 1) : ($anio - 1) . '-' . $anio;

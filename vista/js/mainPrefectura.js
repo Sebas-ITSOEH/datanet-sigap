@@ -97,6 +97,9 @@ document.addEventListener('DOMContentLoaded', function () {
             const html = await response.text();
 
             viewContainer.innerHTML = html;
+            if (typeof window.aplicarConfiguracionSistema === 'function') {
+                window.aplicarConfiguracionSistema(await window.obtenerConfiguracionSistema());
+            }
             viewContainer.classList.remove('fade-in');
             void viewContainer.offsetWidth;
             viewContainer.classList.add('fade-in');
@@ -179,6 +182,9 @@ function navigateToSection(sectionName) {
             .then(response => response.text())
             .then(html => {
                 viewContainer.innerHTML = html;
+                if (typeof window.aplicarConfiguracionSistema === 'function') {
+                    window.obtenerConfiguracionSistema().then(window.aplicarConfiguracionSistema);
+                }
                 viewContainer.classList.remove('fade-in');
                 void viewContainer.offsetWidth;
                 viewContainer.classList.add('fade-in');
@@ -660,7 +666,10 @@ function initControlLogic() {
         });
     };
 
-    function descargarPermiso(d) {
+    async function descargarPermiso(d) {
+        const configSistema = typeof window.obtenerConfiguracionSistema === 'function'
+            ? await window.obtenerConfiguracionSistema()
+            : {};
         var fh = new Date().toLocaleDateString('es-MX', { year: 'numeric', month: 'long', day: 'numeric' });
         var tf = d.tipoFalta === 'completa'
             ? 'Día Completo'
@@ -671,6 +680,7 @@ function initControlLogic() {
             telefono: '778 737 0111',
             logo: 'vista/vPrefectura/img/logo-escuela.png'
         };
+        var director = prefecturaEscapeHTML(configSistema.nombre_director || 'Prof. Gustavo Eleazar Viveros Niño');
         var folio = 'SEC-2026-' + String(d.id || '000').padStart(4, '0');
         var datosQR = encodeURIComponent(`FOLIO: ${folio}\nALUMNO: ${d.nombre}\nGRUPO: ${d.grupo}\nTUTOR: ${d.tutor}\nFECHA: ${d.fecha}\nMOTIVO: ${d.motivo}`);
         var qrURL = `https://api.qrserver.com/v1/create-qr-code/?size=120x120&data=${datosQR}&bgcolor=FFFFFF&color=192A56`;
@@ -719,7 +729,7 @@ function initControlLogic() {
                     <div class="j-seccion"><h2>DETALLE DE LA AUSENCIA</h2><div class="j-datos"><div class="j-dato"><label>Motivo</label><span>${d.motivo}</span></div><div class="j-dato"><label>Fecha</label><span>${d.fecha}</span></div><div class="j-dato"><label>Duración</label><span>${d.dias || '1 día'}</span></div><div class="j-dato"><label>Tipo</label><span>${tf}</span></div></div></div>
                     <div class="j-sello"><span>✔ AUTORIZADO</span></div>
                     <div class="j-firmas">
-                        <div class="j-firma"><div class="linea"></div><div class="nombre">Mtra. Laura Hernández García</div><div class="cargo">Directora Escolar</div></div>
+                        <div class="j-firma"><div class="linea"></div><div class="nombre">${director}</div><div class="cargo">Dirección Escolar</div></div>
                         <div class="j-firma"><div class="linea"></div><div class="nombre">${d.tutor}</div><div class="cargo">Padre/Madre/Tutor</div></div>
                     </div>
                 </div>
@@ -1961,6 +1971,7 @@ function initSistemaLogic() {
             if (data && data.configuracion) {
                 const conf = data.configuracion;
                 if (document.getElementById('limite-dias')) document.getElementById('limite-dias').value = conf.limite_justificacion_dias;
+                if (document.getElementById('nombre-director')) document.getElementById('nombre-director').value = conf.nombre_director || '';
                 if (document.getElementById('ciclo-activo')) document.getElementById('ciclo-activo').value = conf.ciclo_activo;
 
                 if (document.getElementById('trim1-inicio')) document.getElementById('trim1-inicio').value = conf.trim1_inicio;
@@ -1981,6 +1992,7 @@ function initSistemaLogic() {
     window.guardarConfiguracionSistema = async function () {
         const datos = {
             limite_dias: document.getElementById('limite-dias') ? document.getElementById('limite-dias').value : '3',
+            nombre_director: document.getElementById('nombre-director') ? document.getElementById('nombre-director').value.trim() : '',
             ciclo_activo: document.getElementById('ciclo-activo') ? document.getElementById('ciclo-activo').value : '2025-2026',
             trim1_inicio: document.getElementById('trim1-inicio') ? document.getElementById('trim1-inicio').value : '',
             trim1_fin: document.getElementById('trim1-fin') ? document.getElementById('trim1-fin').value : '',
@@ -1998,6 +2010,11 @@ function initSistemaLogic() {
             });
 
             await apiPrefectura('actualizar_configuracion', { method: 'POST', body: datos });
+            window.configuracionSistemaActual = null;
+            if (typeof window.obtenerConfiguracionSistema === 'function') {
+                const config = await window.obtenerConfiguracionSistema();
+                if (typeof window.aplicarConfiguracionSistema === 'function') window.aplicarConfiguracionSistema(config);
+            }
 
             Swal.fire({
                 title: '¡Configuración Guardada!',
