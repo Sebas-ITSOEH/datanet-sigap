@@ -3,8 +3,8 @@
 class Conexion
 {
     private const HOST = 'localhost';
-    private const DB_NAME = 'u613901464_datanet';
-    private const USER = 'u613901464_datanet_app';
+    private const DB_NAME = 'datanet';
+    private const USER = 'datanet_app';
     private const PASSWORD = 'DatanetApp2026!';
     private const CHARSET = 'utf8mb4';
 

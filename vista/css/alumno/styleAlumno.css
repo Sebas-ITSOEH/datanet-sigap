@@ -21,11 +21,11 @@
 /* =========================================
    ESTILOS BASE
 ========================================= */
-body { 
-    font-family: 'Inter', sans-serif; 
-    background-color: var(--bg); 
-    color: var(--text-main); 
-    margin: 0; 
+body {
+    font-family: 'Inter', sans-serif;
+    background-color: var(--bg);
+    color: var(--text-main);
+    margin: 0;
     display: flex;
     flex-direction: column;
     min-height: 100vh;
@@ -41,7 +41,7 @@ body {
     position: sticky;
     top: 0;
     z-index: 1000;
-    box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
 }
 
 .nav-alumno {
@@ -67,19 +67,19 @@ body {
     margin-left: 10px;
 }
 
-.main-title { 
-    font-family: 'Nunito', sans-serif; 
-    font-size: 1.4rem; 
-    font-weight: 800; 
-    color: white; 
-    line-height: 1; 
+.main-title {
+    font-family: 'Nunito', sans-serif;
+    font-size: 1.4rem;
+    font-weight: 800;
+    color: white;
+    line-height: 1;
 }
 
-.sub-title { 
-    font-size: 0.75rem; 
-    color: var(--color-dorado); 
-    text-transform: uppercase; 
-    letter-spacing: 1px; 
+.sub-title {
+    font-size: 0.75rem;
+    color: var(--color-dorado);
+    text-transform: uppercase;
+    letter-spacing: 1px;
     font-weight: 600;
 }
 
@@ -127,7 +127,7 @@ body {
 
 .btn-icon {
     background: transparent;
-    border: 1px solid rgba(255,255,255,0.2);
+    border: 1px solid rgba(255, 255, 255, 0.2);
     color: white;
     width: 40px;
     height: 40px;
@@ -140,15 +140,15 @@ body {
     justify-content: center;
 }
 
-.btn-icon:hover { 
-    background: var(--color-dorado); 
-    border-color: var(--color-dorado); 
-    transform: translateY(-2px); 
+.btn-icon:hover {
+    background: var(--color-dorado);
+    border-color: var(--color-dorado);
+    transform: translateY(-2px);
 }
 
-.btn-logout:hover { 
-    background: var(--color-rojo-oscuro); 
-    border-color: var(--color-rojo-oscuro); 
+.btn-logout:hover {
+    background: var(--color-rojo-oscuro);
+    border-color: var(--color-rojo-oscuro);
 }
 
 .perfil-header {
@@ -161,24 +161,32 @@ body {
     transition: background 0.3s;
 }
 
-.perfil-header:hover { 
-    background: rgba(255, 255, 255, 0.1); 
+.perfil-header:hover {
+    background: rgba(255, 255, 255, 0.1);
 }
 
-.user-text { 
-    text-align: right; 
-    display: flex; 
-    flex-direction: column; 
+.user-text {
+    text-align: right;
+    display: flex;
+    flex-direction: column;
 }
 
-.user-text .name { color: white; font-weight: 600; font-size: 0.9rem; }
-.user-text .role { color: var(--color-dorado); font-size: 0.75rem; }
+.user-text .name {
+    color: white;
+    font-weight: 600;
+    font-size: 0.9rem;
+}
 
-.user-avatar { 
-    width: 38px; 
-    height: 38px; 
-    border-radius: 50%; 
-    border: 2px solid var(--color-dorado); 
+.user-text .role {
+    color: var(--color-dorado);
+    font-size: 0.75rem;
+}
+
+.user-avatar {
+    width: 38px;
+    height: 38px;
+    border-radius: 50%;
+    border: 2px solid var(--color-dorado);
     object-fit: cover;
 }
 
@@ -195,17 +203,28 @@ main {
 }
 
 /* Animación de entrada */
-.fade-in { animation: fadeIn 0.4s ease-out; }
+.fade-in {
+    animation: fadeIn 0.4s ease-out;
+}
+
 @keyframes fadeIn {
-    from { opacity: 0; transform: translateY(10px); }
-    to { opacity: 1; transform: translateY(0); }
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
 }
 
 /* =========================================
    FOOTER CREATIVO (Adaptado a Institucional)
 ========================================= */
 .creative-footer {
-    background: var(--color-azul-marino); /* Actualizado al color institucional */
+    background: var(--color-azul-marino);
+    /* Actualizado al color institucional */
     color: var(--color-gris-claro);
     position: relative;
     padding-top: 4rem;
@@ -221,8 +240,14 @@ main {
     transform: rotate(180deg);
 }
 
-.footer-wave svg { width: 100%; height: 60px; }
-.footer-wave .shape-fill { fill: var(--bg); }
+.footer-wave svg {
+    width: 100%;
+    height: 60px;
+}
+
+.footer-wave .shape-fill {
+    fill: var(--bg);
+}
 
 .footer-content {
     max-width: 1200px;
@@ -234,21 +259,26 @@ main {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    border-bottom: 1px solid rgba(255,255,255,0.1);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
     padding-bottom: 2rem;
 }
 
-.footer-brand h3 { 
-    color: var(--white); 
-    margin: 0; 
-    letter-spacing: 2px; 
+.footer-brand h3 {
+    color: var(--white);
+    margin: 0;
+    letter-spacing: 2px;
     font-family: 'Nunito', sans-serif;
 }
-.footer-brand p { margin: 5px 0 0; font-size: 0.85rem; }
+
+.footer-brand p {
+    margin: 5px 0 0;
+    font-size: 0.85rem;
+}
 
 /* El indicador del footer ahora hace juego con el dorado */
 .status-indicator {
-    background: rgba(199, 160, 61, 0.15); /* Fondo dorado translúcido */
+    background: rgba(199, 160, 61, 0.15);
+    /* Fondo dorado translúcido */
     color: var(--color-dorado);
     padding: 6px 16px;
     border-radius: 20px;
@@ -261,22 +291,31 @@ main {
 }
 
 .dot {
-    width: 8px; height: 8px; 
-    background: var(--color-dorado); 
+    width: 8px;
+    height: 8px;
+    background: var(--color-dorado);
     border-radius: 50%;
     animation: pulse 2s infinite;
 }
 
 @keyframes pulse {
-    0% { box-shadow: 0 0 0 0 rgba(199, 160, 61, 0.7); }
-    70% { box-shadow: 0 0 0 8px rgba(199, 160, 61, 0); }
-    100% { box-shadow: 0 0 0 0 rgba(199, 160, 61, 0); }
+    0% {
+        box-shadow: 0 0 0 0 rgba(199, 160, 61, 0.7);
+    }
+
+    70% {
+        box-shadow: 0 0 0 8px rgba(199, 160, 61, 0);
+    }
+
+    100% {
+        box-shadow: 0 0 0 0 rgba(199, 160, 61, 0);
+    }
 }
 
-.footer-bottom { 
-    text-align: center; 
-    padding: 1.5rem 0; 
-    font-size: 0.8rem; 
+.footer-bottom {
+    text-align: center;
+    padding: 1.5rem 0;
+    font-size: 0.8rem;
     color: var(--color-gris-claro);
 }
 
@@ -284,51 +323,182 @@ main {
    MODAL CERRAR SESIÓN
 ========================================= */
 .modal-logout-overlay {
-    position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-    background: rgba(0,0,0,0.6); backdrop-filter: blur(4px);
-    z-index: 9999; display: flex; justify-content: center; align-items: center;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.6);
+    backdrop-filter: blur(4px);
+    z-index: 9999;
+    display: flex;
+    justify-content: center;
+    align-items: center;
 }
-.modal-logout-overlay.hidden { display: none !important; }
+
+.modal-logout-overlay.hidden {
+    display: none !important;
+}
 
 .modal-logout-content {
-    background: white; border-radius: 12px; width: 90%; max-width: 420px;
-    padding: 30px; text-align: left; box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+    background: white;
+    border-radius: 12px;
+    width: 90%;
+    max-width: 420px;
+    padding: 30px;
+    text-align: left;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
 }
 
 .logout-icon-container {
-    width: 80px; height: 80px; border-radius: 50%;
-    border: 4px solid #FDBA74; /* Naranja clarito de tu diseño */
-    color: #FDBA74; display: flex; justify-content: center; align-items: center;
-    font-size: 3rem; margin: 0 auto 20px; /* Centrado */
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    border: 4px solid #FDBA74;
+    /* Naranja clarito de tu diseño */
+    color: #FDBA74;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 3rem;
+    margin: 0 auto 20px;
+    /* Centrado */
 }
 
 .modal-logout-content h3 {
-    color: var(--color-azul-marino); font-size: 1.6rem; font-weight: 800; margin: 0 0 10px 0;
+    color: var(--color-azul-marino);
+    font-size: 1.6rem;
+    font-weight: 800;
+    margin: 0 0 10px 0;
 }
 
 .logout-divider {
-    border: none; border-top: 2px solid var(--color-dorado);
+    border: none;
+    border-top: 2px solid var(--color-dorado);
     margin: 10px 0 15px 0;
 }
 
 .modal-logout-content p {
-    color: #475569; font-size: 1.05rem; margin-bottom: 30px;
+    color: #475569;
+    font-size: 1.05rem;
+    margin-bottom: 30px;
 }
 
 .logout-actions {
-    display: flex; justify-content: center; gap: 15px;
+    display: flex;
+    justify-content: center;
+    gap: 15px;
 }
 
 .btn-logout-confirm {
-    background: var(--color-azul-marino); color: white; border: none;
-    padding: 10px 24px; border-radius: 6px; font-size: 1rem; font-weight: 600; 
-    cursor: pointer; display: flex; align-items: center; gap: 8px; transition: 0.2s;
+    background: var(--color-azul-marino);
+    color: white;
+    border: none;
+    padding: 10px 24px;
+    border-radius: 6px;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    transition: 0.2s;
 }
-.btn-logout-confirm:hover { background: #111D3E; transform: translateY(-2px); }
+
+.btn-logout-confirm:hover {
+    background: #111D3E;
+    transform: translateY(-2px);
+}
 
 .btn-logout-cancel {
-    background: #64748B; color: white; border: none;
-    padding: 10px 24px; border-radius: 6px; font-size: 1rem; font-weight: 600; 
-    cursor: pointer; transition: 0.2s;
+    background: #64748B;
+    color: white;
+    border: none;
+    padding: 10px 24px;
+    border-radius: 6px;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: 0.2s;
 }
-.btn-logout-cancel:hover { background: #475569; transform: translateY(-2px); }
+
+.btn-logout-cancel:hover {
+    background: #475569;
+    transform: translateY(-2px);
+}
+
+/* =========================================
+   DISEÑO RESPONSIVO (MÓVILES Y TABLETS)
+========================================= */
+@media (max-width: 768px) {
+    
+    /* 1. Quitar el encabezado fijo solo en celular */
+    .alumno-header {
+        position: relative; 
+    }
+
+    /* 2. Reorganizar la barra superior */
+    .nav-alumno {
+        flex-direction: column;
+        gap: 15px;
+        padding: 15px 10px;
+    }
+
+    .logotipo {
+        flex-direction: column;
+        text-align: center;
+    }
+
+    .brand-text {
+        margin-left: 0;
+        margin-top: 5px;
+    }
+
+    /* 3. Ajustar los enlaces del menú para que no se salgan de la pantalla */
+    .menu-alumno {
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: 10px;
+        width: 100%;
+    }
+
+    .menu-alumno a {
+        padding: 8px 12px;
+        font-size: 0.85rem;
+    }
+
+    /* 4. Centrar el perfil de usuario y el botón de salir */
+    .acciones-usuario-portal {
+        width: 100%;
+        justify-content: center;
+        flex-wrap: wrap;
+    }
+
+    /* 5. Darle más espacio al contenido en pantallas pequeñas */
+    main {
+        padding: 1.5rem 1rem;
+    }
+
+    /* 6. Reorganizar el Footer (igual que en el index principal) */
+    .footer-top {
+        flex-direction: column;
+        text-align: center;
+        gap: 2rem;
+    }
+
+    .footer-contact {
+        display: flex;
+        flex-direction: column;
+        gap: 15px;
+        align-items: center;
+    }
+
+    .contact-item {
+        justify-content: center;
+        text-align: center;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 5px;
+    }
+}

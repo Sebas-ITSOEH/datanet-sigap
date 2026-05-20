@@ -40,3 +40,32 @@
 .kpi-card:nth-child(2) span i { color: #F59E0B; } /* Retardos */
 .kpi-card:nth-child(3) span i { color: #EF4444; } /* Faltas */
 .kpi-card:nth-child(4) span i { color: #3B82F6; } /* Justificados */
+
+/* =========================================
+   DISEÑO RESPONSIVO PARA RESUMEN (MÓVILES)
+========================================= */
+@media (max-width: 768px) {
+    /* Pasa el cuadro oscuro principal de fila a columna */
+    .profile-card {
+        flex-direction: column;
+        text-align: center;
+        gap: 20px;
+        padding: 20px;
+    }
+    
+    .profile-stats {
+        text-align: center;
+    }
+
+    /* Pasa las 4 tarjetas (Presentes, Faltas, etc.) a 2 columnas */
+    .kpi-grid {
+        grid-template-columns: repeat(2, 1fr); 
+    }
+}
+
+@media (max-width: 480px) {
+    /* Si el teléfono es muy delgado, pasa a 1 sola columna */
+    .kpi-grid {
+        grid-template-columns: 1fr; 
+    }
+}

@@ -908,4 +908,3 @@ ON DUPLICATE KEY UPDATE
     validado_docente = TRUE;
 
 -- ===========================================================
-

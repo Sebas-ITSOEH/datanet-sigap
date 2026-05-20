@@ -49,13 +49,13 @@ button {
     transition: var(--transicion-suave);
 }
 
-/* --- Encabezado Principal --- */
+/* --- Encabezado Principal (Aplica para PC por defecto) --- */
 .encabezado-principal {
-    background-color: var(--color-azul-marino); /* Fondo Azul Marino */
+    background-color: var(--color-azul-marino); 
     color: var(--color-texto-blanco);
     padding: 1rem 5%;
-    position: sticky;
-    top: 0;
+    position: sticky; /* <--- Vuelve a poner esto para que en PC se quede fijo */
+    top: 0;           /* <--- Y esto también */
     z-index: 100;
 }
 
@@ -364,4 +364,94 @@ button {
     padding: 1.5rem 0; 
     font-size: 0.8rem; 
     color: var(--color-gris-claro);
+}
+
+/* =========================================
+   DISEÑO RESPONSIVO (MÓVILES Y TABLETS)
+========================================= */
+@media (max-width: 768px) {
+    
+    /* --- Este es el nuevo código que vas a agregar --- */
+    .encabezado-principal {
+        position: relative; /* Esto hace que el menú deje de ser fijo SOLO en celular */
+    }
+    
+    /* --- 1. Encabezado y Navegación (El código que ya habías puesto) --- */
+    .contenedor-navegacion {
+        flex-direction: column; 
+        gap: 1.5rem;
+        text-align: center;
+    }
+
+    .logotipo {
+        flex-direction: column; /* Apila el logo y el nombre de la escuela */
+        gap: 10px;
+    }
+
+    .menu-enlaces {
+        flex-wrap: wrap; /* Permite que los enlaces pasen a otra línea si no caben */
+        justify-content: center;
+        gap: 1rem;
+        padding: 0;
+    }
+
+    /* --- 2. Sección de Bienvenida (Héroe) --- */
+    .seccion-bienvenida {
+        flex-direction: column; /* Pasa la imagen debajo del texto */
+        padding: 3rem 5% 2rem;  /* Reduce los márgenes laterales */
+        text-align: center;     /* Centra todo el texto */
+        gap: 2rem;
+    }
+
+    .contenido-bienvenida h1 {
+        font-size: 2.2rem; /* Reduce el tamaño del título principal */
+    }
+
+    .botones-bienvenida {
+        justify-content: center; /* Centra los botones (si decides descomentarlos) */
+    }
+
+    .ilustracion-escolar {
+        width: 200px;  /* Reduce el tamaño del cuadro gris */
+        height: 200px;
+    }
+
+    .ilustracion-escolar i {
+        font-size: 5rem; /* Reduce el tamaño del birrete */
+    }
+
+    /* --- 3. Sección de Servicios --- */
+    .seccion-servicios {
+        padding: 3rem 5%; /* Reduce el espacio a los lados */
+    }
+
+    .titulo-seccion h2 {
+        font-size: 2rem; /* Reduce el título de servicios */
+    }
+
+    /* Nota: .cuadricula-servicios ya usa grid con auto-fit, 
+       por lo que se adaptará automáticamente a 1 columna en teléfonos. */
+
+    /* --- 4. Footer Creativo --- */
+    .footer-top {
+        flex-direction: column; /* Apila las secciones del footer */
+        text-align: center;
+        gap: 2rem;
+    }
+
+    .footer-contact {
+        display: flex;
+        flex-direction: column;
+        gap: 15px;
+        align-items: center; /* Centra los elementos de contacto */
+    }
+
+    .contact-item {
+        justify-content: center;
+        text-align: center;
+        display: flex;
+        flex-direction: column; /* Pasa el ícono arriba del texto */
+        align-items: center;
+        gap: 5px;
+    }
 }

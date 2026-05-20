@@ -721,3 +721,45 @@
         justify-content: center;
     }
 }
+
+/* =========================================
+   DISEÑO RESPONSIVO - PASE DE LISTA
+========================================= */
+@media (max-width: 768px) {
+    /* El encabezado con la fecha y botón de guardar */
+    .lista-header {
+        flex-direction: column;
+        gap: 15px;
+        text-align: center;
+    }
+
+    .lista-header-actions {
+        width: 100%;
+        display: flex;
+        justify-content: center;
+    }
+
+    /* La fila de cada alumno */
+    .alumno-row {
+        flex-direction: column; /* Pasa los botones debajo del nombre */
+        align-items: flex-start;
+        gap: 12px;
+        padding: 15px;
+    }
+
+    /* El contenedor de los botones de asistencia */
+    .opciones-asistencia {
+        width: 100%;
+        display: flex;
+        justify-content: space-between; /* Distribuye los botones a lo ancho */
+        background-color: #F8FAFC;
+        padding: 10px;
+        border-radius: 10px;
+    }
+
+    /* Las estadísticas rápidas (si las tienes arriba) */
+    .stats-resumen {
+        flex-wrap: wrap;
+        justify-content: center;
+    }
+}

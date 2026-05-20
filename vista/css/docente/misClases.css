@@ -953,3 +953,36 @@
         grid-template-columns: 1fr;
     }
 }
+
+/* =========================================
+   DISEÑO RESPONSIVO - MIS CLASES
+========================================= */
+@media (max-width: 768px) {
+    /* Si el título de la sección o botones están en línea, los apilamos */
+    .clases-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 15px;
+    }
+
+    .clases-acciones {
+        width: 100%;
+        justify-content: space-between;
+    }
+
+    /* Forzamos a que las tarjetas de las clases tomen todo el ancho en celulares */
+    .grid-clases {
+        grid-template-columns: 1fr; /* 1 sola columna */
+        gap: 15px;
+    }
+
+    .clase-card-actions {
+        flex-wrap: wrap;
+        justify-content: center;
+    }
+    
+    .btn-mega {
+        width: 100%; /* Botones más fáciles de tocar en móvil */
+        justify-content: center;
+    }
+}
