@@ -625,3 +625,19 @@
         grid-template-columns: 1fr;
     }
 }
+
+/* ============================================================
+   DISEÑO RESPONSIVO (MÓVILES) - MATERIAS
+============================================================ */
+@media (max-width: 768px) {
+    .grid-materias {
+        grid-template-columns: 1fr !important; /* Obliga a 1 columna */
+        gap: 15px !important;
+    }
+
+    /* Asegurar que las tarjetas tomen el ancho completo */
+    .materia-card {
+        width: 100% !important;
+        max-width: 100% !important;
+    }
+}

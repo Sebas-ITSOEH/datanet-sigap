@@ -233,37 +233,39 @@
     color: white;
 }
 
-/* =========================================
+/* ============================================================
    DISEÑO RESPONSIVO (MÓVILES) - HISTORIAL
-========================================= */
+============================================================ */
 @media (max-width: 768px) {
-    /* Apila el título y las estadísticas */
+    /* Encabezado y resumen de asistencias */
     .historial-header {
-        flex-direction: column;
-        align-items: flex-start;
-        padding-left: 15px;
+        flex-direction: column !important;
+        align-items: flex-start !important;
+        gap: 15px !important;
     }
 
-    /* Distribuye los números de estadísticas a lo ancho */
     .historial-stats-brief {
-        width: 100%;
-        justify-content: space-between;
-        margin-top: 15px;
+        width: 100% !important;
+        justify-content: space-between !important;
+        flex-wrap: wrap !important;
+        gap: 10px !important;
     }
 
-    /* Botones de filtro ocupando todo el ancho disponible y con scroll suave */
-    .historial-filters {
-        padding-bottom: 10px;
+    .stat-mini {
+        flex: 1 1 30% !important; /* Para que quepan las 3 en fila */
+        text-align: center !important;
     }
 
-    /* Adapta las tarjetas de la línea de tiempo */
+    /* Elementos de la línea de tiempo */
     .timeline-item {
-        flex-direction: column; /* Pone la etiqueta debajo de la materia */
-        align-items: flex-start;
-        gap: 12px;
+        flex-direction: column !important;
+        align-items: flex-start !important;
+        gap: 10px !important;
     }
 
-    .item-badge {
-        align-self: flex-start; /* Mueve la etiqueta a la izquierda */
+    .item-main {
+        flex-wrap: wrap !important;
+        gap: 10px !important;
+        justify-content: flex-start !important;
     }
 }

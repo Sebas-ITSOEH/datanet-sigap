@@ -427,78 +427,119 @@ main {
     transform: translateY(-2px);
 }
 
-/* =========================================
-   DISEÑO RESPONSIVO (MÓVILES Y TABLETS)
-========================================= */
+/* ============================================================
+   DISEÑO RESPONSIVO COMPLETO Y ANTI-SCROLL (MÓVILES) - ALUMNO
+============================================================ */
 @media (max-width: 768px) {
     
-    /* 1. Quitar el encabezado fijo solo en celular */
-    .alumno-header {
-        position: relative; 
+    /* 0. MATAR EL SCROLL HORIZONTAL DE RAÍZ */
+    html, body {
+        overflow-x: hidden !important;
+        width: 100% !important;
+        max-width: 100vw !important;
     }
 
-    /* 2. Reorganizar la barra superior */
-    .nav-alumno {
-        flex-direction: column;
-        gap: 15px;
-        padding: 15px 10px;
+    *, *::before, *::after {
+        box-sizing: border-box !important;
+    }
+
+    /* 1. ENCABEZADO Y NAVEGACIÓN */
+    .alumno-header, .encabezado-principal {
+        position: relative !important; 
+        height: auto !important;
+        padding: 15px 5% !important;
+        width: 100% !important;
+    }
+
+    .nav-alumno, .contenedor-navegacion {
+        display: flex !important;
+        flex-direction: column !important;
+        align-items: center !important;
+        gap: 15px !important;
+        width: 100% !important;
+        padding: 0 !important;
     }
 
     .logotipo {
-        flex-direction: column;
-        text-align: center;
+        display: flex !important;
+        flex-direction: column !important;
+        align-items: center !important;
+        text-align: center !important;
+        gap: 10px !important;
+        width: 100% !important;
     }
 
     .brand-text {
-        margin-left: 0;
-        margin-top: 5px;
+        margin-left: 0 !important;
+        text-align: center !important;
+        align-items: center !important;
+        width: 100% !important;
     }
 
-    /* 3. Ajustar los enlaces del menú para que no se salgan de la pantalla */
-    .menu-alumno {
-        flex-wrap: wrap;
-        justify-content: center;
-        gap: 10px;
-        width: 100%;
+    .main-title {
+        font-size: 1.2rem !important;
+        white-space: normal !important;
+        line-height: 1.3 !important;
+        text-align: center !important;
     }
 
-    .menu-alumno a {
-        padding: 8px 12px;
-        font-size: 0.85rem;
+    /* 2. MENÚ DE ENLACES */
+    .menu-alumno, .menu-enlaces {
+        display: flex !important;
+        flex-direction: row !important;
+        flex-wrap: wrap !important;
+        justify-content: center !important;
+        gap: 10px !important;
+        width: 100% !important;
+        padding: 0 !important;
     }
 
-    /* 4. Centrar el perfil de usuario y el botón de salir */
+    .menu-alumno a, .menu-enlaces a {
+        padding: 8px 12px !important;
+        font-size: 0.85rem !important;
+    }
+
+    /* 3. ACCIONES DE USUARIO (PERFIL Y SALIR) */
     .acciones-usuario-portal {
-        width: 100%;
-        justify-content: center;
-        flex-wrap: wrap;
+        display: flex !important;
+        width: 100% !important;
+        justify-content: center !important;
+        align-items: center !important;
+        gap: 15px !important;
+        flex-wrap: wrap !important;
     }
 
-    /* 5. Darle más espacio al contenido en pantallas pequeñas */
-    main {
-        padding: 1.5rem 1rem;
+    /* 4. CONTENIDO PRINCIPAL */
+    main, #view-container {
+        width: 100% !important;
+        max-width: 100vw !important;
+        padding: 1.5rem 1rem !important;
+        overflow-x: hidden !important;
     }
 
-    /* 6. Reorganizar el Footer (igual que en el index principal) */
+    /* 5. PIE DE PÁGINA (FOOTER) */
     .footer-top {
-        flex-direction: column;
-        text-align: center;
-        gap: 2rem;
+        display: flex !important;
+        flex-direction: column !important;
+        align-items: center !important;
+        text-align: center !important;
+        gap: 2rem !important;
+        width: 100% !important;
     }
 
     .footer-contact {
-        display: flex;
-        flex-direction: column;
-        gap: 15px;
-        align-items: center;
+        display: flex !important;
+        flex-direction: column !important;
+        align-items: center !important;
+        gap: 15px !important;
+        width: 100% !important;
     }
 
     .contact-item {
-        justify-content: center;
-        text-align: center;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        gap: 5px;
+        display: flex !important;
+        flex-direction: column !important;
+        align-items: center !important;
+        text-align: center !important;
+        gap: 5px !important;
     }
 }

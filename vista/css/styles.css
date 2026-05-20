@@ -366,92 +366,147 @@ button {
     color: var(--color-gris-claro);
 }
 
-/* =========================================
-   DISEÑO RESPONSIVO (MÓVILES Y TABLETS)
-========================================= */
+/* ============================================================
+   DISEÑO RESPONSIVO COMPLETO Y ANTI-SCROLL (MÓVILES) - INDEX
+============================================================ */
 @media (max-width: 768px) {
     
-    /* --- Este es el nuevo código que vas a agregar --- */
-    .encabezado-principal {
-        position: relative; /* Esto hace que el menú deje de ser fijo SOLO en celular */
+    /* 0. ELIMINAR LA BARRA DE DESPLAZAMIENTO HORIZONTAL DE RAÍZ */
+    html, body {
+        overflow-x: hidden !important;
+        width: 100% !important;
+        max-width: 100vw !important;
     }
-    
-    /* --- 1. Encabezado y Navegación (El código que ya habías puesto) --- */
+
+    *, *::before, *::after {
+        box-sizing: border-box !important; /* Evita que los paddings inflen el ancho */
+    }
+
+    /* 1. ENCABEZADO PRINCIPAL (HEADER) */
+    .encabezado-principal {
+        position: relative !important; /* Desactiva el menú fijo en celular */
+        height: auto !important;
+        padding: 15px 5% !important;
+        top: 0 !important;
+    }
+
     .contenedor-navegacion {
-        flex-direction: column; 
-        gap: 1.5rem;
-        text-align: center;
+        display: flex !important;
+        flex-direction: column !important; /* Todo en fila vertical */
+        align-items: center !important;
+        gap: 15px !important;
+        width: 100% !important;
     }
 
     .logotipo {
-        flex-direction: column; /* Apila el logo y el nombre de la escuela */
-        gap: 10px;
+        display: flex !important;
+        flex-direction: column !important;
+        align-items: center !important;
+        text-align: center !important;
+        gap: 8px !important;
+    }
+
+    .brand-text {
+        margin-left: 0 !important;
+        align-items: center !important;
+        text-align: center !important;
     }
 
     .menu-enlaces {
-        flex-wrap: wrap; /* Permite que los enlaces pasen a otra línea si no caben */
-        justify-content: center;
-        gap: 1rem;
-        padding: 0;
+        display: flex !important;
+        flex-direction: row !important;
+        flex-wrap: wrap !important; /* Envía los enlaces abajo si no caben */
+        justify-content: center !important;
+        gap: 12px !important;
+        width: 100% !important;
+        padding: 0 !important;
+        list-style: none !important;
     }
 
-    /* --- 2. Sección de Bienvenida (Héroe) --- */
+    /* 2. SECCIÓN DE BIENVENIDA (HERO) */
     .seccion-bienvenida {
-        flex-direction: column; /* Pasa la imagen debajo del texto */
-        padding: 3rem 5% 2rem;  /* Reduce los márgenes laterales */
-        text-align: center;     /* Centra todo el texto */
-        gap: 2rem;
+        flex-direction: column !important; /* Imagen abajo del texto */
+        text-align: center !important;
+        padding: 2rem 5% !important;
+        gap: 2rem !important;
+        width: 100% !important;
+    }
+
+    .contenido-bienvenida {
+        max-width: 100% !important;
+        align-items: center !important;
     }
 
     .contenido-bienvenida h1 {
-        font-size: 2.2rem; /* Reduce el tamaño del título principal */
+        font-size: 1.8rem !important; /* Título adaptable */
+        white-space: normal !important; /* Permite saltos de línea */
+        line-height: 1.3 !important;
     }
 
-    .botones-bienvenida {
-        justify-content: center; /* Centra los botones (si decides descomentarlos) */
+    .contenido-bienvenida p {
+        max-width: 100% !important;
     }
 
     .ilustracion-escolar {
-        width: 200px;  /* Reduce el tamaño del cuadro gris */
-        height: 200px;
+        width: 180px !important;
+        height: 180px !important;
+        margin: 0 auto !important;
     }
 
-    .ilustracion-escolar i {
-        font-size: 5rem; /* Reduce el tamaño del birrete */
+    /* 3. ADAPTACIÓN DE FORMULARIOS DE LOGIN Y REGISTRO */
+    .login-container, .card-register {
+        flex-direction: column !important; /* Cambia de lado a lado a: arriba y abajo */
+        width: 100% !important;
+        max-width: 100% !important;
+        border-radius: 15px !important;
     }
 
-    /* --- 3. Sección de Servicios --- */
-    .seccion-servicios {
-        padding: 3rem 5%; /* Reduce el espacio a los lados */
+    .login-side, .info-side, .side-info, .form-container {
+        width: 100% !important;
+        flex: none !important;
+        padding: 30px 20px !important;
     }
 
-    .titulo-seccion h2 {
-        font-size: 2rem; /* Reduce el título de servicios */
+    .info-side, .side-info {
+        text-align: center !important;
+        align-items: center !important;
     }
 
-    /* Nota: .cuadricula-servicios ya usa grid con auto-fit, 
-       por lo que se adaptará automáticamente a 1 columna en teléfonos. */
+    .rol-selector {
+        flex-direction: column !important; /* Tarjetas de alumno/docente una abajo de la otra */
+        gap: 15px !important;
+    }
 
-    /* --- 4. Footer Creativo --- */
+    /* 4. PIE DE PÁGINA (FOOTER) */
+    .creative-footer {
+        padding-top: 2rem !important;
+        margin-top: 2rem !important;
+    }
+
     .footer-top {
-        flex-direction: column; /* Apila las secciones del footer */
-        text-align: center;
-        gap: 2rem;
+        flex-direction: column !important; /* Apila las columnas del footer */
+        text-align: center !important;
+        gap: 2rem !important;
+        width: 100% !important;
+    }
+
+    .footer-brand {
+        text-align: center !important;
     }
 
     .footer-contact {
-        display: flex;
-        flex-direction: column;
-        gap: 15px;
-        align-items: center; /* Centra los elementos de contacto */
+        display: flex !important;
+        flex-direction: column !important;
+        align-items: center !important;
+        gap: 15px !important;
+        width: 100% !important;
     }
 
     .contact-item {
-        justify-content: center;
-        text-align: center;
-        display: flex;
-        flex-direction: column; /* Pasa el ícono arriba del texto */
-        align-items: center;
-        gap: 5px;
+        display: flex !important;
+        flex-direction: column !important;
+        align-items: center !important;
+        text-align: center !important;
+        gap: 5px !important;
     }
 }

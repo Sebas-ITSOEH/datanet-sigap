@@ -236,39 +236,38 @@
     margin-left: 10px;
 }
 
-/* Responsive */
+/* ============================================================
+   DISEÑO RESPONSIVO (MÓVILES) - BIENVENIDA
+============================================================ */
 @media (max-width: 768px) {
+    /* Cuadro azul de bienvenida */
     .welcome-hero {
-        padding: 1.5rem;
+        padding: 1.5rem !important;
+        text-align: center !important;
     }
 
-    .welcome-description {
-        max-width: 100%;
-    }
-
+    /* Estadísticas del alumno (Promedio, Materias) */
     .stats-row {
-        flex-direction: column;
+        flex-wrap: wrap !important;
+        justify-content: center !important;
+        gap: 15px !important;
     }
 
     .stat-card-welcome {
-        min-width: auto;
+        width: 100% !important; /* Toman todo el ancho disponible */
+        justify-content: center !important;
     }
 
-    .notice-item {
-        flex-wrap: wrap;
-    }
-
-    .notice-date {
-        margin-left: 28px;
-    }
-}
-
-@media (max-width: 480px) {
-    .welcome-title {
-        font-size: 1.8rem;
-    }
-
+    /* Accesos rápidos (Forzamos 1 sola columna) */
     .quick-links-grid {
-        grid-template-columns: 1fr;
+        grid-template-columns: 1fr !important;
+    }
+
+    /* Tablón de avisos */
+    .notice-item {
+        flex-direction: column !important;
+        align-items: center !important;
+        text-align: center !important;
+        gap: 8px !important;
     }
 }
