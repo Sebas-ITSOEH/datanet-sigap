@@ -3,8 +3,8 @@
 class Conexion
 {
     private const HOST = 'localhost';
-    private const DB_NAME = 'datanet';
-    private const USER = 'datanet_app';
+    private const DB_NAME = 'u613901464_datanet';
+    private const USER = 'u613901464_datanet_app';
     private const PASSWORD = 'DatanetApp2026!';
     private const CHARSET = 'utf8mb4';
 
@@ -14,10 +14,11 @@ class Conexion
     {
         if (self::$conexion === null) {
             $dsn = sprintf(
-                'mysql:host=%s;dbname=%s;charset=%s',
+                'mysql:host=%s;dbname=%s;charset=%s;collation=%s',
                 self::HOST,
                 self::DB_NAME,
-                self::CHARSET
+                self::CHARSET,
+                'utf8mb4_unicode_ci'
             );
 
             self::$conexion = new PDO($dsn, self::USER, self::PASSWORD, [

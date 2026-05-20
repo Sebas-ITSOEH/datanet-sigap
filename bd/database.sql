@@ -9,7 +9,7 @@
 -- ==========================================================
 
 DROP DATABASE IF EXISTS datanet;
-CREATE DATABASE IF NOT EXISTS datanet;
+CREATE DATABASE IF NOT EXISTS datanet CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 USE datanet;
 
 -- =========================================
