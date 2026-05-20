@@ -611,7 +611,7 @@ class Docente
 
     private function obtenerOCrearGrupo($grado, $grupo)
     {
-        $nombre = trim($grado . '° ' . strtoupper($grupo));
+        $nombre = trim($grado . 'º ' . strtoupper($grupo));
         $stmt = $this->db->prepare('SELECT id_grupo FROM grupos WHERE nombre = :nombre LIMIT 1');
         $stmt->execute([':nombre' => $nombre]);
         $id = $stmt->fetchColumn();
