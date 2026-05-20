@@ -42,6 +42,122 @@ function prefecturaUrlArchivo(url) {
     if (/^https?:\/\//i.test(url) || url.startsWith('../')) return url;
     return `../${String(url).replace(/^\/+/, '')}`;
 }
+
+window.abrirExpedienteAlumno = async function (matricula, nombre, grupo, pctHtml) {
+    if (!matricula || matricula === 'N/A') {
+        Swal.fire('Sin matricula', 'No se encontro la matricula del alumno para abrir el expediente.', 'warning');
+        return;
+    }
+
+    Swal.fire({
+        title: 'Cargando Expediente...',
+        allowOutsideClick: false,
+        didOpen: () => Swal.showLoading()
+    });
+
+    try {
+        const resFiltros = await apiPrefectura('obtener_filtros_exportar');
+        let optionsMateria = '<option value="">Todas las materias</option>';
+        if (resFiltros.asignaturas) {
+            resFiltros.asignaturas.forEach(m => {
+                optionsMateria += `<option value="${prefecturaEscapeAttr(m.nombre)}">${prefecturaEscapeHTML(m.nombre)}</option>`;
+            });
+        }
+
+        function cargarTablaExpediente(f_inicio = '', f_fin = '', mat = '') {
+            const tbody = document.getElementById('tbody-expediente');
+            if (!tbody) return;
+
+            tbody.innerHTML = '<tr><td colspan="4" style="text-align:center; padding:20px;"><i class="fa-solid fa-spinner fa-spin"></i> Cargando...</td></tr>';
+
+            apiPrefectura('obtener_expediente_alumno', { query: { matricula, fecha_inicio: f_inicio, fecha_fin: f_fin, materia: mat } })
+                .then(data => {
+                    let trs = '';
+                    if (!data.historial || data.historial.length === 0) {
+                        trs = '<tr><td colspan="4" style="text-align:center; padding: 20px; color:#64748B;">No hay registros para este filtro.</td></tr>';
+                    } else {
+                        data.historial.forEach(h => {
+                            let badge = '';
+                            if (h.estado_final === 'presente') badge = '<span class="badge success">Presente</span>';
+                            else if (h.estado_final === 'falta') badge = '<span class="badge danger">Falta</span>';
+                            else if (h.estado_final === 'retardo') badge = '<span class="badge warning">Retardo</span>';
+                            else badge = `<span class="badge info" style="text-transform: capitalize;">${prefecturaEscapeHTML(h.estado_final)}</span>`;
+
+                            trs += `<tr>
+                                <td><i class="fa-regular fa-calendar" style="color:#64748B;"></i> ${prefecturaEscapeHTML(h.fecha_fmt)}</td>
+                                <td><strong>${prefecturaEscapeHTML(h.materia)}</strong></td>
+                                <td><i class="fa-regular fa-clock" style="color:#64748B;"></i> ${prefecturaEscapeHTML(h.hora)}</td>
+                                <td>${badge}</td>
+                            </tr>`;
+                        });
+                    }
+                    tbody.innerHTML = trs;
+                })
+                .catch(err => {
+                    console.error(err);
+                    tbody.innerHTML = '<tr><td colspan="4" style="text-align:center; color:red;">Error al cargar datos.</td></tr>';
+                });
+        }
+
+        const modalHtml = `
+            <div class="expediente-header">
+                <div class="expediente-info">
+                    <img src="https://ui-avatars.com/api/?name=${encodeURIComponent(nombre)}&background=D6A848&color=192A56&size=54">
+                    <div>
+                        <h3>${prefecturaEscapeHTML(nombre)}</h3>
+                        <p>Grupo: <strong>${prefecturaEscapeHTML(grupo)}</strong> | Matricula: <strong>${prefecturaEscapeHTML(matricula)}</strong></p>
+                    </div>
+                </div>
+                <div class="expediente-badge">${pctHtml || ''}</div>
+            </div>
+
+            <div class="expediente-filtros">
+                <div class="filtro-fecha">
+                    <label>Materia:</label>
+                    <select id="exp-materia">${optionsMateria}</select>
+                </div>
+                <div class="filtro-fecha"><label>Desde:</label><input type="date" id="exp-fecha-inicio"></div>
+                <div class="filtro-fecha"><label>Hasta:</label><input type="date" id="exp-fecha-fin"></div>
+                <button id="btn-filtrar-exp" class="btn-filtrar-mini"><i class="fa-solid fa-filter"></i> Filtrar</button>
+                <button id="btn-limpiar-exp" class="btn-limpiar-mini" title="Limpiar"><i class="fa-solid fa-rotate-right"></i></button>
+            </div>
+
+            <h4 class="expediente-subtitle"><i class="fa-solid fa-list-check"></i> Registros de Asistencia</h4>
+
+            <div class="expediente-table-container">
+                <table class="expediente-table">
+                    <thead><tr><th>Fecha</th><th>Materia</th><th>Hora</th><th>Estado</th></tr></thead>
+                    <tbody id="tbody-expediente"></tbody>
+                </table>
+            </div>
+        `;
+
+        Swal.fire({
+            title: '',
+            html: modalHtml,
+            width: 750,
+            showCloseButton: true,
+            confirmButtonText: '<i class="fa-solid fa-check"></i> Entendido',
+            confirmButtonColor: '#192A56',
+            customClass: { popup: 'swal-solicitud-popup modal-expediente-fix', closeButton: 'btn-close-fix' },
+            didOpen: () => {
+                cargarTablaExpediente();
+                document.getElementById('btn-filtrar-exp').addEventListener('click', () => {
+                    cargarTablaExpediente(document.getElementById('exp-fecha-inicio').value, document.getElementById('exp-fecha-fin').value, document.getElementById('exp-materia').value);
+                });
+                document.getElementById('btn-limpiar-exp').addEventListener('click', () => {
+                    document.getElementById('exp-fecha-inicio').value = '';
+                    document.getElementById('exp-fecha-fin').value = '';
+                    document.getElementById('exp-materia').value = '';
+                    cargarTablaExpediente();
+                });
+            }
+        });
+    } catch (error) {
+        console.error(error);
+        Swal.fire('Error', 'No se pudo cargar el expediente.', 'error');
+    }
+};
 // ===================================
 
 document.addEventListener('DOMContentLoaded', function () {
@@ -1034,6 +1150,7 @@ function initControlLogic() {
     // ==========================================
     // FUNCIÓN GLOBAL: ABRIR EXPEDIENTE DE ALUMNO
     // ==========================================
+    if (!window.abrirExpedienteAlumno) {
     window.abrirExpedienteAlumno = async function (matricula, nombre, grupo, pctHtml) {
         Swal.fire({
             title: 'Cargando Expediente...',
@@ -1137,6 +1254,7 @@ function initControlLogic() {
             Swal.fire('Error', 'No se pudo cargar el expediente.', 'error');
         }
     };
+    }
 
     function initHistorialLogic() {
         var sh = document.getElementById('searchHistorial'), fe = document.getElementById('filtro-estado-historial'), th = document.getElementById('tabla-historial');
@@ -1145,11 +1263,56 @@ function initControlLogic() {
         if (sh) sh.addEventListener('input', filtrar); if (fe) fe.addEventListener('change', filtrar);
     }
 
+    let filtrosEstadisticasListos = false;
+
+    async function configurarFiltrosEstadisticas() {
+        if (filtrosEstadisticasListos) return;
+
+        const selectTrimestre = document.getElementById('filtro-trimestre');
+        const selectAnio = document.getElementById('filtro-anio');
+        if (!selectTrimestre || !selectAnio) return;
+
+        try {
+            const data = await apiPrefectura('obtener_configuracion');
+            const conf = data.configuracion || {};
+            const periodos = [
+                { valor: '1', inicio: conf.trim1_inicio, fin: conf.trim1_fin },
+                { valor: '2', inicio: conf.trim2_inicio, fin: conf.trim2_fin },
+                { valor: '3', inicio: conf.trim3_inicio, fin: conf.trim3_fin }
+            ];
+            const hoy = new Date();
+            let trimestreActivo = '3';
+            let anioActivo = hoy.getFullYear();
+
+            selectTrimestre.innerHTML = periodos.map(p => {
+                const inicio = p.inicio ? new Date(`${p.inicio}T00:00:00`) : null;
+                const fin = p.fin ? new Date(`${p.fin}T23:59:59`) : null;
+                if (inicio && fin && hoy >= inicio && hoy <= fin) {
+                    trimestreActivo = p.valor;
+                    anioActivo = fin.getFullYear();
+                }
+                const etiquetaRango = p.inicio && p.fin ? ` (${p.inicio} al ${p.fin})` : '';
+                return `<option value="${p.valor}">${p.valor}° Trimestre${etiquetaRango}</option>`;
+            }).join('');
+
+            selectTrimestre.value = trimestreActivo;
+            if (![...selectAnio.options].some(opt => opt.value === String(anioActivo))) {
+                selectAnio.insertAdjacentHTML('beforeend', `<option value="${anioActivo}">${anioActivo}</option>`);
+            }
+            selectAnio.value = String(anioActivo);
+        } catch (error) {
+            console.error('Error al configurar filtros de estadisticas:', error);
+        } finally {
+            filtrosEstadisticasListos = true;
+        }
+    }
+
     // === CARGAR ESTADÍSTICAS DESDE LA BD ===
     async function cargarEstadisticas() {
         try {
-            const trimestre = document.getElementById('filtro-trimestre').value || 2;
-            const anio = document.getElementById('filtro-anio').value || 2025;
+            await configurarFiltrosEstadisticas();
+            const trimestre = document.getElementById('filtro-trimestre').value || 3;
+            const anio = document.getElementById('filtro-anio').value || new Date().getFullYear();
 
             const data = await apiPrefectura('obtener_estadisticas', { query: { trimestre, anio } });
             const tbody = document.querySelector('#tabla-estadisticas-grupos tbody');

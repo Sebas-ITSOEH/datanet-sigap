@@ -33,6 +33,26 @@ class ModeloPrefectura {
         return trim(preg_replace('/\s*<!--METADATA:.*?:METADATA-->/s', '', $descripcion ?? ''));
     }
 
+    private static function obtenerRangoTrimestre($trimestre, $anio = null) {
+        $trimestre = max(1, min(3, (int)$trimestre));
+        $config = self::mdlObtenerConfiguracion();
+
+        $inicio = $config["trim{$trimestre}_inicio"] ?? null;
+        $fin = $config["trim{$trimestre}_fin"] ?? null;
+
+        if ($inicio && $fin) {
+            return [$inicio, $fin];
+        }
+
+        $anio = (int)($anio ?: date('Y'));
+        $anioAnterior = $anio - 1;
+        switch ($trimestre) {
+            case 1: return ["$anioAnterior-08-01", "$anioAnterior-11-30"];
+            case 2: return ["$anioAnterior-12-01", "$anio-03-31"];
+            default: return ["$anio-04-01", "$anio-07-31"];
+        }
+    }
+
     // ============================================================
     // LISTAR SOLICITUDES CON CRUCE DE MATERIAS AFECTADAS
     // ============================================================
@@ -269,11 +289,14 @@ class ModeloPrefectura {
     // ============================================================
     public static function mdlObtenerEstadisticasGrupos($trimestre, $anio) {
         $pdo = Conexion::conectar();
+        $trimestre = max(1, min(3, (int)$trimestre));
         $stmt = $pdo->prepare("CALL rpt_asistencia_por_grupo_trimestral(:trimestre, :anio)");
         $stmt->bindParam(":trimestre", $trimestre, PDO::PARAM_INT);
         $stmt->bindParam(":anio", $anio, PDO::PARAM_INT);
         $stmt->execute();
-        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+        $datos = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        $stmt->closeCursor();
+        return $datos;
     }
 
     // ============================================================
@@ -405,15 +428,7 @@ class ModeloPrefectura {
     public static function mdlObtenerRiesgoPorGrupo($trimestre, $anio, $grupo) {
         $pdo = Conexion::conectar();
         
-        $fecha_inicio = '';
-        $fecha_fin = '';
-        
-        switch ($trimestre) {
-            case 1: $fecha_inicio = "$anio-01-01"; $fecha_fin = "$anio-03-31"; break;
-            case 2: $fecha_inicio = "$anio-04-01"; $fecha_fin = "$anio-06-30"; break;
-            case 3: $fecha_inicio = "$anio-07-01"; $fecha_fin = "$anio-09-30"; break;
-            case 4: $fecha_inicio = "$anio-10-01"; $fecha_fin = "$anio-12-31"; break;
-        }
+        [$fecha_inicio, $fecha_fin] = self::obtenerRangoTrimestre($trimestre, $anio);
 
         $sql = "
             SELECT 

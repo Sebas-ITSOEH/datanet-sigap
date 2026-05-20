@@ -74,8 +74,8 @@ try {
         }
     }
     elseif ($accion === 'obtener_estadisticas' && $metodo === 'GET') {
-        $trimestre = isset($_GET['trimestre']) ? (int)$_GET['trimestre'] : 2;
-        $anio = isset($_GET['anio']) ? (int)$_GET['anio'] : 2025; // Tu base de datos de prueba está en 2025
+        $trimestre = isset($_GET['trimestre']) ? (int)$_GET['trimestre'] : 3;
+        $anio = isset($_GET['anio']) ? (int)$_GET['anio'] : (int)date('Y');
         $respuesta = [
             'ok' => true, 
             'estadisticas' => ModeloPrefectura::mdlObtenerEstadisticasGrupos($trimestre, $anio)
@@ -126,8 +126,8 @@ try {
         ];
     }
     elseif ($accion === 'obtener_riesgo_grupo' && $metodo === 'GET') {
-        $trimestre = isset($_GET['trimestre']) ? (int)$_GET['trimestre'] : 2;
-        $anio = isset($_GET['anio']) ? (int)$_GET['anio'] : 2025;
+        $trimestre = isset($_GET['trimestre']) ? (int)$_GET['trimestre'] : 3;
+        $anio = isset($_GET['anio']) ? (int)$_GET['anio'] : (int)date('Y');
         $grupo = $_GET['grupo'] ?? '';
 
         if (!$grupo) throw new Exception('No se especificó el grupo.');
